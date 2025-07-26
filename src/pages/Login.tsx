@@ -3,19 +3,23 @@ import { Building2 } from "lucide-react";
 import LoginForm from "@/components/auth/LoginForm";
 import BirthdaySection from "@/components/birthday/BirthdaySection";
 import useScrollEffect from "@/hooks/useScrollEffect";
-
 const Login = () => {
   const scrollOffset = useScrollEffect(0.15, 25);
   console.log('Scroll offset:', scrollOffset); // Debug log
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-muted/50 font-poppins relative overflow-hidden">
+  return <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-muted/50 font-poppins relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-10 w-32 h-32 bg-primary/5 rounded-full blur-xl animate-float"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-accent/5 rounded-full blur-lg animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-20 left-20 w-40 h-40 bg-secondary/5 rounded-full blur-2xl animate-float" style={{animationDelay: '4s'}}></div>
-        <div className="absolute bottom-40 right-10 w-28 h-28 bg-primary/3 rounded-full blur-xl animate-float" style={{animationDelay: '1s'}}></div>
+        <div className="absolute top-40 right-20 w-24 h-24 bg-accent/5 rounded-full blur-lg animate-float" style={{
+        animationDelay: '2s'
+      }}></div>
+        <div className="absolute bottom-20 left-20 w-40 h-40 bg-secondary/5 rounded-full blur-2xl animate-float" style={{
+        animationDelay: '4s'
+      }}></div>
+        <div className="absolute bottom-40 right-10 w-28 h-28 bg-primary/3 rounded-full blur-xl animate-float" style={{
+        animationDelay: '1s'
+      }}></div>
       </div>
 
       {/* Enhanced Logo Header */}
@@ -40,13 +44,10 @@ const Login = () => {
           
           {/* Login Form Container */}
           <div className="flex-1 flex items-center justify-center px-8 py-4">
-            <div 
-              className="w-full max-w-sm animate-fade-in-up transition-transform duration-300 ease-out form-scroll-float" 
-              style={{
-                animationDelay: '0.3s',
-                transform: `translateY(${scrollOffset}px)`
-              }}
-            >
+            <div style={{
+            animationDelay: '0.3s',
+            transform: `translateY(${scrollOffset}px)`
+          }} className="w-full max-w-sm animate-fade-in-up transition-transform duration-300 ease-out form-scroll-float mx-0 px-0 py-0 my-[20px]">
               <div className="text-center mb-10">
                 <h1 className="text-3xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   Acesso ao Sistema
@@ -74,16 +75,18 @@ const Login = () => {
           
           {/* Floating Elements */}
           <div className="absolute top-16 right-16 w-20 h-20 bg-accent/10 rounded-2xl rotate-12 animate-float opacity-50"></div>
-          <div className="absolute bottom-20 right-8 w-16 h-16 bg-primary/10 rounded-full animate-float opacity-60" style={{animationDelay: '3s'}}></div>
+          <div className="absolute bottom-20 right-8 w-16 h-16 bg-primary/10 rounded-full animate-float opacity-60" style={{
+          animationDelay: '3s'
+        }}></div>
           
           {/* Content */}
-          <div className="relative z-10 w-full max-w-md animate-slide-in-right" style={{animationDelay: '0.6s'}}>
+          <div className="relative z-10 w-full max-w-md animate-slide-in-right" style={{
+          animationDelay: '0.6s'
+        }}>
             <BirthdaySection />
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Login;
