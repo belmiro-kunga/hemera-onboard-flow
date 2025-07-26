@@ -5,7 +5,8 @@ import BirthdaySection from "@/components/birthday/BirthdaySection";
 import useScrollEffect from "@/hooks/useScrollEffect";
 
 const Login = () => {
-  const scrollOffset = useScrollEffect(0.08, 15);
+  const scrollOffset = useScrollEffect(0.15, 25);
+  console.log('Scroll offset:', scrollOffset); // Debug log
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-muted/50 font-poppins relative overflow-hidden">
@@ -38,9 +39,9 @@ const Login = () => {
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary opacity-30"></div>
           
           {/* Login Form Container */}
-          <div className="flex-1 flex items-center justify-center px-8 py-12">
+          <div className="flex-1 flex items-center justify-center px-8 py-4">
             <div 
-              className="w-full max-w-sm animate-fade-in-up transition-transform duration-300 ease-out" 
+              className="w-full max-w-sm animate-fade-in-up transition-transform duration-300 ease-out form-scroll-float" 
               style={{
                 animationDelay: '0.3s',
                 transform: `translateY(${scrollOffset}px)`
