@@ -7,24 +7,9 @@ const Login = () => {
   const scrollOffset = useScrollEffect(0.15, 25);
   console.log('Scroll offset:', scrollOffset); // Debug log
 
-  return <div 
-      className="min-h-screen font-poppins relative overflow-hidden"
-      style={{
-        backgroundImage: `url('/lovable-uploads/3b816e75-ad3b-46cf-8bb3-62b314414c40.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-        backgroundRepeat: 'no-repeat'
-      }}
-    >
-      {/* Background Overlay for Contrast */}
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-[0.5px]"></div>
-      
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background/40 via-background/20 to-background/40"></div>
-
+  return <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-muted/50 font-poppins relative overflow-hidden">
       {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden z-10">
+      <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-10 w-32 h-32 bg-primary/5 rounded-full blur-xl animate-float"></div>
         <div className="absolute top-40 right-20 w-24 h-24 bg-accent/5 rounded-full blur-lg animate-float" style={{
         animationDelay: '2s'
@@ -39,7 +24,7 @@ const Login = () => {
 
       {/* Enhanced Logo Header */}
       <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-20 animate-fade-in-up">
-        <div className="flex items-center gap-4 p-4 rounded-2xl bg-card/95 backdrop-blur-lg shadow-2xl border border-border/60">
+        <div className="flex items-center gap-4 p-4 rounded-2xl bg-card/80 backdrop-blur-md shadow-elegant border border-border/50">
           <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30 shadow-glow animate-pulse">
             <Building2 className="h-7 w-7 text-primary" />
           </div>
@@ -53,7 +38,7 @@ const Login = () => {
       {/* Split Screen Layout */}
       <div className="flex min-h-screen pt-16">
         {/* Left Pane - Login Form (45%) */}
-        <div className="flex-[0_0_45%] bg-gradient-to-br from-background/30 via-background/20 to-background/30 backdrop-blur-sm flex flex-col relative z-20">
+        <div className="flex-[0_0_45%] bg-gradient-to-br from-muted/20 via-background to-muted/40 flex flex-col relative">
           {/* Decorative Elements */}
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary opacity-30"></div>
           
@@ -73,7 +58,7 @@ const Login = () => {
                 <div className="mt-4 w-16 h-1 bg-gradient-to-r from-primary to-accent mx-auto rounded-full"></div>
               </div>
               
-              <Card className="shadow-2xl border-0 bg-card/98 backdrop-blur-lg hover:shadow-glow transition-all duration-500 hover:scale-[1.02] border border-border/30">
+              <Card className="shadow-2xl border-0 bg-card/95 backdrop-blur-md hover:shadow-glow transition-all duration-500 hover:scale-[1.02]">
                 <CardContent className="p-10">
                   <LoginForm />
                 </CardContent>
@@ -83,7 +68,7 @@ const Login = () => {
         </div>
 
         {/* Right Pane - Birthday Section (55%) */}
-        <div className="flex-[0_0_55%] bg-gradient-to-bl from-background/30 via-background/20 to-background/30 backdrop-blur-sm flex items-center justify-center p-8 relative z-20">
+        <div className="flex-[0_0_55%] bg-gradient-to-bl from-muted/20 via-background to-muted/40 flex items-center justify-center p-8 relative">
           {/* Decorative Elements */}
           <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-l from-accent via-primary to-accent opacity-30"></div>
           <div className="absolute inset-0 bg-gradient-to-r from-background/30 to-transparent"></div>
