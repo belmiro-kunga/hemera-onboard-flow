@@ -62,42 +62,54 @@ const LoginForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
       {/* Email Field */}
-      <div className="space-y-2">
-        <Label htmlFor="email" className="text-sm font-medium">Email Corporativo</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="seu.nome@hcp.com"
-          {...register("email")}
-          className={`rounded-3xl border bg-background px-5 py-3 text-sm transition-all focus:border-primary focus:ring-0 ${
-            errors.email ? "border-destructive" : "border-border"
-          }`}
-        />
+      <div className="space-y-3 animate-fade-in-up" style={{animationDelay: '0.1s'}}>
+        <Label htmlFor="email" className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <div className="w-1 h-4 bg-gradient-to-b from-primary to-accent rounded-full"></div>
+          Email Corporativo
+        </Label>
+        <div className="relative group">
+          <Input
+            id="email"
+            type="email"
+            placeholder="seu.nome@hcp.com"
+            {...register("email")}
+            className={`rounded-2xl border bg-background/80 backdrop-blur-sm px-6 py-4 text-sm transition-all duration-300 focus:border-primary focus:ring-0 focus:shadow-glow hover:shadow-md group-hover:border-primary/50 ${
+              errors.email ? "border-destructive animate-shake" : "border-border"
+            }`}
+          />
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+        </div>
         {errors.email && (
-          <p className="text-sm text-destructive">{errors.email.message}</p>
+          <p className="text-sm text-destructive flex items-center gap-2 animate-fade-in">
+            <div className="w-1 h-1 bg-destructive rounded-full"></div>
+            {errors.email.message}
+          </p>
         )}
       </div>
 
       {/* Password Field */}
-      <div className="space-y-2">
-        <Label htmlFor="password" className="text-sm font-medium">Senha</Label>
-        <div className="relative">
+      <div className="space-y-3 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+        <Label htmlFor="password" className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <div className="w-1 h-4 bg-gradient-to-b from-primary to-accent rounded-full"></div>
+          Senha
+        </Label>
+        <div className="relative group">
           <Input
             id="password"
             type={showPassword ? "text" : "password"}
             placeholder="Digite sua senha"
             {...register("password")}
-            className={`rounded-3xl border bg-background px-5 py-3 pr-12 text-sm transition-all focus:border-primary focus:ring-0 ${
-              errors.password ? "border-destructive" : "border-border"
+            className={`rounded-2xl border bg-background/80 backdrop-blur-sm px-6 py-4 pr-14 text-sm transition-all duration-300 focus:border-primary focus:ring-0 focus:shadow-glow hover:shadow-md group-hover:border-primary/50 ${
+              errors.password ? "border-destructive animate-shake" : "border-border"
             }`}
           />
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-primary/10 rounded-full transition-all duration-200 hover:scale-110"
             onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? (
@@ -106,37 +118,43 @@ const LoginForm = () => {
               <Eye className="h-4 w-4 text-muted-foreground" />
             )}
           </Button>
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
         </div>
         {errors.password && (
-          <p className="text-sm text-destructive">{errors.password.message}</p>
+          <p className="text-sm text-destructive flex items-center gap-2 animate-fade-in">
+            <div className="w-1 h-1 bg-destructive rounded-full"></div>
+            {errors.password.message}
+          </p>
         )}
       </div>
 
       {/* Login Button */}
-      <Button
-        type="submit"
-        className="w-full rounded-3xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-5 transition-all duration-300 hover:scale-[1.02]"
-        size="lg"
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Entrando...
-          </>
-        ) : (
-          <>
-            <LogIn className="h-4 w-4" />
-            Entrar
-          </>
-        )}
-      </Button>
+      <div className="pt-4 animate-fade-in-up" style={{animationDelay: '0.3s'}}>
+        <Button
+          type="submit"
+          className="w-full rounded-2xl bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground font-bold py-4 px-6 text-base transition-all duration-300 hover:scale-[1.02] hover:shadow-glow disabled:opacity-60 disabled:hover:scale-100 group"
+          size="lg"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <div className="flex items-center gap-3">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span>Entrando...</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 group-hover:gap-4 transition-all duration-300">
+              <LogIn className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
+              <span>Entrar no Sistema</span>
+            </div>
+          )}
+        </Button>
+      </div>
 
       {/* Links */}
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-3 pt-4 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
         <button
           type="button"
-          className="text-sm text-primary hover:underline"
+          className="text-sm text-primary hover:text-accent transition-all duration-300 hover:scale-105 story-link"
           onClick={() => toast({
             title: "Recuperação de senha",
             description: "Entre em contato com o suporte para redefinir sua senha.",
@@ -148,7 +166,7 @@ const LoginForm = () => {
           Não tem acesso?{" "}
           <button
             type="button"
-            className="text-primary hover:underline"
+            className="text-primary hover:text-accent transition-all duration-300 hover:scale-105 story-link"
             onClick={() => toast({
               title: "Solicitar acesso",
               description: "Entre em contato com o RH para solicitar acesso ao sistema.",

@@ -111,43 +111,62 @@ const BirthdaySection = () => {
   const todayBirthdays = upcomingBirthdays.filter(emp => emp.isToday);
 
   return (
-    <Card className="w-full shadow-lg border-0 bg-card/90 backdrop-blur-sm">
-      <CardHeader className="text-center pb-4">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20">
-            <Cake className="h-6 w-6 text-primary" />
-          </div>
-          <CardTitle className="text-xl font-semibold text-foreground">Aniversariantes</CardTitle>
-        </div>
+    <Card className="w-full shadow-2xl border-0 bg-card/95 backdrop-blur-md hover:shadow-glow transition-all duration-500 hover:scale-[1.01]">
+      <CardHeader className="text-center pb-6 relative overflow-hidden">
+        {/* Decorative Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/5 opacity-50"></div>
         
-        <div className="flex items-center justify-center gap-2">
-          <Badge variant="secondary" className="gap-1">
-            <Gift className="h-3 w-3" />
-            Próximos 5 dias
-          </Badge>
-          {todayBirthdays.length > 0 && (
-            <Badge variant="default" className="gap-1 animate-pulse">
-              <Cake className="h-3 w-3" />
-              {todayBirthdays.length} hoje!
+        <div className="relative z-10">
+          <div className="flex items-center justify-center gap-3 mb-4 animate-fade-in-up">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30 shadow-lg animate-pulse">
+              <Cake className="h-7 w-7 text-primary" />
+            </div>
+            <CardTitle className="text-2xl font-bold text-foreground bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Aniversariantes
+            </CardTitle>
+          </div>
+          
+          <div className="flex items-center justify-center gap-3 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+            <Badge variant="secondary" className="gap-2 px-3 py-1.5 hover:scale-105 transition-transform duration-200">
+              <Gift className="h-4 w-4" />
+              Próximos 5 dias
             </Badge>
-          )}
+            {todayBirthdays.length > 0 && (
+              <Badge variant="default" className="gap-2 px-3 py-1.5 animate-pulse hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary to-accent">
+                <Cake className="h-4 w-4" />
+                {todayBirthdays.length} hoje!
+              </Badge>
+            )}
+          </div>
+          
+          {/* Decorative Line */}
+          <div className="mt-4 w-20 h-1 bg-gradient-to-r from-primary via-accent to-primary mx-auto rounded-full"></div>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4 px-6 pb-6">
         {upcomingBirthdays.length > 0 ? (
-          upcomingBirthdays.map((employee) => (
-            <BirthdayCard
-              key={employee.id}
-              employee={employee}
-              isToday={employee.isToday}
-              daysUntil={employee.daysUntil}
-            />
+          upcomingBirthdays.map((employee, index) => (
+            <div 
+              key={employee.id} 
+              className="animate-fade-in-up"
+              style={{animationDelay: `${0.3 + index * 0.1}s`}}
+            >
+              <BirthdayCard
+                employee={employee}
+                isToday={employee.isToday}
+                daysUntil={employee.daysUntil}
+              />
+            </div>
           ))
         ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <Cake className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">Nenhum aniversário próximo</p>
+          <div className="text-center py-12 text-muted-foreground animate-fade-in-up">
+            <div className="relative">
+              <Cake className="h-16 w-16 mx-auto mb-4 opacity-30 animate-float" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-16 bg-primary/10 rounded-full blur-xl"></div>
+            </div>
+            <p className="text-base font-medium">Nenhum aniversário próximo</p>
+            <p className="text-sm mt-1">Mas sempre há motivos para celebrar! 🎉</p>
           </div>
         )}
       </CardContent>
