@@ -162,19 +162,6 @@ const LoginForm = () => {
         >
           Esqueci minha senha
         </button>
-        <div className="text-sm text-muted-foreground">
-          Não tem acesso?{" "}
-          <button
-            type="button"
-            className="text-primary hover:text-accent transition-all duration-300 hover:scale-105 story-link"
-            onClick={() => toast({
-              title: "Solicitar acesso",
-              description: "Entre em contato com o RH para solicitar acesso ao sistema.",
-            })}
-          >
-            Solicitar acesso
-          </button>
-        </div>
       </div>
     </form>
   );
