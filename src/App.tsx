@@ -10,6 +10,7 @@ import Modules from "./pages/Modules";
 import ModulePlayer from "./pages/ModulePlayer";
 import ProgressPage from "./pages/Progress";
 import AdminLayout from "./pages/admin/AdminLayout";
+import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement";
 import VideoLibrary from "./pages/admin/VideoLibrary";
@@ -29,6 +30,9 @@ const App = () => (
           <Route path="/modules" element={<Modules />} />
           <Route path="/modules/:moduleId" element={<ModulePlayer />} />
           <Route path="/progress" element={<ProgressPage />} />
+          
+          {/* Admin Login */}
+          <Route path="/admin/login" element={<AdminLogin />} />
           
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout />}>
