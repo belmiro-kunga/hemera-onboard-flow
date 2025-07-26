@@ -22,9 +22,9 @@ const Login = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 pb-8">
-        <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+        <div className="flex flex-col lg:flex-row items-start justify-center gap-8 max-w-6xl mx-auto">
           {/* Login Section */}
-          <div className="flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center">
             <Card className="w-full max-w-md shadow-elegant">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl text-foreground">Acesso ao Sistema</CardTitle>
@@ -37,15 +37,15 @@ const Login = () => {
           </div>
 
           {/* Separator */}
-          <div className="flex items-center justify-center lg:hidden">
+          <div className="flex items-center justify-center lg:hidden w-full">
             <Separator className="w-full" />
           </div>
-          <div className="hidden lg:flex items-center justify-center">
+          <div className="hidden lg:flex items-center">
             <Separator orientation="vertical" className="h-96" />
           </div>
 
           {/* Birthday Section */}
-          <div className="flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center">
             <BirthdaySection />
           </div>
         </div>
