@@ -104,7 +104,7 @@ const BirthdaySection = () => {
         };
       })
       .sort((a, b) => a.daysUntil - b.daysUntil)
-      .slice(0, 5);
+      .slice(0, 4);
   };
 
   const upcomingBirthdays = getUpcomingBirthdays();
@@ -129,7 +129,7 @@ const BirthdaySection = () => {
           <div className="flex items-center justify-center gap-3 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
             <Badge variant="secondary" className="gap-2 px-3 py-1.5 hover:scale-105 transition-transform duration-200">
               <Gift className="h-4 w-4" />
-              Próximos 5 dias
+              Próximos 4 dias
             </Badge>
             {todayBirthdays.length > 0 && (
               <Badge variant="default" className="gap-2 px-3 py-1.5 animate-pulse hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary to-accent">
