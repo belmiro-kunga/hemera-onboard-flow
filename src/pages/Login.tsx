@@ -2,8 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2 } from "lucide-react";
 import LoginForm from "@/components/auth/LoginForm";
 import BirthdaySection from "@/components/birthday/BirthdaySection";
+import useScrollEffect from "@/hooks/useScrollEffect";
 
 const Login = () => {
+  const scrollOffset = useScrollEffect(0.08, 15);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-muted/50 font-poppins relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -36,7 +39,13 @@ const Login = () => {
           
           {/* Login Form Container */}
           <div className="flex-1 flex items-center justify-center px-8 py-12">
-            <div className="w-full max-w-sm animate-fade-in-up" style={{animationDelay: '0.3s'}}>
+            <div 
+              className="w-full max-w-sm animate-fade-in-up transition-transform duration-300 ease-out" 
+              style={{
+                animationDelay: '0.3s',
+                transform: `translateY(${scrollOffset}px)`
+              }}
+            >
               <div className="text-center mb-10">
                 <h1 className="text-3xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   Acesso ao Sistema
