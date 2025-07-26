@@ -111,13 +111,13 @@ const BirthdaySection = () => {
   const todayBirthdays = upcomingBirthdays.filter(emp => emp.isToday);
 
   return (
-    <Card className="w-full max-w-md shadow-elegant">
+    <Card className="w-full shadow-lg border-0 bg-card/90 backdrop-blur-sm">
       <CardHeader className="text-center pb-4">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Cake className="h-5 w-5 text-primary" />
+          <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20">
+            <Cake className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-xl text-foreground">Aniversariantes</CardTitle>
+          <CardTitle className="text-xl font-semibold text-foreground">Aniversariantes</CardTitle>
         </div>
         
         <div className="flex items-center justify-center gap-2">

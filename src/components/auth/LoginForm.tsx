@@ -65,13 +65,15 @@ const LoginForm = () => {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Email Field */}
       <div className="space-y-2">
-        <Label htmlFor="email">Email Corporativo</Label>
+        <Label htmlFor="email" className="text-sm font-medium">Email Corporativo</Label>
         <Input
           id="email"
           type="email"
           placeholder="seu.nome@hcp.com"
           {...register("email")}
-          className={errors.email ? "border-destructive" : ""}
+          className={`rounded-3xl border bg-background px-5 py-3 text-sm transition-all focus:border-primary focus:ring-0 ${
+            errors.email ? "border-destructive" : "border-border"
+          }`}
         />
         {errors.email && (
           <p className="text-sm text-destructive">{errors.email.message}</p>
@@ -80,14 +82,16 @@ const LoginForm = () => {
 
       {/* Password Field */}
       <div className="space-y-2">
-        <Label htmlFor="password">Senha</Label>
+        <Label htmlFor="password" className="text-sm font-medium">Senha</Label>
         <div className="relative">
           <Input
             id="password"
             type={showPassword ? "text" : "password"}
             placeholder="Digite sua senha"
             {...register("password")}
-            className={errors.password ? "border-destructive pr-10" : "pr-10"}
+            className={`rounded-3xl border bg-background px-5 py-3 pr-12 text-sm transition-all focus:border-primary focus:ring-0 ${
+              errors.password ? "border-destructive" : "border-border"
+            }`}
           />
           <Button
             type="button"
@@ -111,8 +115,7 @@ const LoginForm = () => {
       {/* Login Button */}
       <Button
         type="submit"
-        className="w-full"
-        variant="corporate"
+        className="w-full rounded-3xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-5 transition-all duration-300 hover:scale-[1.02]"
         size="lg"
         disabled={isLoading}
       >

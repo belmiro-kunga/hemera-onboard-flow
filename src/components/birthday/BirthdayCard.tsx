@@ -39,7 +39,7 @@ const BirthdayCard = ({ employee, isToday, daysUntil }: BirthdayCardProps) => {
   };
 
   return (
-    <Card className={`transition-all duration-300 hover:shadow-lg hover:scale-105 ${
+    <Card className={`transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border-0 bg-card/80 backdrop-blur-sm ${
       isToday ? "ring-2 ring-primary shadow-glow" : ""
     }`}>
       <CardContent className="p-4">
