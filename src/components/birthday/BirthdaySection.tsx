@@ -104,7 +104,7 @@ const BirthdaySection = () => {
         };
       })
       .sort((a, b) => a.daysUntil - b.daysUntil)
-      .slice(0, 6);
+      .slice(0, 5);
   };
 
   const upcomingBirthdays = getUpcomingBirthdays();
@@ -123,7 +123,7 @@ const BirthdaySection = () => {
         <div className="flex items-center justify-center gap-2">
           <Badge variant="secondary" className="gap-1">
             <Gift className="h-3 w-3" />
-            Próximos 6 dias
+            Próximos 5 dias
           </Badge>
           {todayBirthdays.length > 0 && (
             <Badge variant="default" className="gap-1 animate-pulse">
