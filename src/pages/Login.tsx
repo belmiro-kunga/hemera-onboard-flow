@@ -5,7 +5,7 @@ import BirthdaySection from "@/components/birthday/BirthdaySection";
 
 const Login = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-accent/5 font-poppins">
+    <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-muted/50 font-poppins">
       {/* Centered Logo Header */}
       <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-10">
         <div className="flex items-center gap-3">
@@ -22,7 +22,7 @@ const Login = () => {
       {/* Split Screen Layout */}
       <div className="flex min-h-screen pt-24">
         {/* Left Pane - Login Form (45%) */}
-        <div className="flex-[0_0_45%] bg-gradient-to-br from-background via-background to-accent/10 flex flex-col">
+        <div className="flex-[0_0_45%] bg-gradient-to-br from-muted/20 via-background to-muted/40 flex flex-col">
           {/* Login Form Container */}
           <div className="flex-1 flex items-center justify-center px-8">
             <div className="w-full max-w-sm">
@@ -35,7 +35,7 @@ const Login = () => {
                 </p>
               </div>
               
-              <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm">
+              <Card className="shadow-lg border-0 bg-card/90 backdrop-blur-sm">
                 <CardContent className="p-8">
                   <LoginForm />
                 </CardContent>
@@ -45,7 +45,7 @@ const Login = () => {
         </div>
 
         {/* Right Pane - Birthday Section (55%) */}
-        <div className="flex-[0_0_55%] bg-gradient-to-bl from-accent/5 via-background to-accent/10 flex items-center justify-center p-8 relative">
+        <div className="flex-[0_0_55%] bg-gradient-to-bl from-muted/20 via-background to-muted/40 flex items-center justify-center p-8 relative">
           {/* Soft overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-background/20 to-transparent"></div>
           
