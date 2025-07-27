@@ -23,6 +23,8 @@ import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
 import CompanyPresentationAdminPage from "./pages/admin/CompanyPresentationAdmin";
 import VideoLibrary from "./pages/admin/VideoLibrary";
+import GamificationAdmin from "./pages/admin/GamificationAdmin";
+import Gamification from "./pages/Gamification";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +43,7 @@ const App = () => (
           <Route path="/progress" element={<ProgressPage />} />
           <Route path="/courses" element={<StudentCourses />} />
           <Route path="/certificates" element={<Certificates />} />
+          <Route path="/gamification" element={<Gamification />} />
           
           {/* Admin Login */}
           <Route path="/admin/login" element={<AdminLogin />} />
@@ -55,6 +58,7 @@ const App = () => (
             <Route path="certificates" element={<CertificatesAdmin />} />
             <Route path="emails" element={<EmailsAdmin />} />
             <Route path="presentation" element={<CompanyPresentationAdminPage />} />
+            <Route path="gamification" element={<GamificationAdmin />} />
             {/* Future admin routes can be added here */}
           </Route>
           
