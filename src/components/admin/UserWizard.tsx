@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Form } from "@/components/ui/form";
 import { CheckCircle2, Circle, ArrowLeft, ArrowRight } from "lucide-react";
 import { userCompleteSchema, type UserCompleteData } from "@/lib/validations/user";
 import { useUsers } from "@/hooks/useUsers";
@@ -142,12 +143,13 @@ export default function UserWizard({ open, onOpenChange }: UserWizardProps) {
         </div>
 
         {/* Step Content */}
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="min-h-[400px]">
-            {CurrentStepComponent && (
-              <CurrentStepComponent form={form} />
-            )}
-          </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="min-h-[400px]">
+              {CurrentStepComponent && (
+                <CurrentStepComponent form={form} />
+              )}
+            </div>
 
           {/* Navigation Buttons */}
           <div className="flex justify-between pt-6 border-t">
@@ -191,7 +193,8 @@ export default function UserWizard({ open, onOpenChange }: UserWizardProps) {
               )}
             </div>
           </div>
-        </form>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
