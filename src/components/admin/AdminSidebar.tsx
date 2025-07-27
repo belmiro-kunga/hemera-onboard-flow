@@ -28,7 +28,8 @@ import {
   LogOut,
   Mail,
   Building2,
-  Trophy
+  Trophy,
+  Target
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -42,6 +43,7 @@ const AdminSidebar = () => {
     { title: 'Usuários', url: '/admin/users', icon: Users },
     { title: 'Simulados', url: '/admin/simulados', icon: BookOpen },
     { title: 'Vídeos', url: '/admin/videos', icon: Video },
+    { title: 'Atribuições', url: '/admin/assignments', icon: Target },
     { title: 'Gamificação', url: '/admin/gamification', icon: Trophy },
     { title: 'Analytics', url: '/admin/analytics', icon: BarChart3 },
   ];

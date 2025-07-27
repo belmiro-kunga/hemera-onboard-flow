@@ -25,6 +25,7 @@ import CompanyPresentationAdminPage from "./pages/admin/CompanyPresentationAdmin
 import VideoLibrary from "./pages/admin/VideoLibrary";
 import GamificationAdmin from "./pages/admin/GamificationAdmin";
 import Gamification from "./pages/Gamification";
+import CourseAssignmentAdmin from "./pages/admin/CourseAssignmentAdmin";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="emails" element={<EmailsAdmin />} />
             <Route path="presentation" element={<CompanyPresentationAdminPage />} />
             <Route path="gamification" element={<GamificationAdmin />} />
+            <Route path="assignments" element={<CourseAssignmentAdmin />} />
             {/* Future admin routes can be added here */}
           </Route>
           
