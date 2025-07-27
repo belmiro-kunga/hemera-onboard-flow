@@ -16,6 +16,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import VideoCoursesAdmin from "./pages/admin/VideoCoursesAdmin";
 import SimuladosAdmin from "./pages/admin/SimuladosAdmin";
 import CertificatesAdmin from "./pages/admin/CertificatesAdmin";
+import EmailsAdmin from "./pages/admin/EmailsAdmin";
 import StudentCourses from "./pages/StudentCourses";
 import Certificates from "./pages/Certificates";
 import NotFound from "./pages/NotFound";
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="simulados" element={<SimuladosAdmin />} />
             <Route path="videos" element={<VideoCoursesAdmin />} />
             <Route path="certificates" element={<CertificatesAdmin />} />
+            <Route path="emails" element={<EmailsAdmin />} />
             {/* Future admin routes can be added here */}
           </Route>
           

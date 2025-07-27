@@ -88,9 +88,33 @@ export function useUsers() {
 
       const result = data as any;
       if (result?.success) {
+        // Gerar senha temporária e enviar email de boas-vindas
+        try {
+          const tempPasswordResult = await supabase.rpc('generate_temporary_password', {
+            p_user_id: result.user_id,
+            p_expires_hours: 24
+          });
+
+          if (tempPasswordResult.data) {
+            // Enviar email de boas-vindas
+            await supabase.functions.invoke('send-welcome-email', {
+              body: {
+                name: userData.name,
+                email: userData.email,
+                temporaryPassword: tempPasswordResult.data,
+                loginUrl: window.location.origin,
+                companyName: "Hemera Capital"
+              }
+            });
+          }
+        } catch (emailError) {
+          console.error('Erro ao enviar email de boas-vindas:', emailError);
+          // Não falha a criação do usuário se o email não foi enviado
+        }
+
         toast({
           title: "Usuário criado com sucesso",
-          description: `${userData.name} foi adicionado ao sistema.`,
+          description: `${userData.name} foi adicionado ao sistema e receberá um email com as credenciais.`,
         });
         await fetchUsers();
         return { success: true, data: result };
