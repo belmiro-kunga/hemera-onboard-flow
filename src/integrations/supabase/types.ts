@@ -421,6 +421,39 @@ export type Database = {
           },
         ]
       }
+      simulado_certificates: {
+        Row: {
+          attempt_id: string
+          certificate_url: string | null
+          id: string
+          issued_at: string
+          pass_score: number
+          score: number | null
+          simulado_id: string
+          user_id: string
+        }
+        Insert: {
+          attempt_id: string
+          certificate_url?: string | null
+          id?: string
+          issued_at?: string
+          pass_score?: number
+          score?: number | null
+          simulado_id: string
+          user_id: string
+        }
+        Update: {
+          attempt_id?: string
+          certificate_url?: string | null
+          id?: string
+          issued_at?: string
+          pass_score?: number
+          score?: number | null
+          simulado_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       simulados: {
         Row: {
           created_at: string
