@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      badges: {
+        Row: {
+          created_at: string
+          criteria_type: string
+          criteria_value: number
+          description: string | null
+          icon_color: string | null
+          icon_name: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criteria_type: string
+          criteria_value: number
+          description?: string | null
+          icon_color?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criteria_type?: string
+          criteria_value?: number
+          description?: string | null
+          icon_color?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       certificates: {
         Row: {
           certificate_url: string | null
@@ -411,6 +450,33 @@ export type Database = {
           template_type?: string
           updated_at?: string
           variables?: Json | null
+        }
+        Relationships: []
+      }
+      gamification_settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
         }
         Relationships: []
       }
@@ -946,6 +1012,35 @@ export type Database = {
           },
         ]
       }
+      user_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_courses: {
         Row: {
           completed_at: string | null
@@ -980,6 +1075,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_levels: {
+        Row: {
+          courses_completed: number | null
+          created_at: string
+          current_level: number | null
+          current_streak_days: number | null
+          id: string
+          last_activity_date: string | null
+          longest_streak_days: number | null
+          points_to_next_level: number | null
+          simulados_completed: number | null
+          total_points: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          courses_completed?: number | null
+          created_at?: string
+          current_level?: number | null
+          current_streak_days?: number | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak_days?: number | null
+          points_to_next_level?: number | null
+          simulados_completed?: number | null
+          total_points?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          courses_completed?: number | null
+          created_at?: string
+          current_level?: number | null
+          current_streak_days?: number | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak_days?: number | null
+          points_to_next_level?: number | null
+          simulados_completed?: number | null
+          total_points?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_points: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string | null
+          id: string
+          multiplier: number | null
+          points: number
+          source_id: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          multiplier?: number | null
+          points?: number
+          source_id?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          multiplier?: number | null
+          points?: number
+          source_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       video_courses: {
         Row: {
@@ -1086,9 +1259,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_user_points: {
+        Args: {
+          p_user_id: string
+          p_points: number
+          p_activity_type: string
+          p_source_id?: string
+          p_description?: string
+          p_multiplier?: number
+        }
+        Returns: string
+      }
       can_user_take_exam: {
         Args: { user_uuid: string }
         Returns: boolean
+      }
+      check_and_award_badges: {
+        Args: { p_user_id: string }
+        Returns: undefined
       }
       create_user_with_profile: {
         Args: {
@@ -1141,6 +1329,10 @@ export type Database = {
           rating_distribution: Json
         }[]
       }
+      get_level_from_points: {
+        Args: { points: number }
+        Returns: number
+      }
       get_moderation_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1164,6 +1356,10 @@ export type Database = {
           version: string
           effective_date: string
         }[]
+      }
+      get_points_for_level: {
+        Args: { level_number: number }
+        Returns: number
       }
       get_public_site_settings: {
         Args: Record<PropertyKey, never>
