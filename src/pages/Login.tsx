@@ -47,7 +47,7 @@ const Login = () => {
             <div style={{
             animationDelay: '0.3s',
             transform: `translateY(${scrollOffset}px)`
-          }} className="w-full max-w-sm animate-fade-in-up transition-transform duration-300 ease-out form-scroll-float mx-0 -mt-[5%] px-[3px] py-[7px] my-[50px]">
+          }} className="w-full max-w-sm animate-fade-in-up transition-transform duration-300 ease-out form-scroll-float mx-0 -mt-[15%] px-[3px] py-[7px] my-[30px]">
               <div className="text-center mb-10">
                 <h1 className="text-3xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   Acesso ao Sistema
