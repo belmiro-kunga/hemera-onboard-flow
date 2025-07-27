@@ -183,6 +183,44 @@ export type Database = {
         }
         Relationships: []
       }
+      departments: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          manager_id: string | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          manager_id?: string | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          manager_id?: string | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departments_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       lesson_progress: {
         Row: {
           completed_at: string | null
@@ -283,39 +321,57 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          department: string | null
           email: string | null
+          employee_id: string | null
           id: string
           is_active: boolean | null
+          job_position: string | null
           last_login: string | null
+          manager_id: string | null
           name: string
           phone: string | null
+          photo_url: string | null
           role: Database["public"]["Enums"]["user_role"] | null
+          start_date: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          department?: string | null
           email?: string | null
+          employee_id?: string | null
           id?: string
           is_active?: boolean | null
+          job_position?: string | null
           last_login?: string | null
+          manager_id?: string | null
           name: string
           phone?: string | null
+          photo_url?: string | null
           role?: Database["public"]["Enums"]["user_role"] | null
+          start_date?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
           created_by?: string | null
+          department?: string | null
           email?: string | null
+          employee_id?: string | null
           id?: string
           is_active?: boolean | null
+          job_position?: string | null
           last_login?: string | null
+          manager_id?: string | null
           name?: string
           phone?: string | null
+          photo_url?: string | null
           role?: Database["public"]["Enums"]["user_role"] | null
+          start_date?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -323,6 +379,13 @@ export type Database = {
           {
             foreignKeyName: "profiles_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "profiles_manager_id_fkey"
+            columns: ["manager_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
@@ -724,6 +787,21 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: boolean
       }
+      create_user_with_profile: {
+        Args: {
+          p_email: string
+          p_password: string
+          p_name: string
+          p_phone?: string
+          p_role?: Database["public"]["Enums"]["user_role"]
+          p_department?: string
+          p_job_position?: string
+          p_manager_id?: string
+          p_employee_id?: string
+          p_start_date?: string
+        }
+        Returns: Json
+      }
       generate_demo_questions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -790,6 +868,25 @@ export type Database = {
       get_user_role: {
         Args: { user_uuid: string }
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      get_users_with_details: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          user_id: string
+          name: string
+          email: string
+          phone: string
+          role: string
+          department: string
+          job_position: string
+          manager_name: string
+          employee_id: string
+          start_date: string
+          is_active: boolean
+          last_login: string
+          created_at: string
+        }[]
       }
       has_active_subscription: {
         Args: { user_uuid: string }

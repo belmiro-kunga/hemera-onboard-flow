@@ -1,242 +1,181 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Progress } from '@/components/ui/progress';
-import {
-  Users,
-  UserPlus,
-  Search,
-  Filter,
-  MoreHorizontal,
-  Edit,
-  Trash2,
-  Mail,
-  Download
-} from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Search, Plus, Users, UserCheck, TrendingUp, UserPlus, MoreHorizontal } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useUsers } from '@/hooks/useUsers';
+import UserWizard from '@/components/admin/UserWizard';
 
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
-
-  const users = [
-    {
-      id: 1,
-      name: 'João Silva',
-      email: 'j.silva@hcp.com',
-      department: 'RH',
-      position: 'Analista',
-      progress: 85,
-      status: 'active',
-      joinDate: '2024-01-15',
-      lastAccess: '2024-01-20'
-    },
-    {
-      id: 2,
-      name: 'Maria Santos',
-      email: 'm.santos@hcp.com',
-      department: 'TI',
-      position: 'Desenvolvedora',
-      progress: 92,
-      status: 'active',
-      joinDate: '2024-01-10',
-      lastAccess: '2024-01-20'
-    },
-    {
-      id: 3,
-      name: 'Pedro Costa',
-      email: 'p.costa@hcp.com',
-      department: 'Vendas',
-      position: 'Consultor',
-      progress: 45,
-      status: 'inactive',
-      joinDate: '2024-01-08',
-      lastAccess: '2024-01-18'
-    },
-    {
-      id: 4,
-      name: 'Ana Oliveira',
-      email: 'a.oliveira@hcp.com',
-      department: 'Marketing',
-      position: 'Coordenadora',
-      progress: 78,
-      status: 'active',
-      joinDate: '2024-01-12',
-      lastAccess: '2024-01-20'
-    }
-  ];
+  const [showUserWizard, setShowUserWizard] = useState(false);
+  const { users, loading, updateUserStatus } = useUsers();
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.department.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFilter = selectedFilter === 'all' || user.status === selectedFilter;
-    
+                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = selectedFilter === 'all' || 
+                         (selectedFilter === 'active' && user.is_active) ||
+                         (selectedFilter === 'inactive' && !user.is_active);
     return matchesSearch && matchesFilter;
   });
 
-  const getStatusBadge = (status: string) => {
-    return status === 'active' ? (
-      <Badge variant="default" className="bg-success text-success-foreground">Ativo</Badge>
+  const getStatusBadge = (isActive: boolean) => {
+    return isActive ? (
+      <Badge variant="default">Ativo</Badge>
     ) : (
       <Badge variant="secondary">Inativo</Badge>
     );
   };
 
-  const getProgressColor = (progress: number) => {
-    if (progress >= 80) return 'bg-success';
-    if (progress >= 60) return 'bg-warning';
-    return 'bg-destructive';
+  const stats = {
+    total: users.length,
+    active: users.filter(u => u.is_active).length,
+    inactive: users.filter(u => !u.is_active).length,
+    newThisMonth: users.filter(u => {
+      const userDate = new Date(u.created_at);
+      const now = new Date();
+      return userDate.getMonth() === now.getMonth() && userDate.getFullYear() === now.getFullYear();
+    }).length,
   };
 
   return (
-    <div className="p-6 space-y-6 bg-background min-h-screen">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Gestão de Usuários</h1>
-          <p className="text-muted-foreground">Gerenciar usuários do sistema de onboarding</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
-          <Button variant="corporate" size="sm">
-            <UserPlus className="h-4 w-4 mr-2" />
-            Novo Usuário
-          </Button>
-        </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Gestão de Usuários</h1>
+        <p className="text-muted-foreground">
+          Gerencie usuários, permissões e acompanhe o progresso da equipe.
+        </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="shadow-corporate">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total de Usuários</p>
-                <p className="text-2xl font-bold text-foreground">{users.length}</p>
-              </div>
-              <Users className="h-8 w-8 text-primary" />
-            </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+            <p className="text-xs text-muted-foreground">
+              +{stats.newThisMonth} este mês
+            </p>
           </CardContent>
         </Card>
-
-        <Card className="shadow-corporate">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Usuários Ativos</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {users.filter(u => u.status === 'active').length}
-                </p>
-              </div>
-              <div className="h-8 w-8 rounded-full bg-success/20 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-success"></div>
-              </div>
-            </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Usuários Ativos</CardTitle>
+            <UserCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.active}</div>
+            <p className="text-xs text-muted-foreground">
+              {((stats.active / stats.total) * 100).toFixed(1)}% do total
+            </p>
           </CardContent>
         </Card>
-
-        <Card className="shadow-corporate">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Progresso Médio</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {Math.round(users.reduce((acc, u) => acc + u.progress, 0) / users.length)}%
-                </p>
-              </div>
-              <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-primary"></div>
-              </div>
-            </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Usuários Inativos</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.inactive}</div>
+            <p className="text-xs text-muted-foreground">
+              {((stats.inactive / stats.total) * 100).toFixed(1)}% do total
+            </p>
           </CardContent>
         </Card>
-
-        <Card className="shadow-corporate">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Novos Este Mês</p>
-                <p className="text-2xl font-bold text-foreground">12</p>
-              </div>
-              <div className="h-8 w-8 rounded-full bg-accent/20 flex items-center justify-center">
-                <UserPlus className="h-4 w-4 text-accent-foreground" />
-              </div>
-            </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Novos Usuários</CardTitle>
+            <UserPlus className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.newThisMonth}</div>
+            <p className="text-xs text-muted-foreground">
+              Este mês
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters and Search */}
-      <Card className="shadow-corporate">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="flex flex-1 items-center space-x-2">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar usuários..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant={selectedFilter === 'all' ? 'default' : 'outline'}
+            onClick={() => setSelectedFilter('all')}
+            size="sm"
+          >
+            Todos
+          </Button>
+          <Button
+            variant={selectedFilter === 'active' ? 'default' : 'outline'}
+            onClick={() => setSelectedFilter('active')}
+            size="sm"
+          >
+            Ativos
+          </Button>
+          <Button
+            variant={selectedFilter === 'inactive' ? 'default' : 'outline'}
+            onClick={() => setSelectedFilter('inactive')}
+            size="sm"
+          >
+            Inativos
+          </Button>
+          <Button 
+            className="flex items-center gap-2"
+            onClick={() => setShowUserWizard(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Novo Usuário
+          </Button>
+        </div>
+      </div>
+
+      {/* Users Table */}
+      <Card>
         <CardHeader>
-          <CardTitle>Lista de Usuários</CardTitle>
+          <CardTitle>Usuários</CardTitle>
+          <CardDescription>
+            Lista completa de usuários do sistema
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar usuários..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-muted-foreground">Carregando usuários...</div>
             </div>
-            <div className="flex gap-2">
-              <Button 
-                variant={selectedFilter === 'all' ? 'default' : 'outline'} 
-                size="sm"
-                onClick={() => setSelectedFilter('all')}
-              >
-                Todos
-              </Button>
-              <Button 
-                variant={selectedFilter === 'active' ? 'default' : 'outline'} 
-                size="sm"
-                onClick={() => setSelectedFilter('active')}
-              >
-                Ativos
-              </Button>
-              <Button 
-                variant={selectedFilter === 'inactive' ? 'default' : 'outline'} 
-                size="sm"
-                onClick={() => setSelectedFilter('inactive')}
-              >
-                Inativos
-              </Button>
+          ) : filteredUsers.length === 0 ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-muted-foreground">Nenhum usuário encontrado</div>
             </div>
-          </div>
-
-          {/* Users Table */}
-          <div className="rounded-md border">
+          ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Departamento</TableHead>
-                  <TableHead>Progresso</TableHead>
+                  <TableHead>Cargo</TableHead>
+                  <TableHead>Função</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Último Acesso</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
@@ -245,48 +184,57 @@ const UserManagement = () => {
               <TableBody>
                 {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">
-                      <div>
-                        <p className="font-semibold">{user.name}</p>
-                        <p className="text-sm text-muted-foreground">{user.position}</p>
-                      </div>
-                    </TableCell>
+                    <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.department || '-'}</TableCell>
+                    <TableCell>{user.job_position || '-'}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{user.department}</Badge>
+                      <Badge variant={
+                        user.role === 'super_admin' ? 'destructive' :
+                        user.role === 'admin' ? 'default' : 'secondary'
+                      }>
+                        {user.role === 'super_admin' ? 'Super Admin' :
+                         user.role === 'admin' ? 'Admin' : 'Funcionário'}
+                      </Badge>
                     </TableCell>
+                    <TableCell>{getStatusBadge(user.is_active)}</TableCell>
                     <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-sm">
-                          <span>{user.progress}%</span>
-                        </div>
-                        <Progress value={user.progress} className="h-2" />
-                      </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(user.status)}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(user.lastAccess).toLocaleDateString('pt-BR')}
+                      {user.last_login ? 
+                        new Date(user.last_login).toLocaleDateString('pt-BR') : 
+                        'Nunca'
+                      }
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="icon">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon">
-                          <Mail className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>Editar</DropdownMenuItem>
+                          <DropdownMenuItem>Enviar Email</DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => updateUserStatus(user.user_id, !user.is_active)}
+                          >
+                            {user.is_active ? 'Desativar' : 'Ativar'}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* User Wizard Modal */}
+      <UserWizard 
+        open={showUserWizard} 
+        onOpenChange={setShowUserWizard} 
+      />
     </div>
   );
 };
