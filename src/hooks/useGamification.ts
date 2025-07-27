@@ -142,12 +142,34 @@ export const useLeaderboard = (limit = 10) => {
   return useQuery({
     queryKey: ["leaderboard", limit],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_leaderboard", {
-        p_limit: limit
-      });
+      // Since get_leaderboard function may not exist yet, let's simulate it with a query
+      const { data, error } = await supabase
+        .from("user_levels")
+        .select(`
+          user_id,
+          current_level,
+          total_points,
+          courses_completed,
+          simulados_completed,
+          profiles!inner(name)
+        `)
+        .order("total_points", { ascending: false })
+        .limit(limit);
 
       if (error) throw error;
-      return data as LeaderboardEntry[];
+      
+      // Transform the data to match LeaderboardEntry interface
+      const leaderboardData: LeaderboardEntry[] = data?.map(entry => ({
+        user_id: entry.user_id,
+        name: (entry.profiles as any)?.name || "Unknown",
+        total_points: entry.total_points,
+        current_level: entry.current_level,
+        courses_completed: entry.courses_completed,
+        simulados_completed: entry.simulados_completed,
+        badge_count: 0 // Will need to be calculated separately
+      })) || [];
+
+      return leaderboardData;
     },
   });
 };

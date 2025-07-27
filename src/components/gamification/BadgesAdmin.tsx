@@ -73,7 +73,10 @@ export default function BadgesAdmin() {
           ...formData,
         });
       } else {
-        await createBadge.mutateAsync(formData);
+        await createBadge.mutateAsync({
+          ...formData,
+          is_active: true,
+        });
       }
       
       setIsDialogOpen(false);
