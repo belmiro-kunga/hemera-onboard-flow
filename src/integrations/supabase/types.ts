@@ -221,6 +221,154 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          content: string
+          created_at: string
+          delivered_at: string | null
+          error_message: string | null
+          id: string
+          opened_at: string | null
+          provider_message_id: string | null
+          recipient_email: string
+          recipient_name: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+          template_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          id?: string
+          opened_at?: string | null
+          provider_message_id?: string | null
+          recipient_email: string
+          recipient_name?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          template_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          id?: string
+          opened_at?: string | null
+          provider_message_id?: string | null
+          recipient_email?: string
+          recipient_name?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_queue: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          max_retries: number | null
+          recipient_email: string
+          recipient_name: string | null
+          retry_count: number | null
+          scheduled_for: string
+          status: string
+          template_id: string | null
+          updated_at: string
+          variables: Json | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          max_retries?: number | null
+          recipient_email: string
+          recipient_name?: string | null
+          retry_count?: number | null
+          scheduled_for?: string
+          status?: string
+          template_id?: string | null
+          updated_at?: string
+          variables?: Json | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          max_retries?: number | null
+          recipient_email?: string
+          recipient_name?: string | null
+          retry_count?: number | null
+          scheduled_for?: string
+          status?: string
+          template_id?: string | null
+          updated_at?: string
+          variables?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_queue_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          subject: string
+          template_type: string
+          updated_at: string
+          variables: Json | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          subject: string
+          template_type: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          subject?: string
+          template_type?: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Relationships: []
+      }
       lesson_progress: {
         Row: {
           completed_at: string | null
@@ -591,6 +739,36 @@ export type Database = {
         }
         Relationships: []
       }
+      temporary_passwords: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          is_used: boolean | null
+          password_hash: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          is_used?: boolean | null
+          password_hash: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_used?: boolean | null
+          password_hash?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_answers: {
         Row: {
           answer_text: string | null
@@ -806,6 +984,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      generate_temporary_password: {
+        Args: { p_user_id: string; p_expires_hours?: number }
+        Returns: string
+      }
       get_admin_users_with_emails: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -906,8 +1088,16 @@ export type Database = {
         }
         Returns: string
       }
+      process_email_template: {
+        Args: { template_content: string; variables: Json }
+        Returns: string
+      }
       user_has_accepted_required_policies: {
         Args: { user_uuid: string }
+        Returns: boolean
+      }
+      validate_temporary_password: {
+        Args: { p_user_id: string; p_password: string }
         Returns: boolean
       }
     }
