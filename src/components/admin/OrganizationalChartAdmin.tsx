@@ -312,17 +312,17 @@ const OrganizationalChartAdmin: React.FC = () => {
           <div>
             <Label htmlFor="parent">Supervisor</Label>
             <Select
-              value={formData.parent_id || ''}
+              value={formData.parent_id || 'none'}
               onValueChange={(value) => setFormData(prev => ({ 
                 ...prev, 
-                parent_id: value || undefined 
+                parent_id: value === 'none' ? undefined : value 
               }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecionar supervisor" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhum (Nível raiz)</SelectItem>
+                <SelectItem value="none">Nenhum (Nível raiz)</SelectItem>
                 {positions.filter(p => p.id !== formData.id).map(pos => (
                   <SelectItem key={pos.id} value={pos.id!}>
                     {pos.name} - {pos.position}
