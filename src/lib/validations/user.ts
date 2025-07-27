@@ -1,9 +1,16 @@
 import { z } from "zod";
 
+// Validação para números de telefone angolanos
+const angolanPhoneRegex = /^(\+244\s?)?[9][0-9]{8}$/;
+
 export const userBasicSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   email: z.string().email("Email inválido"),
-  phone: z.string().optional(),
+  phone: z.string().optional().refine((phone) => {
+    if (!phone || phone.trim() === "") return true;
+    const cleanPhone = phone.replace(/\s/g, "");
+    return angolanPhoneRegex.test(cleanPhone);
+  }, "Número de telefone deve ser no formato angolano (ex: +244 912345678 ou 912345678)"),
 });
 
 export const userCredentialsSchema = z.object({
@@ -30,7 +37,11 @@ export const userProfileSchema = z.object({
 export const userCompleteSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   email: z.string().email("Email inválido"),
-  phone: z.string().optional(),
+  phone: z.string().optional().refine((phone) => {
+    if (!phone || phone.trim() === "") return true;
+    const cleanPhone = phone.replace(/\s/g, "");
+    return angolanPhoneRegex.test(cleanPhone);
+  }, "Número de telefone deve ser no formato angolano (ex: +244 912345678 ou 912345678)"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
   confirmPassword: z.string(),
   department: z.string().optional(),

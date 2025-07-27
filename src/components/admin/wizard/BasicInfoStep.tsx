@@ -72,7 +72,7 @@ export default function BasicInfoStep({ form }: BasicInfoStepProps) {
               </FormLabel>
               <FormControl>
                 <Input 
-                  placeholder="(11) 99999-9999"
+                  placeholder="+244 912 345 678"
                   {...field}
                 />
               </FormControl>
