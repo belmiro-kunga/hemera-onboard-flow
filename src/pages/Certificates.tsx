@@ -180,7 +180,7 @@ export default function Certificates() {
                     <CardContent>
                       <div className="space-y-3">
                         <p className="text-sm text-muted-foreground">
-                          Emitido em: {new Date(certificate.issued_at).toLocaleDateString('pt-BR')}
+                          Emitido em: {new Date(certificate.issued_at).toLocaleDateString('pt-AO')}
                         </p>
                         <Button
                           onClick={() => handleDownload(certificate)}
@@ -228,7 +228,7 @@ export default function Certificates() {
                     <CardContent>
                       <div className="space-y-3">
                         <p className="text-sm text-muted-foreground">
-                          Emitido em: {new Date(certificate.issued_at).toLocaleDateString('pt-BR')}
+                          Emitido em: {new Date(certificate.issued_at).toLocaleDateString('pt-AO')}
                         </p>
                         <Button
                           onClick={() => handleDownload(certificate)}

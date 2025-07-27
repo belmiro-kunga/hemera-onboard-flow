@@ -23,7 +23,7 @@ const BirthdayCard = ({ employee, isToday, daysUntil }: BirthdayCardProps) => {
   const formatDate = (dateStr: string) => {
     const [month, day] = dateStr.split("-");
     const date = new Date(2024, parseInt(month) - 1, parseInt(day));
-    return date.toLocaleDateString("pt-BR", { 
+    return date.toLocaleDateString("pt-AO", { 
       day: "numeric", 
       month: "short" 
     });

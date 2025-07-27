@@ -22,10 +22,11 @@ import {
   Building,
   UserCheck,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  FileSpreadsheet
 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import CSVImportTool from "./CSVImportTool";
+import { formatAngolaDate, getAngolaTime, startOfDayAngola } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,7 +56,7 @@ export default function BulkAssignmentTool() {
   const [userSearch, setUserSearch] = useState("");
   const [courseSearch, setCourseSearch] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("");
-  const [bulkMode, setBulkMode] = useState<"individual" | "department">("individual");
+  const [bulkMode, setBulkMode] = useState<"individual" | "department" | "csv">("individual");
 
   const form = useForm<BulkAssignmentData>({
     resolver: zodResolver(bulkAssignmentSchema),
@@ -165,8 +166,8 @@ export default function BulkAssignmentTool() {
 
   return (
     <div className="space-y-6">
-      <Tabs value={bulkMode} onValueChange={(value) => setBulkMode(value as "individual" | "department")}>
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs value={bulkMode} onValueChange={(value) => setBulkMode(value as "individual" | "department" | "csv")}>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="individual" className="flex items-center gap-2">
             <UserCheck className="h-4 w-4" />
             Seleção Individual
@@ -174,6 +175,10 @@ export default function BulkAssignmentTool() {
           <TabsTrigger value="department" className="flex items-center gap-2">
             <Building className="h-4 w-4" />
             Por Departamento
+          </TabsTrigger>
+          <TabsTrigger value="csv" className="flex items-center gap-2">
+            <FileSpreadsheet className="h-4 w-4" />
+            Importação CSV
           </TabsTrigger>
         </TabsList>
 
@@ -304,6 +309,25 @@ export default function BulkAssignmentTool() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="csv" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileSpreadsheet className="h-5 w-5" />
+                Importação via CSV
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CSVImportTool 
+                onImportComplete={(result) => {
+                  // Handle import completion
+                  console.log('Import completed:', result);
+                }}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Course Selection */}
@@ -424,7 +448,7 @@ export default function BulkAssignmentTool() {
                                 )}
                               >
                                 {field.value ? (
-                                  format(new Date(field.value), "PPP", { locale: ptBR })
+                                  formatAngolaDate.calendar(field.value)
                                 ) : (
                                   <span>Selecione uma data</span>
                                 )}
@@ -437,7 +461,7 @@ export default function BulkAssignmentTool() {
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
                               onSelect={(date) => field.onChange(date?.toISOString())}
-                              disabled={(date) => date < new Date()}
+                              disabled={(date) => date < startOfDayAngola(getAngolaTime())}
                               initialFocus
                             />
                           </PopoverContent>
@@ -503,7 +527,7 @@ export default function BulkAssignmentTool() {
                       form.watch("priority") === "medium" ? "Média" : "Baixa"
                     }</p>
                     {form.watch("dueDate") && (
-                      <p><strong>Vencimento:</strong> {format(new Date(form.watch("dueDate")!), "dd/MM/yyyy")}</p>
+                      <p><strong>Vencimento:</strong> {formatAngolaDate.short(form.watch("dueDate")!)}</p>
                     )}
                   </div>
                 </div>

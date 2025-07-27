@@ -8,8 +8,7 @@ import { useEmailTemplates } from "@/hooks/useEmailTemplates";
 import { EmailTemplateEditor } from "./EmailTemplateEditor";
 import { SMTPConfiguration } from "./SMTPConfiguration";
 import { Mail, Send, Clock, CheckCircle, XCircle, AlertCircle, Plus, RefreshCw } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { formatAngolaDate } from "@/lib/date-utils";
 
 export function EmailManagement() {
   const { templates, logs, queue, loading, processEmailQueue } = useEmailTemplates();
@@ -179,7 +178,7 @@ export function EmailManagement() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {format(new Date(template.updated_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                        {formatAngolaDate.medium(template.updated_at)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -215,7 +214,7 @@ export function EmailManagement() {
                       <TableCell>{item.recipient_name || '-'}</TableCell>
                       <TableCell>{getStatusBadge(item.status)}</TableCell>
                       <TableCell>
-                        {format(new Date(item.scheduled_for), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                        {formatAngolaDate.medium(item.scheduled_for)}
                       </TableCell>
                       <TableCell>
                         {item.retry_count}/{item.max_retries}
@@ -255,7 +254,7 @@ export function EmailManagement() {
                       <TableCell>{getStatusBadge(log.status)}</TableCell>
                       <TableCell>
                         {log.sent_at 
-                          ? format(new Date(log.sent_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
+                          ? formatAngolaDate.medium(log.sent_at)
                           : '-'
                         }
                       </TableCell>

@@ -166,7 +166,7 @@ export default function ReviewStep({ form }: ReviewStepProps) {
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium">Data de Início:</span>
-                <span>{new Date(formDataTyped.start_date).toLocaleDateString('pt-BR')}</span>
+                <span>{new Date(formDataTyped.start_date).toLocaleDateString('pt-AO')}</span>
               </div>
             )}
           </CardContent>

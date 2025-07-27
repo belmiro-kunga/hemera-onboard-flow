@@ -284,7 +284,7 @@ const VideoLibrary = () => {
                     
                     <div className="flex items-center justify-between pt-2">
                       <span className="text-xs text-muted-foreground">
-                        {new Date(video.uploadDate).toLocaleDateString('pt-BR')}
+                        {new Date(video.uploadDate).toLocaleDateString('pt-AO')}
                       </span>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" className="h-8 w-8">

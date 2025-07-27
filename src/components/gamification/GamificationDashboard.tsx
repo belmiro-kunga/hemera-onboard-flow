@@ -174,7 +174,7 @@ export default function GamificationDashboard() {
                     <div className="flex-1">
                       <p className="font-medium text-sm">{point.description}</p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(point.created_at).toLocaleDateString('pt-BR')}
+                        {new Date(point.created_at).toLocaleDateString('pt-AO')}
                       </p>
                     </div>
                     <Badge variant="secondary" className="ml-2">

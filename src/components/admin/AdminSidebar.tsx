@@ -49,6 +49,7 @@ const AdminSidebar = () => {
   ];
 
   const systemMenuItems = [
+    { title: 'CMS', url: '/admin/cms', icon: FileText },
     { title: 'Notificações', url: '/admin/notifications', icon: Bell },
     { title: 'Emails', url: '/admin/emails', icon: Mail },
     { title: 'Apresentação', url: '/admin/presentation', icon: Building2 },

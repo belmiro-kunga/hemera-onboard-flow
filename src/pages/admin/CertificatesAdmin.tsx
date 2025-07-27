@@ -266,7 +266,7 @@ export default function CertificatesAdmin() {
                       Funcionário: {certificate.user_name}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Emitido em: {new Date(certificate.issued_at).toLocaleDateString('pt-BR')}
+                      Emitido em: {new Date(certificate.issued_at).toLocaleDateString('pt-AO')}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

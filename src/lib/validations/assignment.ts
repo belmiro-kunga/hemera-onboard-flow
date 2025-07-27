@@ -149,7 +149,8 @@ export const validateCSVImport = (data: unknown) => {
 // Custom validation functions
 export const validateDueDateNotInPast = (dueDate: string) => {
   const date = new Date(dueDate);
-  const now = new Date();
+  // Use Angola timezone for comparison
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Africa/Luanda" }));
   return date > now;
 };
 

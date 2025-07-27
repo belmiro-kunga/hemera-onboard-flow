@@ -12,8 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { CalendarIcon, Search, User, BookOpen, Plus, X } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { formatAngolaDate, getAngolaTime, startOfDayAngola } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -368,7 +367,7 @@ export default function AssignmentManager() {
                                 )}
                               >
                                 {field.value ? (
-                                  format(new Date(field.value), "PPP", { locale: ptBR })
+                                  formatAngolaDate.calendar(field.value)
                                 ) : (
                                   <span>Selecione uma data</span>
                                 )}
@@ -381,7 +380,7 @@ export default function AssignmentManager() {
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
                               onSelect={(date) => field.onChange(date?.toISOString())}
-                              disabled={(date) => date < new Date()}
+                              disabled={(date) => date < startOfDayAngola(getAngolaTime())}
                               initialFocus
                             />
                           </PopoverContent>
@@ -488,7 +487,7 @@ export default function AssignmentManager() {
                   </div>
                   {assignment.dueDate && (
                     <div className="text-sm text-muted-foreground">
-                      Vence em: {format(new Date(assignment.dueDate), "dd/MM/yyyy")}
+                      Vence em: {formatAngolaDate.short(assignment.dueDate)}
                     </div>
                   )}
                 </div>

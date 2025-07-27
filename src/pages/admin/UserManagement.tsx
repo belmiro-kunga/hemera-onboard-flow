@@ -200,7 +200,7 @@ const UserManagement = () => {
                     <TableCell>{getStatusBadge(user.is_active)}</TableCell>
                     <TableCell>
                       {user.last_login ? 
-                        new Date(user.last_login).toLocaleDateString('pt-BR') : 
+                        new Date(user.last_login).toLocaleDateString('pt-AO') : 
                         'Nunca'
                       }
                     </TableCell>

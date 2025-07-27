@@ -306,7 +306,7 @@ const CourseCard = ({ enrollment, onStart, getDueDateStatus, getStatusBadge }: a
             {enrollment.due_date && (
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {new Date(enrollment.due_date).toLocaleDateString('pt-BR')}
+                {new Date(enrollment.due_date).toLocaleDateString('pt-AO')}
               </span>
             )}
           </div>

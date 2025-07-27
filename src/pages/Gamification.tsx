@@ -162,7 +162,7 @@ export default function Gamification() {
                             <p className="font-medium text-sm">{userBadge.badge.name}</p>
                             <p className="text-xs text-muted-foreground">{userBadge.badge.description}</p>
                             <p className="text-xs text-green-600">
-                              Conquistado em {new Date(userBadge.earned_at).toLocaleDateString('pt-BR')}
+                              Conquistado em {new Date(userBadge.earned_at).toLocaleDateString('pt-AO')}
                             </p>
                           </div>
                         </div>
@@ -262,7 +262,7 @@ export default function Gamification() {
                       <div className="flex-1">
                         <p className="font-medium">{point.description}</p>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(point.created_at).toLocaleDateString('pt-BR', {
+                          {new Date(point.created_at).toLocaleDateString('pt-AO', {
                             day: '2-digit',
                             month: '2-digit',
                             year: 'numeric',

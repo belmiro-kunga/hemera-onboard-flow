@@ -14,8 +14,7 @@ import {
   Clock
 } from "lucide-react";
 import { useAssignments } from "@/hooks/useAssignments";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { formatAngolaDate } from "@/lib/date-utils";
 
 export default function AssignmentReports() {
   const [timeRange, setTimeRange] = useState("30");
@@ -218,7 +217,7 @@ export default function AssignmentReports() {
                         {assignment.user?.name} • {assignment.user?.department}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(assignment.assignedAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        {formatAngolaDate.long(assignment.assignedAt)}
                       </p>
                     </div>
                     <Badge variant={
@@ -258,7 +257,7 @@ export default function AssignmentReports() {
                     </p>
                     {assignment.dueDate && (
                       <p className="text-xs text-destructive">
-                        Venceu em: {format(new Date(assignment.dueDate), "dd/MM/yyyy")}
+                        Venceu em: {formatAngolaDate.short(assignment.dueDate)}
                       </p>
                     )}
                   </div>
