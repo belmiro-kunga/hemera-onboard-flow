@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useEmailTemplates } from "@/hooks/useEmailTemplates";
 import { EmailTemplateEditor } from "./EmailTemplateEditor";
+import { SMTPConfiguration } from "./SMTPConfiguration";
 import { Mail, Send, Clock, CheckCircle, XCircle, AlertCircle, Plus, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -129,12 +130,17 @@ export function EmailManagement() {
         </Card>
       </div>
 
-      <Tabs defaultValue="templates" className="space-y-4">
+      <Tabs defaultValue="smtp" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="smtp">Configuração SMTP</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="queue">Fila de Envio</TabsTrigger>
           <TabsTrigger value="logs">Logs de Email</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="smtp" className="space-y-4">
+          <SMTPConfiguration />
+        </TabsContent>
 
         <TabsContent value="templates" className="space-y-4">
           <Card>

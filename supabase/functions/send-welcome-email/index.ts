@@ -1,7 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,6 +26,30 @@ const handler = async (req: Request): Promise<Response> => {
     const { name, email, temporaryPassword, loginUrl = "https://app.hemeracapital.com", companyName = "Hemera Capital" }: WelcomeEmailRequest = await req.json();
 
     console.log("Sending welcome email to:", email);
+
+    // Configurações SMTP
+    const smtpHost = Deno.env.get("SMTP_HOST") || "smtp.gmail.com";
+    const smtpPort = parseInt(Deno.env.get("SMTP_PORT") || "587");
+    const smtpUser = Deno.env.get("SMTP_USER");
+    const smtpPassword = Deno.env.get("SMTP_PASSWORD");
+    const fromEmail = Deno.env.get("FROM_EMAIL") || smtpUser;
+
+    if (!smtpUser || !smtpPassword) {
+      throw new Error("Credenciais SMTP não configuradas. Configure SMTP_USER e SMTP_PASSWORD.");
+    }
+
+    // Configurar cliente SMTP
+    const client = new SMTPClient({
+      connection: {
+        hostname: smtpHost,
+        port: smtpPort,
+        tls: true,
+        auth: {
+          username: smtpUser,
+          password: smtpPassword,
+        },
+      },
+    });
 
     const emailContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -64,18 +86,22 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
-    const emailResponse = await resend.emails.send({
-      from: `Sistema ${companyName} <noreply@hemeracapital.com>`,
-      to: [email],
+    // Enviar email
+    await client.send({
+      from: fromEmail!,
+      to: email,
       subject: `Bem-vindo(a) ao Sistema - ${companyName}`,
+      content: emailContent,
       html: emailContent,
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    await client.close();
+
+    console.log("Email sent successfully to:", email);
 
     return new Response(JSON.stringify({ 
       success: true, 
-      messageId: emailResponse.data?.id 
+      message: "Email enviado com sucesso" 
     }), {
       status: 200,
       headers: {

@@ -1,13 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "npm:resend@2.0.0";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 );
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,6 +48,30 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Found ${pendingEmails?.length || 0} pending emails`);
 
+    // Configurações SMTP
+    const smtpHost = Deno.env.get("SMTP_HOST") || "smtp.gmail.com";
+    const smtpPort = parseInt(Deno.env.get("SMTP_PORT") || "587");
+    const smtpUser = Deno.env.get("SMTP_USER");
+    const smtpPassword = Deno.env.get("SMTP_PASSWORD");
+    const fromEmail = Deno.env.get("FROM_EMAIL") || smtpUser;
+
+    if (!smtpUser || !smtpPassword) {
+      throw new Error("Credenciais SMTP não configuradas. Configure SMTP_USER e SMTP_PASSWORD.");
+    }
+
+    // Configurar cliente SMTP
+    const client = new SMTPClient({
+      connection: {
+        hostname: smtpHost,
+        port: smtpPort,
+        tls: true,
+        auth: {
+          username: smtpUser,
+          password: smtpPassword,
+        },
+      },
+    });
+
     let processedCount = 0;
     let errorCount = 0;
 
@@ -73,11 +95,12 @@ const handler = async (req: Request): Promise<Response> => {
           (match, key) => emailItem.variables?.[key] || match
         );
 
-        // Enviar email
-        const emailResponse = await resend.emails.send({
-          from: "Sistema Hemera Capital <noreply@hemeracapital.com>",
-          to: [emailItem.recipient_email],
+        // Enviar email via SMTP
+        await client.send({
+          from: fromEmail!,
+          to: emailItem.recipient_email,
           subject: processedSubject,
+          content: processedContent || emailItem.email_templates.content,
           html: processedContent || emailItem.email_templates.content,
         });
 
@@ -89,7 +112,6 @@ const handler = async (req: Request): Promise<Response> => {
           subject: processedSubject,
           content: processedContent || emailItem.email_templates.content,
           status: 'sent',
-          provider_message_id: emailResponse.data?.id,
           sent_at: new Date().toISOString()
         });
 
@@ -135,6 +157,8 @@ const handler = async (req: Request): Promise<Response> => {
         errorCount++;
       }
     }
+
+    await client.close();
 
     console.log(`Processed ${processedCount} emails, ${errorCount} errors`);
 
