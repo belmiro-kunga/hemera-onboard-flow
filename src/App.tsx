@@ -20,6 +20,9 @@ import EmailsAdmin from "./pages/admin/EmailsAdmin";
 import StudentCourses from "./pages/StudentCourses";
 import Certificates from "./pages/Certificates";
 import NotFound from "./pages/NotFound";
+import Welcome from "./pages/Welcome";
+import CompanyPresentationAdminPage from "./pages/admin/CompanyPresentationAdmin";
+import VideoLibrary from "./pages/admin/VideoLibrary";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +34,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
+          <Route path="/welcome" element={<Welcome />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/modules" element={<Modules />} />
           <Route path="/modules/:moduleId" element={<ModulePlayer />} />
@@ -47,8 +51,10 @@ const App = () => (
             <Route path="users" element={<UserManagement />} />
             <Route path="simulados" element={<SimuladosAdmin />} />
             <Route path="videos" element={<VideoCoursesAdmin />} />
+            <Route path="video-library" element={<VideoLibrary />} />
             <Route path="certificates" element={<CertificatesAdmin />} />
             <Route path="emails" element={<EmailsAdmin />} />
+            <Route path="presentation" element={<CompanyPresentationAdminPage />} />
             {/* Future admin routes can be added here */}
           </Route>
           

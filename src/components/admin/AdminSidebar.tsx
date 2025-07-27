@@ -26,7 +26,8 @@ import {
   Award,
   HelpCircle,
   LogOut,
-  Mail
+  Mail,
+  Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -46,6 +47,7 @@ const AdminSidebar = () => {
   const systemMenuItems = [
     { title: 'Notificações', url: '/admin/notifications', icon: Bell },
     { title: 'Emails', url: '/admin/emails', icon: Mail },
+    { title: 'Apresentação', url: '/admin/presentation', icon: Building2 },
     { title: 'Relatórios', url: '/admin/reports', icon: FileText },
     { title: 'Certificados', url: '/admin/certificates', icon: Award },
     { title: 'Configurações', url: '/admin/settings', icon: Settings },

@@ -73,9 +73,24 @@ const CompanyPresentationAdmin: React.FC = () => {
       }
 
       if (presentationData) {
+        // Safe conversion of Json to string[]
+        let valuesArray: string[] = [];
+        if (presentationData.values) {
+          if (Array.isArray(presentationData.values)) {
+            valuesArray = presentationData.values.filter((v): v is string => typeof v === 'string');
+          } else if (typeof presentationData.values === 'string') {
+            try {
+              const parsed = JSON.parse(presentationData.values);
+              valuesArray = Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
+            } catch {
+              valuesArray = [];
+            }
+          }
+        }
+
         setPresentation({
           ...presentationData,
-          values: Array.isArray(presentationData.values) ? presentationData.values : []
+          values: valuesArray
         });
       }
 

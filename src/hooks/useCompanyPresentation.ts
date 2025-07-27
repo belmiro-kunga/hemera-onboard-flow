@@ -55,7 +55,27 @@ export const useCompanyPresentation = () => {
         throw error;
       }
 
-      setPresentation(data);
+      if (data) {
+        // Safe conversion of Json to string[]
+        let valuesArray: string[] = [];
+        if (data.values) {
+          if (Array.isArray(data.values)) {
+            valuesArray = data.values.filter((v): v is string => typeof v === 'string');
+          } else if (typeof data.values === 'string') {
+            try {
+              const parsed = JSON.parse(data.values);
+              valuesArray = Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
+            } catch {
+              valuesArray = [];
+            }
+          }
+        }
+
+        setPresentation({
+          ...data,
+          values: valuesArray
+        });
+      }
     } catch (err) {
       console.error('Error fetching presentation:', err);
       setError('Erro ao carregar apresentação da empresa');

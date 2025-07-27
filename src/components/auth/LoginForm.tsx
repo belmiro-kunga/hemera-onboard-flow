@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 const loginSchema = z.object({
   email: z.string().email("Email inválido").refine(email => email.endsWith("@hcp.com"), {
     message: "Use seu email corporativo (@hcp.com)"
@@ -34,17 +35,44 @@ const LoginForm = () => {
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     try {
-      // Simulate authentication
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      toast({
-        title: "Login realizado com sucesso!",
-        description: `Bem-vindo de volta, ${data.email.split("@")[0]}!`
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
       });
-      navigate("/dashboard");
-    } catch (error) {
+
+      if (error) {
+        throw error;
+      }
+
+      if (authData.user) {
+        // Update last_login
+        await supabase
+          .from('profiles')
+          .update({ last_login: new Date().toISOString() })
+          .eq('user_id', authData.user.id);
+
+        // Check if user needs to see presentation
+        const { data: needsPresentation } = await supabase.rpc('user_needs_presentation', {
+          user_uuid: authData.user.id
+        });
+
+        toast({
+          title: "Login realizado com sucesso!",
+          description: `Bem-vindo de volta, ${data.email.split("@")[0]}!`
+        });
+        
+        // Redirect based on first login status
+        if (needsPresentation) {
+          navigate("/welcome");
+        } else {
+          navigate("/dashboard");
+        }
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
       toast({
         title: "Erro no login",
-        description: "Credenciais inválidas. Tente novamente.",
+        description: error.message || "Credenciais inválidas. Tente novamente.",
         variant: "destructive"
       });
     } finally {
