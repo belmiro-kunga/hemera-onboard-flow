@@ -46,6 +46,51 @@ export type Database = {
           },
         ]
       }
+      company_presentation: {
+        Row: {
+          company_name: string
+          created_at: string
+          history: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          mission: string | null
+          requires_acknowledgment: boolean | null
+          updated_at: string
+          values: Json | null
+          video_url: string | null
+          vision: string | null
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          history?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          mission?: string | null
+          requires_acknowledgment?: boolean | null
+          updated_at?: string
+          values?: Json | null
+          video_url?: string | null
+          vision?: string | null
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          history?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          mission?: string | null
+          requires_acknowledgment?: boolean | null
+          updated_at?: string
+          values?: Json | null
+          video_url?: string | null
+          vision?: string | null
+        }
+        Relationships: []
+      }
       course_certificates: {
         Row: {
           certificate_url: string | null
@@ -464,6 +509,86 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      organizational_chart: {
+        Row: {
+          bio: string | null
+          created_at: string
+          department: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          order_position: number | null
+          parent_id: string | null
+          photo_url: string | null
+          position: string
+          show_in_presentation: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          department?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          order_position?: number | null
+          parent_id?: string | null
+          photo_url?: string | null
+          position: string
+          show_in_presentation?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          department?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          order_position?: number | null
+          parent_id?: string | null
+          photo_url?: string | null
+          position?: string
+          show_in_presentation?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organizational_chart_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_chart"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      presentation_views: {
+        Row: {
+          completed_at: string | null
+          first_login_presentation_shown: boolean | null
+          id: string
+          is_mandatory_completed: boolean | null
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          first_login_presentation_shown?: boolean | null
+          id?: string
+          is_mandatory_completed?: boolean | null
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          first_login_presentation_shown?: boolean | null
+          id?: string
+          is_mandatory_completed?: boolean | null
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -1093,6 +1218,10 @@ export type Database = {
         Returns: string
       }
       user_has_accepted_required_policies: {
+        Args: { user_uuid: string }
+        Returns: boolean
+      }
+      user_needs_presentation: {
         Args: { user_uuid: string }
         Returns: boolean
       }
