@@ -8,16 +8,32 @@ import { Search, Plus, Users, UserCheck, TrendingUp, UserPlus, MoreHorizontal } 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useUsers } from '@/hooks/useUsers';
 import UserWizard from '@/components/admin/UserWizard';
+import { 
+  useSearchAndFilter,
+  createSearchFilter,
+  handleError,
+  handleSuccess
+} from '@/lib/common-patterns';
+import { useToast } from '@/hooks/use-toast';
 
 const UserManagement = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const { toast } = useToast();
   const [showUserWizard, setShowUserWizard] = useState(false);
   const { users, loading, updateUserStatus } = useUsers();
-
+  
+  // Usando hooks comuns para eliminar duplicação
+  const {
+    searchTerm,
+    setSearchTerm,
+    selectedFilter,
+    setSelectedFilter
+  } = useSearchAndFilter('all', 'all');
+  
+  // Usando filtros comuns
+  const searchFilter = createSearchFilter(searchTerm);
+  
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = searchFilter(user, ['name', 'email']);
     const matchesFilter = selectedFilter === 'all' || 
                          (selectedFilter === 'active' && user.is_active) ||
                          (selectedFilter === 'inactive' && !user.is_active);
@@ -215,7 +231,14 @@ const UserManagement = () => {
                           <DropdownMenuItem>Editar</DropdownMenuItem>
                           <DropdownMenuItem>Enviar Email</DropdownMenuItem>
                           <DropdownMenuItem 
-                            onClick={() => updateUserStatus(user.user_id, !user.is_active)}
+                            onClick={() => {
+                              try {
+                                updateUserStatus(user.user_id, !user.is_active);
+                                handleSuccess(toast, `Usuário ${user.is_active ? 'desativado' : 'ativado'} com sucesso!`);
+                              } catch (error) {
+                                handleError(error, toast, 'Erro ao alterar status do usuário');
+                              }
+                            }}
                           >
                             {user.is_active ? 'Desativar' : 'Ativar'}
                           </DropdownMenuItem>

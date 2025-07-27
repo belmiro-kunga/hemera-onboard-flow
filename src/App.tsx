@@ -16,7 +16,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import VideoCoursesAdmin from "./pages/admin/VideoCoursesAdmin";
 import SimuladosAdmin from "./pages/admin/SimuladosAdmin";
 import CertificatesAdmin from "./pages/admin/CertificatesAdmin";
-import EmailsAdmin from "./pages/admin/EmailsAdmin";
+
 import StudentCourses from "./pages/StudentCourses";
 import Certificates from "./pages/Certificates";
 import NotFound from "./pages/NotFound";
@@ -27,6 +27,7 @@ import GamificationAdmin from "./pages/admin/GamificationAdmin";
 import Gamification from "./pages/Gamification";
 import CourseAssignmentAdmin from "./pages/admin/CourseAssignmentAdmin";
 import CMSAdmin from "./pages/admin/CMSAdmin";
+import SettingsAdmin from "./pages/admin/SettingsAdmin";
 
 const queryClient = new QueryClient();
 
@@ -58,11 +59,12 @@ const App = () => (
             <Route path="videos" element={<VideoCoursesAdmin />} />
             <Route path="video-library" element={<VideoLibrary />} />
             <Route path="certificates" element={<CertificatesAdmin />} />
-            <Route path="emails" element={<EmailsAdmin />} />
+
             <Route path="presentation" element={<CompanyPresentationAdminPage />} />
             <Route path="gamification" element={<GamificationAdmin />} />
             <Route path="assignments" element={<CourseAssignmentAdmin />} />
             <Route path="cms" element={<CMSAdmin />} />
+            <Route path="settings" element={<SettingsAdmin />} />
             {/* Future admin routes can be added here */}
           </Route>
           

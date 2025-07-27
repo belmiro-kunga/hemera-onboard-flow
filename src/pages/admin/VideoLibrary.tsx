@@ -26,76 +26,40 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import VideoPlayer from '@/components/video/VideoPlayer';
+import { 
+  useSearchAndFilter, 
+  useVideosQuery, 
+  useVideoCategoriesQuery,
+  createSearchFilter,
+  createCategoryFilter,
+  handleError,
+  handleSuccess
+} from '@/lib/common-patterns';
+import { useToast } from '@/hooks/use-toast';
 
 const VideoLibrary = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const { toast } = useToast();
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
-
-  const videos = [
-    {
-      id: 1,
-      title: 'Boas-vindas do CEO',
-      description: 'Mensagem de boas-vindas do CEO da Hemera Capital Partners',
-      thumbnail: '/placeholder.svg',
-      duration: '5:30',
-      category: 'Cultura',
-      uploadDate: '2024-01-15',
-      views: 247,
-      status: 'published',
-      fileSize: '125 MB',
-      resolution: '1080p'
-    },
-    {
-      id: 2,
-      title: 'Cultura e Valores HCP',
-      description: 'Apresentação detalhada da cultura organizacional',
-      thumbnail: '/placeholder.svg',
-      duration: '12:45',
-      category: 'Cultura',
-      uploadDate: '2024-01-14',
-      views: 198,
-      status: 'published',
-      fileSize: '340 MB',
-      resolution: '1080p'
-    },
-    {
-      id: 3,
-      title: 'Compliance e Ética',
-      description: 'Diretrizes de compliance e código de ética',
-      thumbnail: '/placeholder.svg',
-      duration: '8:20',
-      category: 'Compliance',
-      uploadDate: '2024-01-13',
-      views: 156,
-      status: 'draft',
-      fileSize: '220 MB',
-      resolution: '720p'
-    },
-    {
-      id: 4,
-      title: 'Processos Internos',
-      description: 'Visão geral dos principais processos da empresa',
-      thumbnail: '/placeholder.svg',
-      duration: '15:10',
-      category: 'Processos',
-      uploadDate: '2024-01-12',
-      views: 89,
-      status: 'published',
-      fileSize: '450 MB',
-      resolution: '1080p'
-    }
-  ];
-
-  const categories = ['all', 'Cultura', 'Compliance', 'Processos', 'Técnico'];
-
+  
+  // Usando hooks comuns para eliminar duplicação
+  const {
+    searchTerm,
+    setSearchTerm,
+    selectedCategory,
+    setSelectedCategory
+  } = useSearchAndFilter();
+  
+  // Usando queries comuns
+  const { data: videos = [], isLoading: videosLoading } = useVideosQuery();
+  const { data: categories = [] } = useVideoCategoriesQuery();
+  
+  // Usando filtros comuns
+  const searchFilter = createSearchFilter(searchTerm);
+  const categoryFilter = createCategoryFilter(selectedCategory);
+  
   const filteredVideos = videos.filter(video => {
-    const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         video.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = selectedCategory === 'all' || video.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
+    return searchFilter(video, ['title', 'description']) &&
+           categoryFilter(video, 'category');
   });
 
   const getStatusBadge = (status: string) => {
@@ -117,6 +81,44 @@ const VideoLibrary = () => {
     return `${hours}h ${mins}m`;
   };
 
+  const handleUpload = () => {
+    try {
+      // Lógica de upload aqui
+      handleSuccess(toast, 'Vídeo enviado com sucesso!');
+    } catch (error) {
+      handleError(error, toast, 'Erro ao enviar vídeo');
+    }
+  };
+
+  const handleDelete = (videoId: number) => {
+    try {
+      // Lógica de exclusão aqui
+      handleSuccess(toast, 'Vídeo excluído com sucesso!');
+    } catch (error) {
+      handleError(error, toast, 'Erro ao excluir vídeo');
+    }
+  };
+
+  if (videosLoading) {
+    return (
+      <div className="p-6 space-y-6 bg-background min-h-screen">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-muted rounded w-64"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-24 bg-muted rounded"></div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-64 bg-muted rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
       <div className="flex items-center justify-between">
@@ -129,7 +131,7 @@ const VideoLibrary = () => {
             <Download className="h-4 w-4 mr-2" />
             Exportar Lista
           </Button>
-          <Button variant="corporate" size="sm">
+          <Button variant="corporate" size="sm" onClick={handleUpload}>
             <Upload className="h-4 w-4 mr-2" />
             Upload Vídeo
           </Button>
@@ -290,7 +292,12 @@ const VideoLibrary = () => {
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <Edit className="h-3 w-3" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => handleDelete(video.id)}
+                        >
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>

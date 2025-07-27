@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { 
   FileText, 
   Image, 
-  Palette, 
   Menu, 
   Edit, 
   Shield,
@@ -16,22 +15,15 @@ import {
   Eye,
   Users,
   Folder,
-  Search,
-  Mail,
-  Server,
-  Globe
+  Search
 } from "lucide-react";
 
-// Import CMS components
+// Import CMS components (APENAS CONTEÚDO)
 import MediaLibrary from "@/components/cms/MediaLibrary";
-import BrandingSettings from "@/components/cms/BrandingSettings";
 import MenuManager from "@/components/cms/MenuManager";
 import PageManager from "@/components/cms/PageManager";
 import RoleManager from "@/components/cms/RoleManager";
 import CertificateTemplateEditor from "@/components/cms/CertificateTemplateEditor";
-import EmailConfigPanel from "@/components/cms/EmailConfigPanel";
-import SystemManager from "@/components/cms/SystemManager";
-import GeneralSettings from "@/components/cms/GeneralSettings";
 
 export default function CMSAdmin() {
   const [activeTab, setActiveTab] = useState("media");
@@ -45,7 +37,7 @@ export default function CMSAdmin() {
           <div>
             <h1 className="text-3xl font-bold">Sistema de Gerenciamento de Conteúdo</h1>
             <p className="text-muted-foreground">
-              Gerencie conteúdo, mídia, branding e configurações do sistema
+              Gerencie conteúdo, mídia, páginas e certificados do sistema
             </p>
           </div>
         </div>
@@ -55,9 +47,9 @@ export default function CMSAdmin() {
             <Eye className="h-4 w-4 mr-2" />
             Preview Site
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={() => window.open('/admin/settings', '_blank')}>
             <Settings className="h-4 w-4 mr-2" />
-            Configurações Gerais
+            Ir para Configurações
           </Button>
         </div>
       </div>
@@ -117,51 +109,30 @@ export default function CMSAdmin() {
         </Card>
       </div>
 
-      {/* Main Content Tabs */}
+      {/* Main Content Tabs - APENAS CONTEÚDO */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <div className="flex flex-wrap gap-2">
-          <TabsList className="grid grid-cols-6">
-            <TabsTrigger value="media" className="flex items-center gap-2">
-              <Image className="h-4 w-4" />
-              Mídia
-            </TabsTrigger>
-            <TabsTrigger value="branding" className="flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              Branding
-            </TabsTrigger>
-            <TabsTrigger value="menus" className="flex items-center gap-2">
-              <Menu className="h-4 w-4" />
-              Menus
-            </TabsTrigger>
-            <TabsTrigger value="pages" className="flex items-center gap-2">
-              <Edit className="h-4 w-4" />
-              Páginas
-            </TabsTrigger>
-            <TabsTrigger value="permissions" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Permissões
-            </TabsTrigger>
-            <TabsTrigger value="certificates" className="flex items-center gap-2">
-              <Award className="h-4 w-4" />
-              Certificados
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsList className="grid grid-cols-3">
-            <TabsTrigger value="email" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Email
-            </TabsTrigger>
-            <TabsTrigger value="system" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Sistema
-            </TabsTrigger>
-            <TabsTrigger value="config" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Configurações
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        <TabsList className="grid grid-cols-5">
+          <TabsTrigger value="media" className="flex items-center gap-2">
+            <Image className="h-4 w-4" />
+            Mídia
+          </TabsTrigger>
+          <TabsTrigger value="menus" className="flex items-center gap-2">
+            <Menu className="h-4 w-4" />
+            Menus
+          </TabsTrigger>
+          <TabsTrigger value="pages" className="flex items-center gap-2">
+            <Edit className="h-4 w-4" />
+            Páginas
+          </TabsTrigger>
+          <TabsTrigger value="permissions" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Permissões
+          </TabsTrigger>
+          <TabsTrigger value="certificates" className="flex items-center gap-2">
+            <Award className="h-4 w-4" />
+            Certificados
+          </TabsTrigger>
+        </TabsList>
 
         <TabsContent value="media" className="space-y-6">
           <Card>
@@ -176,23 +147,6 @@ export default function CMSAdmin() {
             </CardHeader>
             <CardContent>
               <MediaLibrary />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="branding" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="h-5 w-5" />
-                Configurações de Branding
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Personalize logos, cores, temas e identidade visual
-              </p>
-            </CardHeader>
-            <CardContent>
-              <BrandingSettings />
             </CardContent>
           </Card>
         </TabsContent>
@@ -264,57 +218,6 @@ export default function CMSAdmin() {
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="email" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="h-5 w-5" />
-                Configuração de Email
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Configure SMTP, templates e estatísticas de email
-              </p>
-            </CardHeader>
-            <CardContent>
-              <EmailConfigPanel />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="system" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Server className="h-5 w-5" />
-                Gerenciamento do Sistema
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Atualizações, backups e gerenciamento de arquivos
-              </p>
-            </CardHeader>
-            <CardContent>
-              <SystemManager />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="config" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Configurações Gerais
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Configurações globais, textos e internacionalização
-              </p>
-            </CardHeader>
-            <CardContent>
-              <GeneralSettings />
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
 
       {/* Quick Actions */}
@@ -370,6 +273,28 @@ export default function CMSAdmin() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Link para Configurações */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-medium text-blue-900">Precisa configurar o sistema?</h4>
+              <p className="text-sm text-blue-700">
+                Acesse as configurações para gerenciar branding, email, sistema e preferências gerais.
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+              onClick={() => window.location.href = '/admin/settings'}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Ir para Configurações
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -26,7 +26,6 @@ import {
   Award,
   HelpCircle,
   LogOut,
-  Mail,
   Building2,
   Trophy,
   Target
@@ -51,7 +50,6 @@ const AdminSidebar = () => {
   const systemMenuItems = [
     { title: 'CMS', url: '/admin/cms', icon: FileText },
     { title: 'Notificações', url: '/admin/notifications', icon: Bell },
-    { title: 'Emails', url: '/admin/emails', icon: Mail },
     { title: 'Apresentação', url: '/admin/presentation', icon: Building2 },
     { title: 'Relatórios', url: '/admin/reports', icon: FileText },
     { title: 'Certificados', url: '/admin/certificates', icon: Award },

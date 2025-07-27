@@ -8,6 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Download, FileText, Award, Users, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  useSearchAndFilter,
+  createSearchFilter,
+  handleError,
+  handleSuccess
+} from '@/lib/common-patterns';
 
 interface Certificate {
   id: string;
@@ -22,8 +28,13 @@ interface Certificate {
 
 export default function CertificatesAdmin() {
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<"all" | "course" | "simulado">("all");
+  
+  // Usando hooks comuns para eliminar duplicação
+  const {
+    searchTerm,
+    setSearchTerm
+  } = useSearchAndFilter();
 
   const { data: certificates, isLoading } = useQuery({
     queryKey: ["admin-certificates", searchTerm, filterType],
@@ -100,9 +111,11 @@ export default function CertificatesAdmin() {
     },
   });
 
+  // Usando filtros comuns
+  const searchFilter = createSearchFilter(searchTerm);
+  
   const filteredCertificates = certificates?.filter(cert => {
-    const matchesSearch = cert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         cert.user_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = searchFilter(cert, ['title', 'user_name']);
     const matchesType = filterType === "all" || cert.type === filterType;
     return matchesSearch && matchesType;
   }) || [];
@@ -118,11 +131,7 @@ export default function CertificatesAdmin() {
 
   const handleDownload = async (certificate: Certificate) => {
     if (!certificate.certificate_url) {
-      toast({
-        title: "Erro",
-        description: "URL do certificado não encontrada",
-        variant: "destructive",
-      });
+      handleError(new Error("URL do certificado não encontrada"), toast);
       return;
     }
 
@@ -139,16 +148,9 @@ export default function CertificatesAdmin() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast({
-        title: "Sucesso",
-        description: "Certificado baixado com sucesso",
-      });
+      handleSuccess(toast, "Certificado baixado com sucesso");
     } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao baixar certificado",
-        variant: "destructive",
-      });
+      handleError(error, toast, "Erro ao baixar certificado");
     }
   };
 

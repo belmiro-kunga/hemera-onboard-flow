@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCommonHook } from "@/hooks/useCommonHook";
 import type { UserCompleteData } from "@/lib/validations/user";
 
 export interface User {
@@ -32,7 +33,7 @@ export function useUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const { showError, showSuccess } = useCommonHook();
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -43,11 +44,7 @@ export function useUsers() {
       
       setUsers(data || []);
     } catch (error: any) {
-      toast({
-        title: "Erro ao carregar usuários",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao carregar usuários");
     } finally {
       setLoading(false);
     }
@@ -112,21 +109,14 @@ export function useUsers() {
           // Não falha a criação do usuário se o email não foi enviado
         }
 
-        toast({
-          title: "Usuário criado com sucesso",
-          description: `${userData.name} foi adicionado ao sistema e receberá um email com as credenciais.`,
-        });
+        showSuccess(`${userData.name} foi adicionado ao sistema e receberá um email com as credenciais.`);
         await fetchUsers();
         return { success: true, data: result };
       } else {
         throw new Error(result?.error || 'Erro desconhecido');
       }
     } catch (error: any) {
-      toast({
-        title: "Erro ao criar usuário",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao criar usuário");
       return { success: false, error: error.message };
     }
   };
@@ -140,18 +130,11 @@ export function useUsers() {
 
       if (error) throw error;
 
-      toast({
-        title: isActive ? "Usuário ativado" : "Usuário desativado",
-        description: "Status atualizado com sucesso.",
-      });
+      showSuccess(`Usuário ${isActive ? 'ativado' : 'desativado'} com sucesso.`);
       
       await fetchUsers();
     } catch (error: any) {
-      toast({
-        title: "Erro ao atualizar status",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao atualizar status");
     }
   };
 
@@ -163,18 +146,11 @@ export function useUsers() {
 
       if (error) throw error;
 
-      toast({
-        title: "Departamento criado",
-        description: `${name} foi adicionado.`,
-      });
+      showSuccess(`Departamento ${name} foi adicionado.`);
       
       await fetchDepartments();
     } catch (error: any) {
-      toast({
-        title: "Erro ao criar departamento",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao criar departamento");
     }
   };
 

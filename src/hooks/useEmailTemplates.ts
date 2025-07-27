@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCommonHook } from "@/hooks/useCommonHook";
 
 export interface EmailTemplate {
   id: string;
@@ -48,7 +49,7 @@ export function useEmailTemplates() {
   const [logs, setLogs] = useState<EmailLog[]>([]);
   const [queue, setQueue] = useState<EmailQueue[]>([]);
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const { showError, showSuccess } = useCommonHook();
 
   const fetchTemplates = async () => {
     try {

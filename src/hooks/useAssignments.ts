@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCommonHook } from "@/hooks/useCommonHook";
 import type { 
   CourseAssignment, 
   CreateAssignmentData, 
@@ -156,8 +157,7 @@ export const useAssignment = (assignmentId: string) => {
 
 // Hook para criar uma nova atribuição
 export const useCreateAssignment = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const { invalidateQueries, showError, showSuccess } = useCommonHook();
 
   return useMutation({
     mutationFn: async (data: CreateAssignmentData) => {
@@ -198,27 +198,18 @@ export const useCreateAssignment = () => {
       return assignment;
     },
     onSuccess: (assignment) => {
-      queryClient.invalidateQueries({ queryKey: ["assignments"] });
-      queryClient.invalidateQueries({ queryKey: ["user-assignments", assignment.user_id] });
-      toast({
-        title: "Atribuição criada",
-        description: "O curso foi atribuído com sucesso ao usuário.",
-      });
+      invalidateQueries(["assignments", `user-assignments-${assignment.user_id}`]);
+      showSuccess("O curso foi atribuído com sucesso ao usuário.");
     },
     onError: (error) => {
-      toast({
-        title: "Erro ao criar atribuição",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao criar atribuição");
     },
   });
 };
 
 // Hook para atualizar uma atribuição
 export const useUpdateAssignment = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const { invalidateQueries, showError, showSuccess } = useCommonHook();
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateAssignmentData }) => {
@@ -233,28 +224,18 @@ export const useUpdateAssignment = () => {
       return assignment;
     },
     onSuccess: (assignment) => {
-      queryClient.invalidateQueries({ queryKey: ["assignments"] });
-      queryClient.invalidateQueries({ queryKey: ["assignment", assignment.id] });
-      queryClient.invalidateQueries({ queryKey: ["user-assignments", assignment.user_id] });
-      toast({
-        title: "Atribuição atualizada",
-        description: "A atribuição foi atualizada com sucesso.",
-      });
+      invalidateQueries(["assignments", `assignment-${assignment.id}`, `user-assignments-${assignment.user_id}`]);
+      showSuccess("A atribuição foi atualizada com sucesso.");
     },
     onError: (error) => {
-      toast({
-        title: "Erro ao atualizar atribuição",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao atualizar atribuição");
     },
   });
 };
 
 // Hook para deletar uma atribuição
 export const useDeleteAssignment = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const { invalidateQueries, showError, showSuccess } = useCommonHook();
 
   return useMutation({
     mutationFn: async (assignmentId: string) => {
@@ -267,18 +248,11 @@ export const useDeleteAssignment = () => {
       return assignmentId;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["assignments"] });
-      toast({
-        title: "Atribuição removida",
-        description: "A atribuição foi removida com sucesso.",
-      });
+      invalidateQueries(["assignments"]);
+      showSuccess("A atribuição foi removida com sucesso.");
     },
     onError: (error) => {
-      toast({
-        title: "Erro ao remover atribuição",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao remover atribuição");
     },
   });
 };

@@ -7,6 +7,13 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { SimuladoWizard } from '@/components/admin/SimuladoWizard';
+import { 
+  useSearchAndFilter,
+  createSearchFilter,
+  createCategoryFilter,
+  handleError,
+  handleSuccess
+} from '@/lib/common-patterns';
 
 interface Simulado {
   id: string;
@@ -24,11 +31,19 @@ interface Simulado {
 }
 
 const SimuladosAdmin = () => {
+  const { toast } = useToast();
   const [simulados, setSimulados] = useState<Simulado[]>([]);
   const [loading, setLoading] = useState(true);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingSimulado, setEditingSimulado] = useState<Simulado | null>(null);
-  const { toast } = useToast();
+  
+  // Usando hooks comuns para eliminar duplicação
+  const {
+    searchTerm,
+    setSearchTerm,
+    selectedCategory,
+    setSelectedCategory
+  } = useSearchAndFilter();
 
   const loadSimulados = async () => {
     try {
@@ -53,12 +68,7 @@ const SimuladosAdmin = () => {
 
       setSimulados(simuladosWithCounts);
     } catch (error) {
-      console.error('Erro ao carregar simulados:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar os simulados.',
-        variant: 'destructive',
-      });
+      handleError(error, toast, 'Não foi possível carregar os simulados.');
     } finally {
       setLoading(false);
     }
@@ -77,19 +87,10 @@ const SimuladosAdmin = () => {
 
       if (error) throw error;
 
-      toast({
-        title: 'Sucesso',
-        description: `Simulado ${simulado.is_active ? 'desativado' : 'ativado'} com sucesso.`,
-      });
-
+      handleSuccess(toast, `Simulado ${simulado.is_active ? 'desativado' : 'ativado'} com sucesso.`);
       loadSimulados();
     } catch (error) {
-      console.error('Erro ao alterar status:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível alterar o status do simulado.',
-        variant: 'destructive',
-      });
+      handleError(error, toast, 'Não foi possível alterar o status do simulado.');
     }
   };
 
@@ -106,19 +107,10 @@ const SimuladosAdmin = () => {
 
       if (error) throw error;
 
-      toast({
-        title: 'Sucesso',
-        description: 'Simulado excluído com sucesso.',
-      });
-
+      handleSuccess(toast, 'Simulado excluído com sucesso.');
       loadSimulados();
     } catch (error) {
-      console.error('Erro ao excluir simulado:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível excluir o simulado.',
-        variant: 'destructive',
-      });
+      handleError(error, toast, 'Não foi possível excluir o simulado.');
     }
   };
 
