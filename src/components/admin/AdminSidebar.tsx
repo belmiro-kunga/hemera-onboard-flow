@@ -37,7 +37,7 @@ const AdminSidebar = () => {
   const mainMenuItems = [
     { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
     { title: 'Usuários', url: '/admin/users', icon: Users },
-    { title: 'Conteúdo', url: '/admin/content', icon: BookOpen },
+    { title: 'Simulados', url: '/admin/simulados', icon: BookOpen },
     { title: 'Vídeos', url: '/admin/videos', icon: Video },
     { title: 'Analytics', url: '/admin/analytics', icon: BarChart3 },
   ];

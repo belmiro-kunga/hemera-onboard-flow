@@ -14,6 +14,7 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement";
 import VideoLibrary from "./pages/admin/VideoLibrary";
+import SimuladosAdmin from "./pages/admin/SimuladosAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<UserManagement />} />
+            <Route path="simulados" element={<SimuladosAdmin />} />
             <Route path="videos" element={<VideoLibrary />} />
             {/* Future admin routes can be added here */}
           </Route>

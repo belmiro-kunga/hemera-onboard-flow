@@ -79,6 +79,41 @@ export type Database = {
         }
         Relationships: []
       }
+      opcoes_resposta: {
+        Row: {
+          created_at: string
+          id: string
+          is_correct: boolean | null
+          option_text: string
+          order_number: number
+          questao_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_correct?: boolean | null
+          option_text: string
+          order_number: number
+          questao_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_correct?: boolean | null
+          option_text?: string
+          order_number?: number
+          questao_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opcoes_resposta_questao_id_fkey"
+            columns: ["questao_id"]
+            isOneToOne: false
+            referencedRelation: "questoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -129,6 +164,145 @@ export type Database = {
           },
         ]
       }
+      questoes: {
+        Row: {
+          created_at: string
+          explanation: string | null
+          id: string
+          order_number: number
+          question_text: string
+          question_type: Database["public"]["Enums"]["question_type"]
+          simulado_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          order_number: number
+          question_text: string
+          question_type?: Database["public"]["Enums"]["question_type"]
+          simulado_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          order_number?: number
+          question_text?: string
+          question_type?: Database["public"]["Enums"]["question_type"]
+          simulado_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questoes_simulado_id_fkey"
+            columns: ["simulado_id"]
+            isOneToOne: false
+            referencedRelation: "simulados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      simulado_attempts: {
+        Row: {
+          completed_at: string | null
+          correct_answers: number | null
+          id: string
+          score: number | null
+          simulado_id: string | null
+          started_at: string
+          status: string | null
+          total_questions: number | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          correct_answers?: number | null
+          id?: string
+          score?: number | null
+          simulado_id?: string | null
+          started_at?: string
+          status?: string | null
+          total_questions?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          correct_answers?: number | null
+          id?: string
+          score?: number | null
+          simulado_id?: string | null
+          started_at?: string
+          status?: string | null
+          total_questions?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "simulado_attempts_simulado_id_fkey"
+            columns: ["simulado_id"]
+            isOneToOne: false
+            referencedRelation: "simulados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "simulado_attempts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      simulados: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          difficulty: Database["public"]["Enums"]["difficulty_level"] | null
+          duration_minutes: number
+          id: string
+          is_active: boolean | null
+          title: string
+          total_questions: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          difficulty?: Database["public"]["Enums"]["difficulty_level"] | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean | null
+          title: string
+          total_questions?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          difficulty?: Database["public"]["Enums"]["difficulty_level"] | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          total_questions?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "simulados_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       site_settings: {
         Row: {
           created_at: string | null
@@ -155,6 +329,58 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      user_answers: {
+        Row: {
+          answer_text: string | null
+          attempt_id: string | null
+          created_at: string
+          id: string
+          is_correct: boolean | null
+          opcao_resposta_id: string | null
+          questao_id: string | null
+        }
+        Insert: {
+          answer_text?: string | null
+          attempt_id?: string | null
+          created_at?: string
+          id?: string
+          is_correct?: boolean | null
+          opcao_resposta_id?: string | null
+          questao_id?: string | null
+        }
+        Update: {
+          answer_text?: string | null
+          attempt_id?: string | null
+          created_at?: string
+          id?: string
+          is_correct?: boolean | null
+          opcao_resposta_id?: string | null
+          questao_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_answers_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "simulado_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_answers_opcao_resposta_id_fkey"
+            columns: ["opcao_resposta_id"]
+            isOneToOne: false
+            referencedRelation: "opcoes_resposta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_answers_questao_id_fkey"
+            columns: ["questao_id"]
+            isOneToOne: false
+            referencedRelation: "questoes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_courses: {
         Row: {
@@ -291,6 +517,7 @@ export type Database = {
       }
     }
     Enums: {
+      difficulty_level: "facil" | "medio" | "dificil"
       question_type:
         | "multiple_choice"
         | "multiple_answers"
@@ -426,6 +653,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      difficulty_level: ["facil", "medio", "dificil"],
       question_type: [
         "multiple_choice",
         "multiple_answers",
