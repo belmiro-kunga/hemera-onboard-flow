@@ -15,6 +15,9 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement";
 import VideoCoursesAdmin from "./pages/admin/VideoCoursesAdmin";
 import SimuladosAdmin from "./pages/admin/SimuladosAdmin";
+import CertificatesAdmin from "./pages/admin/CertificatesAdmin";
+import StudentCourses from "./pages/StudentCourses";
+import Certificates from "./pages/Certificates";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +34,8 @@ const App = () => (
           <Route path="/modules" element={<Modules />} />
           <Route path="/modules/:moduleId" element={<ModulePlayer />} />
           <Route path="/progress" element={<ProgressPage />} />
+          <Route path="/courses" element={<StudentCourses />} />
+          <Route path="/certificates" element={<Certificates />} />
           
           {/* Admin Login */}
           <Route path="/admin/login" element={<AdminLogin />} />
@@ -41,6 +46,7 @@ const App = () => (
             <Route path="users" element={<UserManagement />} />
             <Route path="simulados" element={<SimuladosAdmin />} />
             <Route path="videos" element={<VideoCoursesAdmin />} />
+            <Route path="certificates" element={<CertificatesAdmin />} />
             {/* Future admin routes can be added here */}
           </Route>
           
