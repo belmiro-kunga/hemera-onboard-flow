@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      assignment_notifications: {
+        Row: {
+          assignment_id: string
+          created_at: string
+          email_sent: boolean | null
+          id: string
+          in_app_read: boolean | null
+          notification_type: string
+          sent_at: string | null
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string
+          email_sent?: boolean | null
+          id?: string
+          in_app_read?: boolean | null
+          notification_type: string
+          sent_at?: string | null
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string
+          email_sent?: boolean | null
+          id?: string
+          in_app_read?: boolean | null
+          notification_type?: string
+          sent_at?: string | null
+        }
+        Relationships: []
+      }
+      assignment_templates: {
+        Row: {
+          created_at: string
+          created_by: string
+          department: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          job_title: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          department?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          job_title?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          department?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          job_title?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       badges: {
         Row: {
           created_at: string
@@ -127,6 +193,54 @@ export type Database = {
           values?: Json | null
           video_url?: string | null
           vision?: string | null
+        }
+        Relationships: []
+      }
+      course_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string
+          completed_at: string | null
+          content_id: string
+          content_type: string
+          created_at: string
+          due_date: string | null
+          id: string
+          notes: string | null
+          priority: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by: string
+          completed_at?: string | null
+          content_id: string
+          content_type?: string
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          priority?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string
+          completed_at?: string | null
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          priority?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -930,6 +1044,39 @@ export type Database = {
         }
         Relationships: []
       }
+      template_courses: {
+        Row: {
+          content_id: string
+          content_type: string
+          created_at: string
+          default_due_days: number | null
+          id: string
+          is_mandatory: boolean | null
+          priority: string
+          template_id: string
+        }
+        Insert: {
+          content_id: string
+          content_type?: string
+          created_at?: string
+          default_due_days?: number | null
+          id?: string
+          is_mandatory?: boolean | null
+          priority?: string
+          template_id: string
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          default_due_days?: number | null
+          id?: string
+          is_mandatory?: boolean | null
+          priority?: string
+          template_id?: string
+        }
+        Relationships: []
+      }
       temporary_passwords: {
         Row: {
           created_at: string
@@ -1254,192 +1401,6 @@ export type Database = {
           },
         ]
       }
-      assignment_notifications: {
-        Row: {
-          assignment_id: string
-          created_at: string
-          email_sent: boolean | null
-          id: string
-          in_app_read: boolean | null
-          notification_type: string
-          sent_at: string
-        }
-        Insert: {
-          assignment_id: string
-          created_at?: string
-          email_sent?: boolean | null
-          id?: string
-          in_app_read?: boolean | null
-          notification_type: string
-          sent_at?: string
-        }
-        Update: {
-          assignment_id?: string
-          created_at?: string
-          email_sent?: boolean | null
-          id?: string
-          in_app_read?: boolean | null
-          notification_type?: string
-          sent_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "assignment_notifications_assignment_id_fkey"
-            columns: ["assignment_id"]
-            isOneToOne: false
-            referencedRelation: "course_assignments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      assignment_templates: {
-        Row: {
-          created_at: string
-          created_by: string
-          department: string | null
-          description: string | null
-          id: string
-          is_active: boolean | null
-          job_title: string | null
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          department?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          job_title?: string | null
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          department?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          job_title?: string | null
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "assignment_templates_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
-      course_assignments: {
-        Row: {
-          assigned_at: string
-          assigned_by: string
-          completed_at: string | null
-          content_id: string
-          content_type: string
-          created_at: string
-          due_date: string | null
-          id: string
-          notes: string | null
-          priority: string | null
-          status: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          assigned_at?: string
-          assigned_by: string
-          completed_at?: string | null
-          content_id: string
-          content_type: string
-          created_at?: string
-          due_date?: string | null
-          id?: string
-          notes?: string | null
-          priority?: string | null
-          status?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          assigned_at?: string
-          assigned_by?: string
-          completed_at?: string | null
-          content_id?: string
-          content_type?: string
-          created_at?: string
-          due_date?: string | null
-          id?: string
-          notes?: string | null
-          priority?: string | null
-          status?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "course_assignments_assigned_by_fkey"
-            columns: ["assigned_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "course_assignments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
-      template_courses: {
-        Row: {
-          content_id: string
-          content_type: string
-          created_at: string
-          default_due_days: number | null
-          id: string
-          is_mandatory: boolean | null
-          priority: string | null
-          template_id: string
-        }
-        Insert: {
-          content_id: string
-          content_type: string
-          created_at?: string
-          default_due_days?: number | null
-          id?: string
-          is_mandatory?: boolean | null
-          priority?: string | null
-          template_id: string
-        }
-        Update: {
-          content_id?: string
-          content_type?: string
-          created_at?: string
-          default_due_days?: number | null
-          id?: string
-          is_mandatory?: boolean | null
-          priority?: string | null
-          template_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "template_courses_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "assignment_templates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never
@@ -1455,6 +1416,10 @@ export type Database = {
           p_multiplier?: number
         }
         Returns: string
+      }
+      apply_template_to_user: {
+        Args: { p_template_id: string; p_user_id: string }
+        Returns: number
       }
       can_user_take_exam: {
         Args: { user_uuid: string }
@@ -1513,6 +1478,19 @@ export type Database = {
           average_rating: number
           total_ratings: number
           rating_distribution: Json
+        }[]
+      }
+      get_leaderboard: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          name: string
+          email: string
+          total_points: number
+          current_level: number
+          courses_completed: number
+          simulados_completed: number
+          badge_count: number
         }[]
       }
       get_level_from_points: {

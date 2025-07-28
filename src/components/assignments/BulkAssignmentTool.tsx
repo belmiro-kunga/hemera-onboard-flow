@@ -32,7 +32,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useBulkAssignments } from "@/hooks/useAssignments";
 import { bulkAssignmentSchema } from "@/lib/validations/assignment";
-import type { BulkAssignmentData } from "@/types/assignment.types";
+import type { BulkAssignmentData, ContentType } from "@/types/assignment.types";
 
 interface User {
   user_id: string;
@@ -115,7 +115,7 @@ export default function BulkAssignmentTool() {
     queryFn: async () => {
       let query = supabase
         .from("video_courses")
-        .select("id, title, description, duration_minutes, difficulty")
+        .select("id, title, description, duration_minutes")
         .eq("is_active", true)
         .order("title");
 
@@ -125,7 +125,7 @@ export default function BulkAssignmentTool() {
 
       const { data, error } = await query.limit(20);
       if (error) throw error;
-      return data as Course[];
+      return (data || []) as Course[];
     },
   });
 
@@ -154,7 +154,8 @@ export default function BulkAssignmentTool() {
     bulkAssignments.mutate({
       ...data,
       userIds: selectedUsers.map(u => u.user_id),
-      courseId: selectedCourse.id,
+      contentType: 'course' as ContentType,
+      contentId: selectedCourse.id,
     }, {
       onSuccess: () => {
         form.reset();

@@ -30,12 +30,11 @@ export const useAssignments = (filters?: AssignmentFilters): UseAssignmentsRetur
             department,
             job_position
           ),
-          course:video_courses!course_assignments_course_id_fkey(
+          content:video_courses!course_assignments_content_id_fkey(
             id,
             title,
             description,
             duration_minutes,
-            difficulty,
             is_active
           ),
           assignedByUser:profiles!course_assignments_assigned_by_fkey(
@@ -51,7 +50,7 @@ export const useAssignments = (filters?: AssignmentFilters): UseAssignmentsRetur
       }
       
       if (filters?.courseId) {
-        query = query.eq("course_id", filters.courseId);
+        query = query.eq("content_id", filters.courseId);
       }
       
       if (filters?.assignedBy) {
@@ -176,7 +175,8 @@ export const useCreateAssignment = () => {
         .from("course_assignments")
         .insert({
           user_id: data.userId,
-          course_id: data.courseId,
+          content_type: data.contentType,
+          content_id: data.contentId,
           assigned_by: user.user.id,
           due_date: data.dueDate,
           priority: data.priority,
@@ -290,14 +290,13 @@ export const useBulkAssignments = () => {
             .from("course_assignments")
             .select("id")
             .eq("user_id", userId)
-            .eq("course_id", data.courseId)
+            .eq("content_id", data.contentId)
             .single();
 
           if (existing) {
             results.errorCount++;
             results.errors.push({
               userId,
-              courseId: data.courseId,
               error: "Atribuição já existe para este usuário",
             });
             continue;
@@ -308,7 +307,8 @@ export const useBulkAssignments = () => {
             .from("course_assignments")
             .insert({
               user_id: userId,
-              course_id: data.courseId,
+              content_type: data.contentType,
+              content_id: data.contentId,
               assigned_by: user.user.id,
               due_date: data.dueDate,
               priority: data.priority,
@@ -334,7 +334,6 @@ export const useBulkAssignments = () => {
           results.errorCount++;
           results.errors.push({
             userId,
-            courseId: data.courseId,
             error: error instanceof Error ? error.message : "Erro desconhecido",
           });
         }
@@ -378,12 +377,11 @@ export const useUserAssignments = (userId: string) => {
         .from("course_assignments")
         .select(`
           *,
-          course:video_courses!course_assignments_course_id_fkey(
+          content:video_courses!course_assignments_content_id_fkey(
             id,
             title,
             description,
             duration_minutes,
-            difficulty,
             is_active
           )
         `)
@@ -409,12 +407,11 @@ export const useMyAssignments = () => {
         .from("course_assignments")
         .select(`
           *,
-          course:video_courses!course_assignments_course_id_fkey(
+          content:video_courses!course_assignments_content_id_fkey(
             id,
             title,
             description,
             duration_minutes,
-            difficulty,
             is_active
           )
         `)

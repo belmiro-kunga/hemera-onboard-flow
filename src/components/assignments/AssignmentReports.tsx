@@ -212,7 +212,7 @@ export default function AssignmentReports() {
                 recentAssignments.map((assignment) => (
                   <div key={assignment.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex-1">
-                      <h4 className="font-medium text-sm">{assignment.course?.title}</h4>
+                      <h4 className="font-medium text-sm">{assignment.content?.title}</h4>
                       <p className="text-xs text-muted-foreground">
                         {assignment.user?.name} • {assignment.user?.department}
                       </p>
@@ -251,7 +251,7 @@ export default function AssignmentReports() {
               {overdueAssignments.slice(0, 5).map((assignment) => (
                 <div key={assignment.id} className="flex items-center justify-between p-3 border border-destructive/20 rounded-lg">
                   <div>
-                    <h4 className="font-medium text-sm">{assignment.course?.title}</h4>
+                    <h4 className="font-medium text-sm">{assignment.content?.title}</h4>
                     <p className="text-xs text-muted-foreground">
                       {assignment.user?.name} • {assignment.user?.department}
                     </p>

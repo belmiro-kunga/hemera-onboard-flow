@@ -174,11 +174,11 @@ export default function CertificateTemplateEditor() {
                 <div className="space-y-2">
                   <Label>Variáveis Disponíveis</Label>
                   <div className="text-xs space-y-1 text-muted-foreground">
-                    <p>{{student_name}} - Nome do aluno</p>
-                    <p>{{course_name}} - Nome do curso</p>
-                    <p>{{completion_date}} - Data de conclusão</p>
-                    <p>{{score}} - Pontuação (simulados)</p>
-                    <p>{{company_name}} - Nome da empresa</p>
+                    <p>{"{{student_name}}"} - Nome do aluno</p>
+                    <p>{"{{course_name}}"} - Nome do curso</p>
+                    <p>{"{{completion_date}}"} - Data de conclusão</p>
+                    <p>{"{{score}}"} - Pontuação (simulados)</p>
+                    <p>{"{{company_name}}"} - Nome da empresa</p>
                   </div>
                 </div>
               </CardContent>

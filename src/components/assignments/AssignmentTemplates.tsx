@@ -160,7 +160,7 @@ export default function AssignmentTemplates() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {new Set(templates.flatMap(t => t.courses?.map(c => c.courseId) || [])).size}
+              {new Set(templates.flatMap(t => t.courses?.map(c => c.contentId) || [])).size}
             </div>
             <p className="text-xs text-muted-foreground">
               em todos os templates

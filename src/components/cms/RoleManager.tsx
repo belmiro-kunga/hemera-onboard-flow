@@ -159,7 +159,6 @@ export default function RoleManager() {
                           {roles.slice(0, 3).map((role) => (
                             <Switch
                               key={`${role.id}-${permission.id}`}
-                              size="sm"
                               checked={role.permissions.includes(permission.id) || role.permissions.includes("all")}
                               disabled={role.permissions.includes("all")}
                             />
