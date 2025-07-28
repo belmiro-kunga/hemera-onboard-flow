@@ -9,7 +9,9 @@ import type {
   TemplateFilters,
   TemplateListResponse,
   TemplateApplicationResult,
-  UseAssignmentTemplatesReturn
+  UseAssignmentTemplatesReturn,
+  ContentType,
+  AssignmentPriority
 } from "@/types/assignment.types";
 import { validateTemplateData } from "@/lib/validations/assignment";
 
@@ -22,21 +24,7 @@ export const useAssignmentTemplates = (filters?: TemplateFilters): UseAssignment
         .from("assignment_templates")
         .select(`
           *,
-          createdByUser:profiles!assignment_templates_created_by_fkey(
-            user_id,
-            name,
-            email
-          ),
-          courses:template_courses(
-            *,
-            course:video_courses!template_courses_course_id_fkey(
-              id,
-              title,
-              description,
-              duration_minutes,
-              difficulty
-            )
-          )
+          template_courses(*)
         `);
 
       // Apply filters
@@ -73,8 +61,30 @@ export const useAssignmentTemplates = (filters?: TemplateFilters): UseAssignment
       
       if (error) throw error;
       
+      const templates = (data || []).map(template => ({
+        id: template.id,
+        name: template.name,
+        department: template.department,
+        jobTitle: template.job_title,
+        description: template.description,
+        isActive: template.is_active,
+        createdBy: template.created_by,
+        createdAt: template.created_at,
+        updatedAt: template.updated_at,
+        courses: (Array.isArray(template.template_courses) ? template.template_courses : [])?.map(course => ({
+          id: course.id,
+          templateId: course.template_id,
+          contentType: course.content_type as ContentType,
+          contentId: course.content_id,
+          isMandatory: course.is_mandatory,
+          defaultDueDays: course.default_due_days,
+          priority: course.priority as AssignmentPriority,
+          createdAt: course.created_at
+        })) || []
+      })) as AssignmentTemplate[];
+      
       return {
-        templates: data as AssignmentTemplate[],
+        templates,
         total: count || 0,
         page,
         limit
@@ -100,27 +110,35 @@ export const useAssignmentTemplate = (templateId: string) => {
         .from("assignment_templates")
         .select(`
           *,
-          createdByUser:profiles!assignment_templates_created_by_fkey(
-            user_id,
-            name,
-            email
-          ),
-          courses:template_courses(
-            *,
-            course:video_courses!template_courses_course_id_fkey(
-              id,
-              title,
-              description,
-              duration_minutes,
-              difficulty
-            )
-          )
+          template_courses(*)
         `)
         .eq("id", templateId)
         .single();
 
       if (error) throw error;
-      return data as AssignmentTemplate;
+      if (!data) throw new Error('Template não encontrado');
+
+      return {
+        id: data.id,
+        name: data.name,
+        department: data.department,
+        jobTitle: data.job_title,
+        description: data.description,
+        isActive: data.is_active,
+        createdBy: data.created_by,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+        courses: (Array.isArray(data.template_courses) ? data.template_courses : [])?.map(course => ({
+          id: course.id,
+          templateId: course.template_id,
+          contentType: course.content_type as ContentType,
+          contentId: course.content_id,
+          isMandatory: course.is_mandatory,
+          defaultDueDays: course.default_due_days,
+          priority: course.priority as AssignmentPriority,
+          createdAt: course.created_at
+        })) || []
+      } as AssignmentTemplate;
     },
     enabled: !!templateId,
   });
@@ -159,12 +177,13 @@ export const useCreateTemplate = () => {
       if (templateError) throw templateError;
 
       // Create template courses
-      const templateCourses = data.courses.map(course => ({
+      const templateCourses = data.contents.map(content => ({
         template_id: template.id,
-        course_id: course.courseId,
-        is_mandatory: course.isMandatory,
-        default_due_days: course.defaultDueDays,
-        priority: course.priority,
+        content_id: content.contentId,
+        content_type: content.contentType,
+        is_mandatory: content.isMandatory,
+        default_due_days: content.defaultDueDays,
+        priority: content.priority,
       }));
 
       const { error: coursesError } = await supabase
@@ -199,9 +218,17 @@ export const useUpdateTemplate = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateTemplateData }) => {
+      const updateData: any = {};
+      
+      if (data.name !== undefined) updateData.name = data.name;
+      if (data.department !== undefined) updateData.department = data.department;
+      if (data.jobTitle !== undefined) updateData.job_title = data.jobTitle;
+      if (data.description !== undefined) updateData.description = data.description;
+      if (data.isActive !== undefined) updateData.is_active = data.isActive;
+      
       const { data: template, error } = await supabase
         .from("assignment_templates")
-        .update(data)
+        .update(updateData)
         .eq("id", id)
         .select()
         .single();
@@ -266,10 +293,6 @@ export const useApplyTemplate = () => {
 
   return useMutation({
     mutationFn: async ({ templateId, userIds }: { templateId: string; userIds: string[] }): Promise<TemplateApplicationResult[]> => {
-      // Get current user
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não autenticado");
-
       const results: TemplateApplicationResult[] = [];
 
       // Apply template to each user
@@ -277,8 +300,7 @@ export const useApplyTemplate = () => {
         try {
           const { data, error } = await supabase.rpc('apply_template_to_user', {
             p_template_id: templateId,
-            p_user_id: userId,
-            p_assigned_by: user.user.id,
+            p_user_id: userId
           });
 
           if (error) throw error;
@@ -332,41 +354,6 @@ export const useApplyTemplate = () => {
   });
 };
 
-// Hook para buscar estatísticas de uso do template
-export const useTemplateUsage = (templateId: string) => {
-  return useQuery({
-    queryKey: ["template-usage", templateId],
-    queryFn: async () => {
-      // Get template courses count
-      const { data: templateCourses, error: coursesError } = await supabase
-        .from("template_courses")
-        .select("id")
-        .eq("template_id", templateId);
-
-      if (coursesError) throw coursesError;
-
-      // Get assignments created from this template (approximation)
-      const { data: assignments, error: assignmentsError } = await supabase
-        .from("course_assignments")
-        .select("id, user_id")
-        .in("course_id", templateCourses?.map(tc => tc.id) || [])
-        .eq("notes", "Atribuído automaticamente via template");
-
-      if (assignmentsError) throw assignmentsError;
-
-      // Get unique users affected
-      const uniqueUsers = new Set(assignments?.map(a => a.user_id) || []);
-
-      return {
-        courseCount: templateCourses?.length || 0,
-        assignmentCount: assignments?.length || 0,
-        userCount: uniqueUsers.size,
-      };
-    },
-    enabled: !!templateId,
-  });
-};
-
 // Hook para buscar templates por departamento/cargo
 export const useTemplatesByRole = (department?: string, jobTitle?: string) => {
   return useQuery({
@@ -376,14 +363,7 @@ export const useTemplatesByRole = (department?: string, jobTitle?: string) => {
         .from("assignment_templates")
         .select(`
           *,
-          courses:template_courses(
-            *,
-            course:video_courses!template_courses_course_id_fkey(
-              id,
-              title,
-              description
-            )
-          )
+          template_courses(*)
         `)
         .eq("is_active", true);
 
@@ -398,7 +378,28 @@ export const useTemplatesByRole = (department?: string, jobTitle?: string) => {
       const { data, error } = await query;
       
       if (error) throw error;
-      return data as AssignmentTemplate[];
+      
+      return (data || []).map(template => ({
+        id: template.id,
+        name: template.name,
+        department: template.department,
+        jobTitle: template.job_title,
+        description: template.description,
+        isActive: template.is_active,
+        createdBy: template.created_by,
+        createdAt: template.created_at,
+        updatedAt: template.updated_at,
+        courses: (Array.isArray(template.template_courses) ? template.template_courses : [])?.map(course => ({
+          id: course.id,
+          templateId: course.template_id,
+          contentType: course.content_type as ContentType,
+          contentId: course.content_id,
+          isMandatory: course.is_mandatory,
+          defaultDueDays: course.default_due_days,
+          priority: course.priority as AssignmentPriority,
+          createdAt: course.created_at
+        })) || []
+      })) as AssignmentTemplate[];
     },
     enabled: !!(department || jobTitle),
   });
@@ -420,7 +421,7 @@ export const useDuplicateTemplate = () => {
         .from("assignment_templates")
         .select(`
           *,
-          courses:template_courses(*)
+          template_courses(*)
         `)
         .eq("id", templateId)
         .single();
@@ -443,10 +444,11 @@ export const useDuplicateTemplate = () => {
       if (newTemplateError) throw newTemplateError;
 
       // Copy template courses
-      if (originalTemplate.courses && originalTemplate.courses.length > 0) {
-        const templateCourses = originalTemplate.courses.map((course: any) => ({
+      if (Array.isArray(originalTemplate.template_courses) && originalTemplate.template_courses.length > 0) {
+        const templateCourses = originalTemplate.template_courses.map((course: any) => ({
           template_id: newTemplate.id,
-          course_id: course.course_id,
+          content_id: course.content_id,
+          content_type: course.content_type,
           is_mandatory: course.is_mandatory,
           default_due_days: course.default_due_days,
           priority: course.priority,
@@ -485,22 +487,22 @@ export const useTemplateCourses = (templateId: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("template_courses")
-        .select(`
-          *,
-          course:video_courses!template_courses_course_id_fkey(
-            id,
-            title,
-            description,
-            duration_minutes,
-            difficulty,
-            is_active
-          )
-        `)
+        .select('*')
         .eq("template_id", templateId)
         .order("created_at");
 
       if (error) throw error;
-      return data as TemplateCourse[];
+
+      return (data || []).map(course => ({
+        id: course.id,
+        templateId: course.template_id,
+        contentType: course.content_type as ContentType,
+        contentId: course.content_id,
+        isMandatory: course.is_mandatory,
+        defaultDueDays: course.default_due_days,
+        priority: course.priority as AssignmentPriority,
+        createdAt: course.created_at
+      })) as TemplateCourse[];
     },
     enabled: !!templateId,
   });
@@ -512,7 +514,13 @@ export const useUpdateTemplateCourses = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ templateId, courses }: { templateId: string; courses: Omit<TemplateCourse, 'id' | 'templateId' | 'createdAt'>[] }) => {
+    mutationFn: async ({ 
+      templateId, 
+      courses 
+    }: { 
+      templateId: string; 
+      courses: Omit<TemplateCourse, "id" | "createdAt" | "templateId">[] 
+    }) => {
       // Delete existing courses
       const { error: deleteError } = await supabase
         .from("template_courses")
@@ -523,35 +531,36 @@ export const useUpdateTemplateCourses = () => {
 
       // Insert new courses
       if (courses.length > 0) {
-        const templateCourses = courses.map(course => ({
+        const coursesToInsert = courses.map(course => ({
           template_id: templateId,
-          course_id: course.courseId,
+          content_id: course.contentId,
+          content_type: course.contentType,
           is_mandatory: course.isMandatory,
           default_due_days: course.defaultDueDays,
-          priority: course.priority,
+          priority: course.priority
         }));
 
         const { error: insertError } = await supabase
           .from("template_courses")
-          .insert(templateCourses);
+          .insert(coursesToInsert);
 
         if (insertError) throw insertError;
       }
 
-      return templateId;
+      return { templateId, coursesCount: courses.length };
     },
-    onSuccess: (templateId) => {
-      queryClient.invalidateQueries({ queryKey: ["assignment-templates"] });
-      queryClient.invalidateQueries({ queryKey: ["assignment-template", templateId] });
+    onSuccess: ({ templateId }) => {
       queryClient.invalidateQueries({ queryKey: ["template-courses", templateId] });
+      queryClient.invalidateQueries({ queryKey: ["assignment-template", templateId] });
+      queryClient.invalidateQueries({ queryKey: ["assignment-templates"] });
       toast({
-        title: "Cursos do template atualizados",
+        title: "Cursos atualizados",
         description: "Os cursos do template foram atualizados com sucesso.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro ao atualizar cursos do template",
+        title: "Erro ao atualizar cursos",
         description: error.message,
         variant: "destructive",
       });

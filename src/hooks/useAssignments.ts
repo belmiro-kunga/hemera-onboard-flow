@@ -10,7 +10,10 @@ import type {
   AssignmentFilters,
   BulkOperationResult,
   AssignmentListResponse,
-  UseAssignmentsReturn
+  UseAssignmentsReturn,
+  ContentType,
+  AssignmentPriority,
+  AssignmentStatus
 } from "@/types/assignment.types";
 import { validateAssignmentData, validateBulkAssignmentData } from "@/lib/validations/assignment";
 
@@ -21,28 +24,7 @@ export const useAssignments = (filters?: AssignmentFilters): UseAssignmentsRetur
     queryFn: async () => {
       let query = supabase
         .from("course_assignments")
-        .select(`
-          *,
-          user:profiles!course_assignments_user_id_fkey(
-            user_id,
-            name,
-            email,
-            department,
-            job_position
-          ),
-          content:video_courses!course_assignments_content_id_fkey(
-            id,
-            title,
-            description,
-            duration_minutes,
-            is_active
-          ),
-          assignedByUser:profiles!course_assignments_assigned_by_fkey(
-            user_id,
-            name,
-            email
-          )
-        `);
+        .select('*');
 
       // Apply filters
       if (filters?.userId) {
@@ -90,8 +72,24 @@ export const useAssignments = (filters?: AssignmentFilters): UseAssignmentsRetur
       
       if (error) throw error;
       
+      const assignments = (data || []).map(assignment => ({
+        id: assignment.id,
+        userId: assignment.user_id,
+        contentType: assignment.content_type as ContentType,
+        contentId: assignment.content_id,
+        assignedBy: assignment.assigned_by,
+        assignedAt: assignment.assigned_at,
+        dueDate: assignment.due_date,
+        priority: assignment.priority as AssignmentPriority,
+        status: assignment.status as AssignmentStatus,
+        completedAt: assignment.completed_at,
+        notes: assignment.notes,
+        createdAt: assignment.created_at,
+        updatedAt: assignment.updated_at
+      })) as CourseAssignment[];
+      
       return {
-        assignments: data as CourseAssignment[],
+        assignments,
         total: count || 0,
         page,
         limit
@@ -121,34 +119,28 @@ export const useAssignment = (assignmentId: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("course_assignments")
-        .select(`
-          *,
-          user:profiles!course_assignments_user_id_fkey(
-            user_id,
-            name,
-            email,
-            department,
-            job_position
-          ),
-          course:video_courses!course_assignments_course_id_fkey(
-            id,
-            title,
-            description,
-            duration_minutes,
-            difficulty,
-            is_active
-          ),
-          assignedByUser:profiles!course_assignments_assigned_by_fkey(
-            user_id,
-            name,
-            email
-          )
-        `)
+        .select('*')
         .eq("id", assignmentId)
         .single();
 
       if (error) throw error;
-      return data as CourseAssignment;
+      if (!data) throw new Error('Assignment não encontrado');
+
+      return {
+        id: data.id,
+        userId: data.user_id,
+        contentType: data.content_type as ContentType,
+        contentId: data.content_id,
+        assignedBy: data.assigned_by,
+        assignedAt: data.assigned_at,
+        dueDate: data.due_date,
+        priority: data.priority as AssignmentPriority,
+        status: data.status as AssignmentStatus,
+        completedAt: data.completed_at,
+        notes: data.notes,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as CourseAssignment;
     },
     enabled: !!assignmentId,
   });
@@ -213,9 +205,16 @@ export const useUpdateAssignment = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateAssignmentData }) => {
+      const updateData: any = {};
+      
+      if (data.dueDate !== undefined) updateData.due_date = data.dueDate;
+      if (data.priority !== undefined) updateData.priority = data.priority;
+      if (data.status !== undefined) updateData.status = data.status;
+      if (data.notes !== undefined) updateData.notes = data.notes;
+      
       const { data: assignment, error } = await supabase
         .from("course_assignments")
-        .update(data)
+        .update(updateData)
         .eq("id", id)
         .select()
         .single();
@@ -375,21 +374,27 @@ export const useUserAssignments = (userId: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("course_assignments")
-        .select(`
-          *,
-          content:video_courses!course_assignments_content_id_fkey(
-            id,
-            title,
-            description,
-            duration_minutes,
-            is_active
-          )
-        `)
+        .select('*')
         .eq("user_id", userId)
         .order("assigned_at", { ascending: false });
 
       if (error) throw error;
-      return data as CourseAssignment[];
+      
+      return (data || []).map(assignment => ({
+        id: assignment.id,
+        userId: assignment.user_id,
+        contentType: assignment.content_type as ContentType,
+        contentId: assignment.content_id,
+        assignedBy: assignment.assigned_by,
+        assignedAt: assignment.assigned_at,
+        dueDate: assignment.due_date,
+        priority: assignment.priority as AssignmentPriority,
+        status: assignment.status as AssignmentStatus,
+        completedAt: assignment.completed_at,
+        notes: assignment.notes,
+        createdAt: assignment.created_at,
+        updatedAt: assignment.updated_at
+      })) as CourseAssignment[];
     },
     enabled: !!userId,
   });
@@ -405,22 +410,28 @@ export const useMyAssignments = () => {
 
       const { data, error } = await supabase
         .from("course_assignments")
-        .select(`
-          *,
-          content:video_courses!course_assignments_content_id_fkey(
-            id,
-            title,
-            description,
-            duration_minutes,
-            is_active
-          )
-        `)
+        .select('*')
         .eq("user_id", user.user.id)
         .order("priority", { ascending: false })
-        .order("due_date", { ascending: true, nullsLast: true });
+        .order("due_date", { ascending: true, nullsFirst: false });
 
       if (error) throw error;
-      return data as CourseAssignment[];
+      
+      return (data || []).map(assignment => ({
+        id: assignment.id,
+        userId: assignment.user_id,
+        contentType: assignment.content_type as ContentType,
+        contentId: assignment.content_id,
+        assignedBy: assignment.assigned_by,
+        assignedAt: assignment.assigned_at,
+        dueDate: assignment.due_date,
+        priority: assignment.priority as AssignmentPriority,
+        status: assignment.status as AssignmentStatus,
+        completedAt: assignment.completed_at,
+        notes: assignment.notes,
+        createdAt: assignment.created_at,
+        updatedAt: assignment.updated_at
+      })) as CourseAssignment[];
     },
   });
 };

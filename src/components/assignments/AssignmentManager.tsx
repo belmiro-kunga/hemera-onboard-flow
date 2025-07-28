@@ -80,7 +80,7 @@ export default function AssignmentManager() {
       if (contentType === 'course') {
         let query = supabase
           .from("video_courses")
-          .select("id, title, description, duration_minutes, difficulty")
+          .select("id, title, description, duration_minutes")
           .eq("is_active", true)
           .order("title");
 
@@ -90,7 +90,13 @@ export default function AssignmentManager() {
 
         const { data, error } = await query.limit(10);
         if (error) throw error;
-        return data.map(item => ({ ...item, type: 'course' as const })) as Content[];
+        return data.map(item => ({ 
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          duration_minutes: item.duration_minutes,
+          type: 'course' as const 
+        })) as Content[];
       } else {
         let query = supabase
           .from("simulados")
@@ -104,7 +110,15 @@ export default function AssignmentManager() {
 
         const { data, error } = await query.limit(10);
         if (error) throw error;
-        return data.map(item => ({ ...item, type: 'simulado' as const })) as Content[];
+        return data.map(item => ({ 
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          duration_minutes: item.duration_minutes,
+          difficulty: item.difficulty,
+          total_questions: item.total_questions,
+          type: 'simulado' as const 
+        })) as Content[];
       }
     },
   });
@@ -118,10 +132,12 @@ export default function AssignmentManager() {
     if (!selectedUser || !selectedContent) return;
 
     createAssignment.mutate({
-      ...data,
       userId: selectedUser.user_id,
       contentType: selectedContent.type,
       contentId: selectedContent.id,
+      dueDate: data.dueDate,
+      priority: data.priority,
+      notes: data.notes,
     }, {
       onSuccess: () => {
         form.reset();
