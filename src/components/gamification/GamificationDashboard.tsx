@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, Star, Target, Award } from "lucide-react";
 
-export function GamificationDashboard() {
+export default function GamificationDashboard() {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       <Card>
