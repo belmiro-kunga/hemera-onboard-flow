@@ -772,6 +772,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          birth_date: string | null
           created_at: string | null
           created_by: string | null
           department: string | null
@@ -791,6 +792,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          birth_date?: string | null
           created_at?: string | null
           created_by?: string | null
           department?: string | null
@@ -810,6 +812,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          birth_date?: string | null
           created_at?: string | null
           created_by?: string | null
           department?: string | null
@@ -1430,18 +1433,32 @@ export type Database = {
         Returns: undefined
       }
       create_user_with_profile: {
-        Args: {
-          p_email: string
-          p_password: string
-          p_name: string
-          p_phone?: string
-          p_role?: Database["public"]["Enums"]["user_role"]
-          p_department?: string
-          p_job_position?: string
-          p_manager_id?: string
-          p_employee_id?: string
-          p_start_date?: string
-        }
+        Args:
+          | {
+              p_email: string
+              p_password: string
+              p_name: string
+              p_phone?: string
+              p_role?: Database["public"]["Enums"]["user_role"]
+              p_department?: string
+              p_job_position?: string
+              p_manager_id?: string
+              p_employee_id?: string
+              p_start_date?: string
+            }
+          | {
+              p_email: string
+              p_password: string
+              p_name: string
+              p_phone?: string
+              p_role?: Database["public"]["Enums"]["user_role"]
+              p_department?: string
+              p_job_position?: string
+              p_manager_id?: string
+              p_employee_id?: string
+              p_start_date?: string
+              p_birth_date?: string
+            }
         Returns: Json
       }
       generate_demo_questions: {
@@ -1530,6 +1547,20 @@ export type Database = {
         Returns: {
           setting_key: string
           setting_value: Json
+        }[]
+      }
+      get_upcoming_birthdays: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          name: string
+          email: string
+          department: string
+          job_position: string
+          birth_date: string
+          photo_url: string
+          days_until_birthday: number
+          is_today: boolean
         }[]
       }
       get_user_role: {

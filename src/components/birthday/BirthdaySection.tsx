@@ -2,113 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Cake, Gift } from "lucide-react";
 import BirthdayCard from "./BirthdayCard";
-
-interface Employee {
-  id: string;
-  name: string;
-  department: string;
-  position: string;
-  birthDate: string; // MM-DD format
-  avatar?: string;
-  email: string;
-}
-
-// Mock data for employees
-const employees: Employee[] = [
-  {
-    id: "1",
-    name: "Ana Silva",
-    department: "Recursos Humanos",
-    position: "Gerente de RH",
-    birthDate: "01-28",
-    email: "ana.silva@hcp.com",
-  },
-  {
-    id: "2",
-    name: "Carlos Santos",
-    department: "Tecnologia",
-    position: "Desenvolvedor Senior",
-    birthDate: "01-30",
-    email: "carlos.santos@hcp.com",
-  },
-  {
-    id: "3",
-    name: "Mariana Costa",
-    department: "Marketing",
-    position: "Analista de Marketing",
-    birthDate: "02-02",
-    email: "mariana.costa@hcp.com",
-  },
-  {
-    id: "4",
-    name: "João Oliveira",
-    department: "Vendas",
-    position: "Consultor Comercial",
-    birthDate: "02-05",
-    email: "joao.oliveira@hcp.com",
-  },
-  {
-    id: "5",
-    name: "Fernanda Lima",
-    department: "Financeiro",
-    position: "Analista Financeira",
-    birthDate: "02-08",
-    email: "fernanda.lima@hcp.com",
-  },
-  {
-    id: "6",
-    name: "Roberto Pereira",
-    department: "Operações",
-    position: "Supervisor",
-    birthDate: "02-12",
-    email: "roberto.pereira@hcp.com",
-  },
-  {
-    id: "7",
-    name: "Juliana Rocha",
-    department: "Qualidade",
-    position: "Analista de Qualidade",
-    birthDate: "02-15",
-    email: "juliana.rocha@hcp.com",
-  },
-];
+import { useBirthdays } from "@/hooks/useBirthdays";
 
 const BirthdaySection = () => {
-  const getUpcomingBirthdays = () => {
-    const today = new Date();
-    const currentMonth = today.getMonth() + 1;
-    const currentDay = today.getDate();
-    
-    return employees
-      .map((employee) => {
-        const [month, day] = employee.birthDate.split("-").map(Number);
-        
-        // Calculate days until birthday
-        let daysUntil = 0;
-        const thisYear = today.getFullYear();
-        const birthday = new Date(thisYear, month - 1, day);
-        
-        if (birthday < today) {
-          // Birthday this year has passed, calculate for next year
-          birthday.setFullYear(thisYear + 1);
-        }
-        
-        daysUntil = Math.ceil((birthday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        
-        const isToday = month === currentMonth && day === currentDay;
-        
-        return {
-          ...employee,
-          daysUntil,
-          isToday,
-        };
-      })
-      .sort((a, b) => a.daysUntil - b.daysUntil)
-      .slice(0, 5);
-  };
-
-  const upcomingBirthdays = getUpcomingBirthdays();
-  const todayBirthdays = upcomingBirthdays.filter(emp => emp.isToday);
+  const { birthdays, loading } = useBirthdays();
+  const todayBirthdays = birthdays.filter(birthday => birthday.is_today);
 
   return (
     <Card className="w-full shadow-2xl border-0 bg-card/95 backdrop-blur-md hover:shadow-glow transition-all duration-500 hover:scale-[1.01]">
@@ -129,9 +27,9 @@ const BirthdaySection = () => {
           <div className="flex items-center justify-center gap-3 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
             <Badge variant="secondary" className="gap-2 px-3 py-1.5 hover:scale-105 transition-transform duration-200">
               <Gift className="h-4 w-4" />
-              Próximos 5 dias
+              {loading ? "Carregando..." : `${birthdays.length} próximos`}
             </Badge>
-            {todayBirthdays.length > 0 && (
+            {!loading && todayBirthdays.length > 0 && (
               <Badge variant="default" className="gap-2 px-3 py-1.5 animate-pulse hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary to-accent">
                 <Cake className="h-4 w-4" />
                 {todayBirthdays.length} hoje!
@@ -145,17 +43,29 @@ const BirthdaySection = () => {
       </CardHeader>
       
       <CardContent className="space-y-4 px-6 pb-6">
-        {upcomingBirthdays.length > 0 ? (
-          upcomingBirthdays.map((employee, index) => (
+        {loading ? (
+          <div className="text-center py-12 text-muted-foreground animate-fade-in-up">
+            <p className="text-base font-medium">Carregando aniversariantes...</p>
+          </div>
+        ) : birthdays.length > 0 ? (
+          birthdays.map((birthday, index) => (
             <div 
-              key={employee.id} 
+              key={birthday.user_id} 
               className="animate-fade-in-up"
               style={{animationDelay: `${0.3 + index * 0.1}s`}}
             >
               <BirthdayCard
-                employee={employee}
-                isToday={employee.isToday}
-                daysUntil={employee.daysUntil}
+                employee={{
+                  id: birthday.user_id,
+                  name: birthday.name,
+                  department: birthday.department || "Não informado",
+                  position: birthday.job_position || "Não informado",
+                  birthDate: birthday.birth_date,
+                  avatar: birthday.photo_url,
+                  email: birthday.email
+                }}
+                isToday={birthday.is_today}
+                daysUntil={birthday.days_until_birthday}
               />
             </div>
           ))

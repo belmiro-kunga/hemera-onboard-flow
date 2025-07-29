@@ -68,6 +68,18 @@ export function useUsers() {
 
   const createUser = async (userData: UserCompleteData) => {
     try {
+      // Converter data de nascimento para formato YYYY-MM-DD se necessário
+      let birthDate = null;
+      if (userData.birth_date) {
+        if (userData.birth_date.includes('/')) {
+          // Converter DD/MM/YYYY para YYYY-MM-DD
+          const [day, month, year] = userData.birth_date.split('/');
+          birthDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        } else {
+          birthDate = userData.birth_date;
+        }
+      }
+
       const { data, error } = await supabase.rpc('create_user_with_profile', {
         p_email: userData.email,
         p_password: userData.password,
@@ -79,6 +91,7 @@ export function useUsers() {
         p_manager_id: userData.manager_id || null,
         p_employee_id: userData.employee_id || null,
         p_start_date: userData.start_date || new Date().toISOString().split('T')[0],
+        p_birth_date: birthDate,
       });
 
       if (error) throw error;

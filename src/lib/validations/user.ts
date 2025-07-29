@@ -27,6 +27,18 @@ export const userOrganizationalSchema = z.object({
   manager_id: z.string().uuid().optional().or(z.literal("")),
   employee_id: z.string().optional(),
   start_date: z.string().optional(),
+  birth_date: z.string().optional().refine((date) => {
+    if (!date || date.trim() === "") return true;
+    // Aceita formatos DD/MM/YYYY ou YYYY-MM-DD
+    const dateRegex = /^(\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}-\d{2})$/;
+    if (!dateRegex.test(date)) return false;
+    
+    const parsedDate = date.includes('/') 
+      ? new Date(date.split('/').reverse().join('-'))
+      : new Date(date);
+    
+    return !isNaN(parsedDate.getTime()) && parsedDate <= new Date();
+  }, "Data de nascimento deve estar no formato DD/MM/YYYY ou YYYY-MM-DD e não pode ser futura"),
 });
 
 export const userProfileSchema = z.object({
@@ -49,6 +61,18 @@ export const userCompleteSchema = z.object({
   manager_id: z.string().uuid().optional().or(z.literal("")),
   employee_id: z.string().optional(),
   start_date: z.string().optional(),
+  birth_date: z.string().optional().refine((date) => {
+    if (!date || date.trim() === "") return true;
+    // Aceita formatos DD/MM/YYYY ou YYYY-MM-DD
+    const dateRegex = /^(\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}-\d{2})$/;
+    if (!dateRegex.test(date)) return false;
+    
+    const parsedDate = date.includes('/') 
+      ? new Date(date.split('/').reverse().join('-'))
+      : new Date(date);
+    
+    return !isNaN(parsedDate.getTime()) && parsedDate <= new Date();
+  }, "Data de nascimento deve estar no formato DD/MM/YYYY ou YYYY-MM-DD e não pode ser futura"),
   photo_url: z.string().url().optional().or(z.literal("")),
   role: z.enum(["super_admin", "admin", "funcionario"]),
 }).refine((data) => data.password === data.confirmPassword, {

@@ -11,6 +11,7 @@ import { useUsers } from "@/hooks/useUsers";
 import BasicInfoStep from "./wizard/BasicInfoStep";
 import CredentialsStep from "./wizard/CredentialsStep";
 import OrganizationalStep from "./wizard/OrganizationalStep";
+import BirthdayStep from "./wizard/BirthdayStep";
 import ProfileStep from "./wizard/ProfileStep";
 import ReviewStep from "./wizard/ReviewStep";
 
@@ -23,8 +24,9 @@ const steps = [
   { id: 1, title: "Informações Básicas", component: BasicInfoStep },
   { id: 2, title: "Credenciais", component: CredentialsStep },
   { id: 3, title: "Dados Organizacionais", component: OrganizationalStep },
-  { id: 4, title: "Perfil", component: ProfileStep },
-  { id: 5, title: "Revisão", component: ReviewStep },
+  { id: 4, title: "Aniversário", component: BirthdayStep },
+  { id: 5, title: "Perfil", component: ProfileStep },
+  { id: 6, title: "Revisão", component: ReviewStep },
 ];
 
 export default function UserWizard({ open, onOpenChange }: UserWizardProps) {
@@ -45,6 +47,7 @@ export default function UserWizard({ open, onOpenChange }: UserWizardProps) {
       manager_id: "",
       employee_id: "",
       start_date: new Date().toISOString().split('T')[0],
+      birth_date: "",
       photo_url: "",
       role: "funcionario",
     },
@@ -72,6 +75,8 @@ export default function UserWizard({ open, onOpenChange }: UserWizardProps) {
       case 3:
         return ["department", "job_position", "manager_id", "employee_id", "start_date"] as const;
       case 4:
+        return ["birth_date"] as const;
+      case 5:
         return ["photo_url", "role"] as const;
       default:
         return [] as const;

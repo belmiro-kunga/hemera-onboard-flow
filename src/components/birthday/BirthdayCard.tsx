@@ -21,6 +21,16 @@ interface BirthdayCardProps {
 
 const BirthdayCard = ({ employee, isToday, daysUntil }: BirthdayCardProps) => {
   const formatDate = (dateStr: string) => {
+    // Se for formato YYYY-MM-DD, converter para exibição
+    if (dateStr.includes('-') && dateStr.length === 10) {
+      const [year, month, day] = dateStr.split("-");
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      return date.toLocaleDateString("pt-AO", { 
+        day: "numeric", 
+        month: "short" 
+      });
+    }
+    // Se for formato MM-DD (antigo), manter compatibilidade
     const [month, day] = dateStr.split("-");
     const date = new Date(2024, parseInt(month) - 1, parseInt(day));
     return date.toLocaleDateString("pt-AO", { 
