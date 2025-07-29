@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Award, Settings, BarChart3 } from "lucide-react";
 import BadgesAdmin from "@/components/gamification/BadgesAdmin";
-import GamificationDashboard from "@/components/gamification/GamificationDashboard";
+import { GamificationDashboard } from "@/components/gamification/GamificationDashboard";
 
 export default function GamificationAdmin() {
   return (

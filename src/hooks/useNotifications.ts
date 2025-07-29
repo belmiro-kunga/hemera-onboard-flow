@@ -2,48 +2,38 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+// Since we don't have notifications and notification_preferences tables yet,
+// we'll use assignment_notifications as the base for notifications
 export interface Notification {
   id: string;
-  user_id: string;
-  title: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'error' | 'assignment' | 'certificate';
-  category: string;
-  data: any;
-  is_read: boolean;
-  read_at?: string;
-  expires_at?: string;
+  assignment_id: string;
+  notification_type: string;
+  email_sent: boolean;
+  in_app_read: boolean;
+  sent_at?: string;
   created_at: string;
 }
 
-export interface NotificationPreferences {
-  id: string;
-  user_id: string;
-  email_notifications: boolean;
-  push_notifications: boolean;
-  assignment_notifications: boolean;
-  certificate_notifications: boolean;
-  reminder_notifications: boolean;
-  marketing_notifications: boolean;
-}
-
-// Hook para buscar notificações do usuário atual
-export const useNotifications = (limit = 20) => {
+// Hook para buscar notificações de assignments
+export const useAssignmentNotifications = (limit = 20) => {
   return useQuery({
-    queryKey: ["notifications", limit],
+    queryKey: ["assignment-notifications", limit],
     queryFn: async () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Usuário não autenticado");
 
       const { data, error } = await supabase
-        .from("notifications")
-        .select("*")
-        .eq("user_id", user.user.id)
+        .from("assignment_notifications")
+        .select(`
+          *,
+          course_assignments!inner(user_id)
+        `)
+        .eq("course_assignments.user_id", user.user.id)
         .order("created_at", { ascending: false })
         .limit(limit);
 
       if (error) throw error;
-      return data as Notification[];
+      return data as any[];
     },
   });
 };
@@ -53,9 +43,16 @@ export const useUnreadNotificationCount = () => {
   return useQuery({
     queryKey: ["unread-notification-count"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_unread_notification_count');
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return 0;
+
+      const { count, error } = await supabase
+        .from("assignment_notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("in_app_read", false);
+
       if (error) throw error;
-      return data as number;
+      return count || 0;
     },
     refetchInterval: 30000, // Atualiza a cada 30 segundos
   });
@@ -67,14 +64,16 @@ export const useMarkNotificationRead = () => {
 
   return useMutation({
     mutationFn: async (notificationId: string) => {
-      const { data, error } = await supabase.rpc('mark_notification_read', {
-        p_notification_id: notificationId
-      });
+      const { data, error } = await supabase
+        .from("assignment_notifications")
+        .update({ in_app_read: true })
+        .eq("id", notificationId);
+      
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["assignment-notifications"] });
       queryClient.invalidateQueries({ queryKey: ["unread-notification-count"] });
     },
   });
@@ -91,15 +90,14 @@ export const useMarkAllNotificationsRead = () => {
       if (!user.user) throw new Error("Usuário não autenticado");
 
       const { error } = await supabase
-        .from("notifications")
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq("user_id", user.user.id)
-        .eq("is_read", false);
+        .from("assignment_notifications")
+        .update({ in_app_read: true })
+        .eq("in_app_read", false);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["assignment-notifications"] });
       queryClient.invalidateQueries({ queryKey: ["unread-notification-count"] });
       toast({
         title: "Notificações marcadas como lidas",
@@ -116,103 +114,28 @@ export const useMarkAllNotificationsRead = () => {
   });
 };
 
-// Hook para criar notificação
-export const useCreateNotification = () => {
+// Hook para criar notificação de assignment
+export const useCreateAssignmentNotification = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({
-      userId,
-      title,
-      message,
-      type = 'info',
-      category = 'system',
-      data = {},
-      expiresAt
+      assignmentId,
+      notificationType,
+      emailSent = false
     }: {
-      userId: string;
-      title: string;
-      message: string;
-      type?: string;
-      category?: string;
-      data?: any;
-      expiresAt?: string;
+      assignmentId: string;
+      notificationType: string;
+      emailSent?: boolean;
     }) => {
-      const { data: result, error } = await supabase.rpc('create_notification', {
-        p_user_id: userId,
-        p_title: title,
-        p_message: message,
-        p_type: type,
-        p_category: category,
-        p_data: data,
-        p_expires_at: expiresAt
-      });
-
-      if (error) throw error;
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["unread-notification-count"] });
-    },
-  });
-};
-
-// Hook para buscar preferências de notificação
-export const useNotificationPreferences = () => {
-  return useQuery({
-    queryKey: ["notification-preferences"],
-    queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não autenticado");
-
       const { data, error } = await supabase
-        .from("notification_preferences")
-        .select("*")
-        .eq("user_id", user.user.id)
-        .single();
-
-      if (error && error.code !== "PGRST116") throw error;
-      
-      // Create default preferences if not exists
-      if (!data) {
-        const { data: newPrefs, error: createError } = await supabase
-          .from("notification_preferences")
-          .insert({
-            user_id: user.user.id,
-            email_notifications: true,
-            push_notifications: true,
-            assignment_notifications: true,
-            certificate_notifications: true,
-            reminder_notifications: true,
-            marketing_notifications: false,
-          })
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        return newPrefs as NotificationPreferences;
-      }
-
-      return data as NotificationPreferences;
-    },
-  });
-};
-
-// Hook para atualizar preferências de notificação
-export const useUpdateNotificationPreferences = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async (preferences: Partial<NotificationPreferences>) => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não autenticado");
-
-      const { data, error } = await supabase
-        .from("notification_preferences")
-        .update(preferences)
-        .eq("user_id", user.user.id)
+        .from("assignment_notifications")
+        .insert({
+          assignment_id: assignmentId,
+          notification_type: notificationType,
+          email_sent: emailSent,
+          in_app_read: false
+        })
         .select()
         .single();
 
@@ -220,18 +143,8 @@ export const useUpdateNotificationPreferences = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notification-preferences"] });
-      toast({
-        title: "Preferências atualizadas",
-        description: "Suas preferências de notificação foram salvas.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro",
-        description: "Não foi possível salvar as preferências.",
-        variant: "destructive",
-      });
+      queryClient.invalidateQueries({ queryKey: ["assignment-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-notification-count"] });
     },
   });
 };
@@ -244,14 +157,14 @@ export const useDeleteNotification = () => {
   return useMutation({
     mutationFn: async (notificationId: string) => {
       const { error } = await supabase
-        .from("notifications")
+        .from("assignment_notifications")
         .delete()
         .eq("id", notificationId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["assignment-notifications"] });
       queryClient.invalidateQueries({ queryKey: ["unread-notification-count"] });
       toast({
         title: "Notificação removida",
@@ -278,25 +191,20 @@ export const useRealtimeNotifications = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return null;
 
-      // Setup realtime subscription
+      // Setup realtime subscription for assignment notifications
       const channel = supabase
-        .channel('notifications')
+        .channel('assignment_notifications')
         .on(
           'postgres_changes',
           {
             event: 'INSERT',
             schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.user.id}`,
+            table: 'assignment_notifications',
           },
           (payload) => {
             // Invalidate queries to refresh data
-            queryClient.invalidateQueries({ queryKey: ["notifications"] });
+            queryClient.invalidateQueries({ queryKey: ["assignment-notifications"] });
             queryClient.invalidateQueries({ queryKey: ["unread-notification-count"] });
-            
-            // Show toast notification
-            const notification = payload.new as Notification;
-            // You could show a toast here or trigger a browser notification
           }
         )
         .subscribe();

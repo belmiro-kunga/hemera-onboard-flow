@@ -17,7 +17,7 @@ export const angolaLocale = ptBR;
 export const formatInAngolaTime = (
   date: Date | string | number,
   formatStr: string,
-  options?: { locale?: Locale }
+  options?: { locale?: any }
 ) => {
   const dateObj = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
   

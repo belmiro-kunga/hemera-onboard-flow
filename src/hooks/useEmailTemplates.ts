@@ -61,11 +61,7 @@ export function useEmailTemplates() {
       if (error) throw error;
       setTemplates((data || []) as EmailTemplate[]);
     } catch (error: any) {
-      toast({
-        title: "Erro ao carregar templates",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao carregar templates");
     }
   };
 
@@ -80,11 +76,7 @@ export function useEmailTemplates() {
       if (error) throw error;
       setLogs((data || []) as EmailLog[]);
     } catch (error: any) {
-      toast({
-        title: "Erro ao carregar logs",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao carregar logs");
     }
   };
 
@@ -99,11 +91,7 @@ export function useEmailTemplates() {
       if (error) throw error;
       setQueue((data || []) as EmailQueue[]);
     } catch (error: any) {
-      toast({
-        title: "Erro ao carregar fila",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao carregar fila");
     }
   };
 
@@ -115,18 +103,11 @@ export function useEmailTemplates() {
 
       if (error) throw error;
 
-      toast({
-        title: "Template criado",
-        description: `Template "${templateData.name}" foi criado com sucesso.`,
-      });
+      showSuccess(`Template "${templateData.name}" foi criado com sucesso.`);
       
       await fetchTemplates();
     } catch (error: any) {
-      toast({
-        title: "Erro ao criar template",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao criar template");
     }
   };
 
@@ -139,18 +120,11 @@ export function useEmailTemplates() {
 
       if (error) throw error;
 
-      toast({
-        title: "Template atualizado",
-        description: "Template foi atualizado com sucesso.",
-      });
+      showSuccess("Template foi atualizado com sucesso.");
       
       await fetchTemplates();
     } catch (error: any) {
-      toast({
-        title: "Erro ao atualizar template",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao atualizar template");
     }
   };
 
@@ -174,18 +148,11 @@ export function useEmailTemplates() {
 
       if (error) throw error;
 
-      toast({
-        title: "Email agendado",
-        description: `Email agendado para ${emailData.recipientEmail}.`,
-      });
+      showSuccess(`Email agendado para ${emailData.recipientEmail}.`);
       
       await fetchQueue();
     } catch (error: any) {
-      toast({
-        title: "Erro ao agendar email",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao agendar email");
     }
   };
 
@@ -207,17 +174,10 @@ export function useEmailTemplates() {
 
       if (error) throw error;
 
-      toast({
-        title: "Email de boas-vindas enviado",
-        description: `Email enviado para ${userData.email}.`,
-      });
+      showSuccess(`Email enviado para ${userData.email}.`);
 
     } catch (error: any) {
-      toast({
-        title: "Erro ao enviar email",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao enviar email");
     }
   };
 
@@ -228,19 +188,12 @@ export function useEmailTemplates() {
 
       if (error) throw error;
 
-      toast({
-        title: "Fila processada",
-        description: "Emails pendentes foram processados.",
-      });
+      showSuccess("Emails pendentes foram processados.");
 
       await fetchQueue();
       await fetchLogs();
     } catch (error: any) {
-      toast({
-        title: "Erro ao processar fila",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error, "Erro ao processar fila");
     } finally {
       setLoading(false);
     }
