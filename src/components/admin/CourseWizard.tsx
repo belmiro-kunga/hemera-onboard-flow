@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Trash2, Edit, Play, Youtube, Upload, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Edit, Play, Youtube, Upload, GripVertical, Cloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -23,7 +23,9 @@ interface LessonForm {
   title: string;
   description: string;
   video_url: string;
-  video_type: 'youtube' | 'local';
+  video_type: 'youtube' | 'local' | 'cloudflare';
+  cloudflare_stream_id?: string;
+  cloudflare_account_id?: string;
   duration_minutes: number;
   is_required: boolean;
   min_watch_time_seconds: number;
@@ -54,12 +56,14 @@ const CourseWizard = ({ course, onClose }: CourseWizardProps) => {
     }
   });
 
-  const { register: registerLesson, handleSubmit: handleLessonSubmit, formState: { errors: lessonErrors }, reset: resetLesson } = useForm<LessonForm>({
+  const { register: registerLesson, handleSubmit: handleLessonSubmit, formState: { errors: lessonErrors }, reset: resetLesson, watch: watchLesson, setValue: setLessonValue } = useForm<LessonForm>({
     defaultValues: {
       title: '',
       description: '',
       video_url: '',
       video_type: 'youtube',
+      cloudflare_stream_id: '',
+      cloudflare_account_id: '',
       duration_minutes: 0,
       is_required: true,
       min_watch_time_seconds: 0
@@ -304,9 +308,15 @@ const CourseWizard = ({ course, onClose }: CourseWizardProps) => {
                         </p>
                       </div>
                       <div className="flex gap-2">
-                        <Badge variant={lesson.video_type === 'youtube' ? 'default' : 'secondary'}>
-                          {lesson.video_type === 'youtube' ? <Youtube className="h-3 w-3 mr-1" /> : <Upload className="h-3 w-3 mr-1" />}
-                          {lesson.video_type === 'youtube' ? 'YouTube' : 'Local'}
+                        <Badge variant={
+                          lesson.video_type === 'youtube' ? 'default' : 
+                          lesson.video_type === 'cloudflare' ? 'default' : 'secondary'
+                        }>
+                          {lesson.video_type === 'youtube' && <Youtube className="h-3 w-3 mr-1" />}
+                          {lesson.video_type === 'local' && <Upload className="h-3 w-3 mr-1" />}
+                          {lesson.video_type === 'cloudflare' && <Cloud className="h-3 w-3 mr-1" />}
+                          {lesson.video_type === 'youtube' ? 'YouTube' : 
+                           lesson.video_type === 'cloudflare' ? 'Cloudflare' : 'Local'}
                         </Badge>
                         {lesson.is_required && (
                           <Badge variant="outline">Obrigatória</Badge>
@@ -401,8 +411,12 @@ const CourseWizard = ({ course, onClose }: CourseWizardProps) => {
                     <p className="text-sm text-muted-foreground">{lesson.duration_minutes} min</p>
                   </div>
                   <div className="flex gap-2">
-                    <Badge variant={lesson.video_type === 'youtube' ? 'default' : 'secondary'} className="text-xs">
-                      {lesson.video_type === 'youtube' ? 'YouTube' : 'Local'}
+                    <Badge variant={
+                      lesson.video_type === 'youtube' ? 'default' : 
+                      lesson.video_type === 'cloudflare' ? 'default' : 'secondary'
+                    } className="text-xs">
+                      {lesson.video_type === 'youtube' ? 'YouTube' : 
+                       lesson.video_type === 'cloudflare' ? 'Cloudflare' : 'Local'}
                     </Badge>
                     {lesson.is_required && (
                       <Badge variant="outline" className="text-xs">Obrigatória</Badge>
@@ -508,26 +522,87 @@ const CourseWizard = ({ course, onClose }: CourseWizardProps) => {
 
             <div>
               <Label htmlFor="video-type">Tipo de Vídeo</Label>
-              <Select {...registerLesson('video_type')}>
+              <Select 
+                value={watchLesson('video_type')} 
+                onValueChange={(value) => setLessonValue('video_type', value as 'youtube' | 'local' | 'cloudflare')}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="youtube">YouTube</SelectItem>
-                  <SelectItem value="local">Arquivo Local</SelectItem>
+                  <SelectItem value="youtube">
+                    <div className="flex items-center gap-2">
+                      <Youtube className="h-4 w-4" />
+                      YouTube
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="local">
+                    <div className="flex items-center gap-2">
+                      <Upload className="h-4 w-4" />
+                      Arquivo Local
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="cloudflare">
+                    <div className="flex items-center gap-2">
+                      <Cloud className="h-4 w-4" />
+                      Cloudflare Stream
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-              <Label htmlFor="video-url">URL do Vídeo *</Label>
-              <Input 
-                id="video-url"
-                {...registerLesson('video_url', { required: 'URL é obrigatória' })}
-                placeholder="https://youtube.com/watch?v=... ou caminho do arquivo"
-              />
-              {lessonErrors.video_url && <p className="text-sm text-destructive">{lessonErrors.video_url.message as string}</p>}
-            </div>
+            {/* Conditional fields based on video type */}
+            {watchLesson('video_type') === 'cloudflare' ? (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="cloudflare-stream-id">Stream ID do Cloudflare *</Label>
+                  <Input 
+                    id="cloudflare-stream-id"
+                    {...registerLesson('cloudflare_stream_id', { 
+                      required: watchLesson('video_type') === 'cloudflare' ? 'Stream ID é obrigatório' : false 
+                    })}
+                    placeholder="Ex: 5d41402abc4b2a76b9719d911017c592"
+                  />
+                  {lessonErrors.cloudflare_stream_id && (
+                    <p className="text-sm text-destructive">{lessonErrors.cloudflare_stream_id.message as string}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="cloudflare-account-id">Account ID do Cloudflare *</Label>
+                  <Input 
+                    id="cloudflare-account-id"
+                    {...registerLesson('cloudflare_account_id', { 
+                      required: watchLesson('video_type') === 'cloudflare' ? 'Account ID é obrigatório' : false 
+                    })}
+                    placeholder="Ex: 023e105f4ecef8ad9ca31a8372d0c353"
+                  />
+                  {lessonErrors.cloudflare_account_id && (
+                    <p className="text-sm text-destructive">{lessonErrors.cloudflare_account_id.message as string}</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <Label htmlFor="video-url">
+                  {watchLesson('video_type') === 'youtube' ? 'URL do YouTube' : 'URL/Caminho do Arquivo'} *
+                </Label>
+                <Input 
+                  id="video-url"
+                  {...registerLesson('video_url', { 
+                    required: watchLesson('video_type') !== 'cloudflare' ? 'URL é obrigatória' : false 
+                  })}
+                  placeholder={
+                    watchLesson('video_type') === 'youtube' 
+                      ? "https://youtube.com/watch?v=..."
+                      : "caminho/do/arquivo.mp4"
+                  }
+                />
+                {lessonErrors.video_url && (
+                  <p className="text-sm text-destructive">{lessonErrors.video_url.message as string}</p>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div>

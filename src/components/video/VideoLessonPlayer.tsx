@@ -16,6 +16,7 @@ import {
   Clock,
   Youtube,
   Upload,
+  Cloud,
   Award
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -206,6 +207,15 @@ const VideoLessonPlayer = ({ enrollment, onClose }: VideoLessonPlayerProps) => {
               allowFullScreen
               title={currentLesson.title}
             />
+          ) : currentLesson.video_type === 'cloudflare' ? (
+            <iframe
+              ref={iframeRef}
+              src={`https://iframe.videodelivery.net/${currentLesson.cloudflare_stream_id}?autoplay=${isPlaying}&muted=false&preload=true&poster=auto`}
+              className="w-full h-full"
+              allowFullScreen
+              title={currentLesson.title}
+              style={{ border: 'none' }}
+            />
           ) : (
             <video
               ref={videoRef}
@@ -230,9 +240,15 @@ const VideoLessonPlayer = ({ enrollment, onClose }: VideoLessonPlayerProps) => {
               </div>
 
               <div className="flex items-center gap-2">
-                <Badge variant={currentLesson.video_type === 'youtube' ? 'default' : 'secondary'}>
-                  {currentLesson.video_type === 'youtube' ? <Youtube className="h-3 w-3 mr-1" /> : <Upload className="h-3 w-3 mr-1" />}
-                  {currentLesson.video_type === 'youtube' ? 'YouTube' : 'Local'}
+                <Badge variant={
+                  currentLesson.video_type === 'youtube' ? 'default' : 
+                  currentLesson.video_type === 'cloudflare' ? 'default' : 'secondary'
+                }>
+                  {currentLesson.video_type === 'youtube' && <Youtube className="h-3 w-3 mr-1" />}
+                  {currentLesson.video_type === 'local' && <Upload className="h-3 w-3 mr-1" />}
+                  {currentLesson.video_type === 'cloudflare' && <Cloud className="h-3 w-3 mr-1" />}
+                  {currentLesson.video_type === 'youtube' ? 'YouTube' : 
+                   currentLesson.video_type === 'cloudflare' ? 'Cloudflare' : 'Local'}
                 </Badge>
                 {currentLesson.is_required && (
                   <Badge variant="outline">Obrigatória</Badge>

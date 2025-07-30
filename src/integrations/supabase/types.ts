@@ -1353,6 +1353,8 @@ export type Database = {
       }
       video_lessons: {
         Row: {
+          cloudflare_account_id: string | null
+          cloudflare_stream_id: string | null
           course_id: string
           created_at: string
           description: string | null
@@ -1363,10 +1365,12 @@ export type Database = {
           order_number: number
           title: string
           updated_at: string
-          video_type: string
+          video_type: Database["public"]["Enums"]["video_type_enum"]
           video_url: string
         }
         Insert: {
+          cloudflare_account_id?: string | null
+          cloudflare_stream_id?: string | null
           course_id: string
           created_at?: string
           description?: string | null
@@ -1377,10 +1381,12 @@ export type Database = {
           order_number: number
           title: string
           updated_at?: string
-          video_type?: string
+          video_type?: Database["public"]["Enums"]["video_type_enum"]
           video_url: string
         }
         Update: {
+          cloudflare_account_id?: string | null
+          cloudflare_stream_id?: string | null
           course_id?: string
           created_at?: string
           description?: string | null
@@ -1391,7 +1397,7 @@ export type Database = {
           order_number?: number
           title?: string
           updated_at?: string
-          video_type?: string
+          video_type?: Database["public"]["Enums"]["video_type_enum"]
           video_url?: string
         }
         Relationships: [
@@ -1631,6 +1637,7 @@ export type Database = {
         | "network_topology"
         | "fill_blanks"
       user_role: "super_admin" | "admin" | "funcionario"
+      video_type_enum: "youtube" | "local" | "cloudflare"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1768,6 +1775,7 @@ export const Constants = {
         "fill_blanks",
       ],
       user_role: ["super_admin", "admin", "funcionario"],
+      video_type_enum: ["youtube", "local", "cloudflare"],
     },
   },
 } as const
