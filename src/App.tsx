@@ -4,6 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { PublicRoute } from "@/components/auth/PublicRoute";
+
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Modules from "./pages/Modules";
@@ -34,44 +38,87 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/welcome" element={<Welcome />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/modules" element={<Modules />} />
-          <Route path="/modules/:moduleId" element={<ModulePlayer />} />
-          <Route path="/progress" element={<ProgressPage />} />
-          <Route path="/courses" element={<StudentCourses />} />
-          <Route path="/certificates" element={<Certificates />} />
-          <Route path="/gamification" element={<Gamification />} />
-          
-          {/* Admin Login */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="users" element={<UserManagement />} />
-            <Route path="simulados" element={<SimuladosAdmin />} />
-            <Route path="videos" element={<VideoCoursesAdmin />} />
-            <Route path="video-library" element={<VideoLibrary />} />
-            <Route path="certificates" element={<CertificatesAdmin />} />
-
-            <Route path="presentation" element={<CompanyPresentationAdminPage />} />
-            <Route path="gamification" element={<GamificationAdmin />} />
-            <Route path="assignments" element={<CourseAssignmentAdmin />} />
-            <Route path="cms" element={<CMSAdmin />} />
-            <Route path="settings" element={<SettingsAdmin />} />
-            {/* Future admin routes can be added here */}
-          </Route>
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            } />
+            <Route path="/admin/login" element={
+              <PublicRoute>
+                <AdminLogin />
+              </PublicRoute>
+            } />
+            
+            {/* Protected User Routes */}
+            <Route path="/welcome" element={
+              <ProtectedRoute>
+                <Welcome />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/modules" element={
+              <ProtectedRoute>
+                <Modules />
+              </ProtectedRoute>
+            } />
+            <Route path="/modules/:moduleId" element={
+              <ProtectedRoute>
+                <ModulePlayer />
+              </ProtectedRoute>
+            } />
+            <Route path="/progress" element={
+              <ProtectedRoute>
+                <ProgressPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/courses" element={
+              <ProtectedRoute>
+                <StudentCourses />
+              </ProtectedRoute>
+            } />
+            <Route path="/certificates" element={
+              <ProtectedRoute>
+                <Certificates />
+              </ProtectedRoute>
+            } />
+            <Route path="/gamification" element={
+              <ProtectedRoute>
+                <Gamification />
+              </ProtectedRoute>
+            } />
+            
+            {/* Protected Admin Routes */}
+            <Route path="/admin" element={
+              <ProtectedRoute requireAdmin>
+                <AdminLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="simulados" element={<SimuladosAdmin />} />
+              <Route path="videos" element={<VideoCoursesAdmin />} />
+              <Route path="video-library" element={<VideoLibrary />} />
+              <Route path="certificates" element={<CertificatesAdmin />} />
+              <Route path="presentation" element={<CompanyPresentationAdminPage />} />
+              <Route path="gamification" element={<GamificationAdmin />} />
+              <Route path="assignments" element={<CourseAssignmentAdmin />} />
+              <Route path="cms" element={<CMSAdmin />} />
+              <Route path="settings" element={<SettingsAdmin />} />
+            </Route>
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

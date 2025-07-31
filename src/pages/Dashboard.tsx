@@ -17,9 +17,12 @@ import {
   TrendingUp
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { AppHeader } from "@/components/layout/AppHeader";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Dashboard = () => {
-  const userName = "João Silva";
+  const { user } = useAuth();
+  const userName = user?.email?.split('@')[0] || "Usuário";
   const overallProgress = 78;
   const currentPoints = 1250;
   const currentLevel = "Expert";
@@ -60,32 +63,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="gradient-card border-b border-border shadow-corporate">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">HCP</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Hemera Capital Partners</h1>
-                <p className="text-sm text-muted-foreground">Onboarding Platform</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Welcome back</p>
-                <p className="font-semibold text-foreground">{userName}</p>
-              </div>
-              <div className="w-10 h-10 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center">
-                <span className="text-white font-bold">JS</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
+      <AppHeader />
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Welcome Section */}
         <div className="mb-8 animate-fade-in-up">
