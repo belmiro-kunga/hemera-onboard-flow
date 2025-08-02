@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { database } from '@/lib/database';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,10 +29,7 @@ const CourseAssignment = ({ course, onClose }: CourseAssignmentProps) => {
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users-for-assignment'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc('get_admin_users_with_emails')
-        .neq('role', 'super_admin')
-        .neq('role', 'admin');
+      const { data, error } = await database.rpc('get_admin_users_with_emails');
       
       if (error) throw error;
       return data;
@@ -45,10 +42,11 @@ const CourseAssignment = ({ course, onClose }: CourseAssignmentProps) => {
     queryFn: async () => {
       if (!course?.id) return [];
       
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('course_enrollments')
         .select('user_id')
-        .eq('course_id', course.id);
+        .eq('course_id', course.id)
+        .select_query();
       
       if (error) throw error;
       return data.map(enrollment => enrollment.user_id);
@@ -102,7 +100,7 @@ const CourseAssignment = ({ course, onClose }: CourseAssignmentProps) => {
         due_date: dueDate || null,
       }));
 
-      const { error } = await supabase
+      const { error } = await database
         .from('course_enrollments')
         .insert(enrollments);
 
@@ -111,24 +109,26 @@ const CourseAssignment = ({ course, onClose }: CourseAssignmentProps) => {
       // Create initial lesson progress entries for each user
       for (const userId of selectedUsers) {
         // Get lessons for this course
-        const { data: lessons, error: lessonsError } = await supabase
+        const { data: lessons, error: lessonsError } = await database
           .from('video_lessons')
           .select('id')
           .eq('course_id', course.id)
-          .order('order_number');
+          .order('order_number')
+          .select_query();
 
         if (lessonsError) throw lessonsError;
 
         if (lessons.length > 0) {
           // Get the enrollment ID
-          const { data: enrollment, error: enrollmentError } = await supabase
+          const { data: enrollmentData, error: enrollmentError } = await database
             .from('course_enrollments')
             .select('id')
             .eq('user_id', userId)
             .eq('course_id', course.id)
-            .single();
+            .select_query();
 
           if (enrollmentError) throw enrollmentError;
+          const enrollment = Array.isArray(enrollmentData) ? enrollmentData[0] : enrollmentData;
 
           // Create progress entries
           const progressEntries = lessons.map(lesson => ({
@@ -137,7 +137,7 @@ const CourseAssignment = ({ course, onClose }: CourseAssignmentProps) => {
             enrollment_id: enrollment.id,
           }));
 
-          const { error: progressError } = await supabase
+          const { error: progressError } = await database
             .from('lesson_progress')
             .insert(progressEntries);
 

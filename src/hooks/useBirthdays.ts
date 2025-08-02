@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { database } from "@/lib/database";
 import { useToast } from "@/hooks/use-toast";
 
 export interface Birthday {
@@ -22,7 +22,7 @@ export function useBirthdays() {
   const fetchUpcomingBirthdays = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('get_upcoming_birthdays');
+      const { data, error } = await database.rpc('get_upcoming_birthdays');
       
       if (error) throw error;
       

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { database } from '@/lib/database';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -41,18 +42,20 @@ const VideoLessonPlayer = ({ enrollment, onClose }: VideoLessonPlayerProps) => {
   const { data: lessonsData, isLoading } = useQuery({
     queryKey: ['course-lessons', enrollment.course_id],
     queryFn: async () => {
-      const { data: lessons, error: lessonsError } = await supabase
+      const { data: lessons, error: lessonsError } = await database
         .from('video_lessons')
         .select('*')
         .eq('course_id', enrollment.course_id)
-        .order('order_number');
+        .order('order_number')
+        .select_query();
 
       if (lessonsError) throw lessonsError;
 
-      const { data: progress, error: progressError } = await supabase
+      const { data: progress, error: progressError } = await database
         .from('lesson_progress')
         .select('*')
-        .eq('enrollment_id', enrollment.id);
+        .eq('enrollment_id', enrollment.id)
+        .select_query();
 
       if (progressError) throw progressError;
 
@@ -67,13 +70,17 @@ const VideoLessonPlayer = ({ enrollment, onClose }: VideoLessonPlayerProps) => {
   // Get progress for current lesson
   const currentProgress = progress.find(p => p.lesson_id === currentLesson?.id);
 
+  const { user } = useAuth();
+
   // Update lesson progress mutation
   const updateProgressMutation = useMutation({
     mutationFn: async ({ lessonId, watchedSeconds, isCompleted }: any) => {
-      const { error } = await supabase
+      if (!user) throw new Error("User not authenticated");
+
+      const { error } = await database
         .from('lesson_progress')
-        .upsert({
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+        .insert({
+          user_id: user.id,
           lesson_id: lessonId,
           enrollment_id: enrollment.id,
           watched_seconds: watchedSeconds,

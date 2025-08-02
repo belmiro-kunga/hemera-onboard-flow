@@ -15,7 +15,7 @@ import { CalendarIcon, Search, User, BookOpen, Plus, X } from "lucide-react";
 import { formatAngolaDate, getAngolaTime, startOfDayAngola } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { database } from "@/lib/database";
 import { useCreateAssignment, useAssignments } from "@/hooks/useAssignments";
 import { createAssignmentSchema } from "@/lib/validations/assignment";
 import type { CreateAssignmentData } from "@/types/assignment.types";
@@ -58,7 +58,7 @@ export default function AssignmentManager() {
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ["users", userSearch],
     queryFn: async () => {
-      let query = supabase
+      let query = database
         .from("profiles")
         .select("user_id, name, email, department, job_position")
         .order("name");
@@ -67,7 +67,7 @@ export default function AssignmentManager() {
         query = query.or(`name.ilike.%${userSearch}%,email.ilike.%${userSearch}%`);
       }
 
-      const { data, error } = await query.limit(10);
+      const { data, error } = await query.limit(10).select_query();
       if (error) throw error;
       return data as User[];
     },
@@ -78,7 +78,7 @@ export default function AssignmentManager() {
     queryKey: ["contents", contentSearch, contentType],
     queryFn: async () => {
       if (contentType === 'course') {
-        let query = supabase
+        let query = database
           .from("video_courses")
           .select("id, title, description, duration_minutes")
           .eq("is_active", true)
@@ -88,7 +88,7 @@ export default function AssignmentManager() {
           query = query.or(`title.ilike.%${contentSearch}%,description.ilike.%${contentSearch}%`);
         }
 
-        const { data, error } = await query.limit(10);
+        const { data, error } = await query.limit(10).select_query();
         if (error) throw error;
         return data.map(item => ({ 
           id: item.id,
@@ -98,7 +98,7 @@ export default function AssignmentManager() {
           type: 'course' as const 
         })) as Content[];
       } else {
-        let query = supabase
+        let query = database
           .from("simulados")
           .select("id, title, description, duration_minutes, difficulty, total_questions")
           .eq("is_active", true)
@@ -108,7 +108,7 @@ export default function AssignmentManager() {
           query = query.or(`title.ilike.%${contentSearch}%,description.ilike.%${contentSearch}%`);
         }
 
-        const { data, error } = await query.limit(10);
+        const { data, error } = await query.limit(10).select_query();
         if (error) throw error;
         return data.map(item => ({ 
           id: item.id,

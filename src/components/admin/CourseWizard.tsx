@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { supabase } from '@/integrations/supabase/client';
+import { database } from '@/lib/database';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -136,7 +136,7 @@ const CourseWizard = ({ course, onClose }: CourseWizardProps) => {
 
       if (course) {
         // Update existing course
-        const { error } = await supabase
+        const { error } = await database
           .from('video_courses')
           .update({
             ...data,
@@ -148,22 +148,21 @@ const CourseWizard = ({ course, onClose }: CourseWizardProps) => {
         courseId = course.id;
 
         // Delete existing lessons
-        await supabase
+        await database
           .from('video_lessons')
-          .delete()
-          .eq('course_id', courseId);
+          .eq('course_id', courseId)
+          .delete();
       } else {
         // Create new course
-        const { data: newCourse, error } = await supabase
+        const { data: newCourseData, error } = await database
           .from('video_courses')
           .insert({
             ...data,
             duration_minutes: totalDuration,
-          })
-          .select()
-          .single();
+          });
 
         if (error) throw error;
+        const newCourse = Array.isArray(newCourseData) ? newCourseData[0] : newCourseData;
         courseId = newCourse.id;
       }
 
@@ -175,7 +174,7 @@ const CourseWizard = ({ course, onClose }: CourseWizardProps) => {
           order_number: index + 1,
         }));
 
-        const { error: lessonError } = await supabase
+        const { error: lessonError } = await database
           .from('video_lessons')
           .insert(lessonsToInsert);
 

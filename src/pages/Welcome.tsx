@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCompanyPresentation } from '@/hooks/useCompanyPresentation';
 import WelcomePresentation from '@/components/presentation/WelcomePresentation';
-import { supabase } from '@/integrations/supabase/client';
+import { database } from '@/lib/database';
 import { Building2 } from 'lucide-react';
 
 const Welcome: React.FC = () => {
@@ -20,11 +20,13 @@ const Welcome: React.FC = () => {
         setNeedsPresentation(needs);
 
         // Check site settings for skip permission
-        const { data: settings } = await supabase
+        const { data: settingsData } = await database
           .from('site_settings')
           .select('setting_value')
           .eq('setting_key', 'presentation_skip_allowed')
-          .single();
+          .select_query();
+
+        const settings = Array.isArray(settingsData) ? settingsData[0] : settingsData;
 
         setAllowSkip(settings?.setting_value === 'true');
 

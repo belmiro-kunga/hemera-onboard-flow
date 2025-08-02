@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { database } from "@/lib/database";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
 export interface UserLevel {
@@ -60,81 +61,90 @@ export interface LeaderboardEntry {
 }
 
 export const useUserLevel = () => {
+  const { user } = useAuth();
+  
   return useQuery({
     queryKey: ["user-level"],
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Not authenticated");
+      if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("user_levels")
         .select("*")
-        .eq("user_id", user.user.id)
-        .single();
+        .eq("user_id", user.id)
+        .select_query();
 
-      if (error && error.code !== "PGRST116") throw error;
+      if (error) throw error;
+      
+      const userLevel = Array.isArray(data) ? data[0] : data;
       
       // Create initial level if doesn't exist
-      if (!data) {
-        const { data: newLevel, error: createError } = await supabase
+      if (!userLevel) {
+        const { data: newLevelData, error: createError } = await database
           .from("user_levels")
           .insert({
-            user_id: user.user.id,
+            user_id: user.id,
             current_level: 1,
             total_points: 0,
             points_to_next_level: 100
-          })
-          .select()
-          .single();
+          });
         
         if (createError) throw createError;
+        const newLevel = Array.isArray(newLevelData) ? newLevelData[0] : newLevelData;
         return newLevel;
       }
       
-      return data;
+      return userLevel;
     },
+    enabled: !!user,
   });
 };
 
 export const useUserBadges = () => {
+  const { user } = useAuth();
+  
   return useQuery({
     queryKey: ["user-badges"],
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Not authenticated");
+      if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("user_badges")
         .select(`
           *,
           badge:badges(*)
         `)
-        .eq("user_id", user.user.id)
-        .order("earned_at", { ascending: false });
+        .eq("user_id", user.id)
+        .order("earned_at", { ascending: false })
+        .select_query();
 
       if (error) throw error;
       return data as UserBadge[];
     },
+    enabled: !!user,
   });
 };
 
 export const useUserPoints = (limit = 10) => {
+  const { user } = useAuth();
+  
   return useQuery({
     queryKey: ["user-points", limit],
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Not authenticated");
+      if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("user_points")
         .select("*")
-        .eq("user_id", user.user.id)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(limit);
+        .limit(limit)
+        .select_query();
 
       if (error) throw error;
       return data as UserPoint[];
     },
+    enabled: !!user,
   });
 };
 
@@ -143,7 +153,7 @@ export const useLeaderboard = (limit = 10) => {
     queryKey: ["leaderboard", limit],
     queryFn: async () => {
       // Since get_leaderboard function may not exist yet, let's simulate it with a query
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("user_levels")
         .select(`
           user_id,
@@ -154,7 +164,8 @@ export const useLeaderboard = (limit = 10) => {
           profiles!inner(name)
         `)
         .order("total_points", { ascending: false })
-        .limit(limit);
+        .limit(limit)
+        .select_query();
 
       if (error) throw error;
       
@@ -178,11 +189,12 @@ export const useAllBadges = () => {
   return useQuery({
     queryKey: ["all-badges"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("badges")
         .select("*")
         .eq("is_active", true)
-        .order("criteria_value", { ascending: true });
+        .order("criteria_value", { ascending: true })
+        .select_query();
 
       if (error) throw error;
       return data as Badge[];
@@ -194,9 +206,10 @@ export const useGamificationSettings = () => {
   return useQuery({
     queryKey: ["gamification-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("gamification_settings")
-        .select("*");
+        .select("*")
+        .select_query();
 
       if (error) throw error;
       return data;
@@ -211,14 +224,13 @@ export const useCreateBadge = () => {
 
   return useMutation({
     mutationFn: async (badge: Omit<Badge, "id" | "created_at" | "updated_at">) => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("badges")
-        .insert(badge)
-        .select()
-        .single();
+        .insert(badge);
 
       if (error) throw error;
-      return data;
+      const newBadge = Array.isArray(data) ? data[0] : data;
+      return newBadge;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-badges"] });
@@ -243,15 +255,14 @@ export const useUpdateBadge = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Badge> & { id: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("badges")
         .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
+        .eq("id", id);
 
       if (error) throw error;
-      return data;
+      const updatedBadge = Array.isArray(data) ? data[0] : data;
+      return updatedBadge;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-badges"] });
@@ -276,10 +287,10 @@ export const useDeleteBadge = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await database
         .from("badges")
-        .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .delete();
 
       if (error) throw error;
     },

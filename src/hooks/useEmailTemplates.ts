@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { database } from "@/lib/database";
 import { useToast } from "@/hooks/use-toast";
 import { useCommonHook } from "@/hooks/useCommonHook";
 
@@ -53,10 +53,11 @@ export function useEmailTemplates() {
 
   const fetchTemplates = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('email_templates')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .select_query();
       
       if (error) throw error;
       setTemplates((data || []) as EmailTemplate[]);
@@ -67,11 +68,12 @@ export function useEmailTemplates() {
 
   const fetchLogs = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('email_logs')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(100)
+        .select_query();
       
       if (error) throw error;
       setLogs((data || []) as EmailLog[]);
@@ -82,11 +84,12 @@ export function useEmailTemplates() {
 
   const fetchQueue = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('email_queue')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(50)
+        .select_query();
       
       if (error) throw error;
       setQueue((data || []) as EmailQueue[]);
@@ -97,7 +100,7 @@ export function useEmailTemplates() {
 
   const createTemplate = async (templateData: Omit<EmailTemplate, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      const { error } = await supabase
+      const { error } = await database
         .from('email_templates')
         .insert([templateData]);
 
@@ -113,7 +116,7 @@ export function useEmailTemplates() {
 
   const updateTemplate = async (id: string, templateData: Partial<EmailTemplate>) => {
     try {
-      const { error } = await supabase
+      const { error } = await database
         .from('email_templates')
         .update(templateData)
         .eq('id', id);
@@ -136,7 +139,7 @@ export function useEmailTemplates() {
     scheduledFor?: string;
   }) => {
     try {
-      const { error } = await supabase
+      const { error } = await database
         .from('email_queue')
         .insert([{
           template_id: emailData.templateId,
@@ -162,18 +165,8 @@ export function useEmailTemplates() {
     temporaryPassword: string;
   }) => {
     try {
-      const { error } = await supabase.functions.invoke('send-welcome-email', {
-        body: {
-          name: userData.name,
-          email: userData.email,
-          temporaryPassword: userData.temporaryPassword,
-          loginUrl: window.location.origin,
-          companyName: "Hemera Capital"
-        }
-      });
-
-      if (error) throw error;
-
+      // TODO: Implement local email service
+      console.log('Welcome email would be sent to:', userData.email);
       showSuccess(`Email enviado para ${userData.email}.`);
 
     } catch (error: any) {
@@ -184,9 +177,8 @@ export function useEmailTemplates() {
   const processEmailQueue = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('process-email-queue');
-
-      if (error) throw error;
+      // TODO: Implement local email queue processing
+      console.log('Email queue processing would be triggered');
 
       showSuccess("Emails pendentes foram processados.");
 

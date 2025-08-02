@@ -32,7 +32,11 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Setup the local PostgreSQL database.
+npm run db:check    # Check prerequisites
+npm run db:setup    # Initialize database
+
+# Step 5: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
@@ -50,6 +54,25 @@ npm run dev
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
+## Database Setup
+
+This project uses a local PostgreSQL database running in Docker. Before starting development:
+
+1. **Check prerequisites**: `npm run db:check`
+2. **Setup database**: `npm run db:setup`
+3. **Start development**: `npm run dev`
+
+### Database Commands
+
+- `npm run db:start` - Start PostgreSQL container
+- `npm run db:stop` - Stop PostgreSQL container
+- `npm run db:reset` - Reset database (⚠️ deletes all data)
+- `npm run db:check` - Check Docker and prerequisites
+
+For detailed setup instructions, see:
+- [Database README](database/README.md)
+- [Docker Setup Guide](DOCKER_SETUP.md)
+
 ## What technologies are used for this project?
 
 This project is built with:
@@ -59,6 +82,7 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- PostgreSQL (local Docker container)
 
 ## How can I deploy this project?
 

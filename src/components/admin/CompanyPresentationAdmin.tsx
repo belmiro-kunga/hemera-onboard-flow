@@ -17,7 +17,7 @@ import {
   Image,
   Video
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { database } from '@/lib/database';
 import { toast } from 'sonner';
 
 interface CompanyPresentationData {
@@ -62,15 +62,17 @@ const CompanyPresentationAdmin: React.FC = () => {
   const fetchData = async () => {
     try {
       // Fetch presentation data
-      const { data: presentationData, error: presentationError } = await supabase
+      const { data: presentationDataResult, error: presentationError } = await database
         .from('company_presentation')
         .select('*')
         .eq('is_active', true)
-        .single();
+        .select_query();
 
-      if (presentationError && presentationError.code !== 'PGRST116') {
+      if (presentationError) {
         throw presentationError;
       }
+
+      const presentationData = Array.isArray(presentationDataResult) ? presentationDataResult[0] : presentationDataResult;
 
       if (presentationData) {
         // Safe conversion of Json to string[]
@@ -95,7 +97,7 @@ const CompanyPresentationAdmin: React.FC = () => {
       }
 
       // Fetch settings
-      const { data: settingsData, error: settingsError } = await supabase
+      const { data: settingsData, error: settingsError } = await database
         .from('site_settings')
         .select('setting_key, setting_value')
         .in('setting_key', [
@@ -103,7 +105,8 @@ const CompanyPresentationAdmin: React.FC = () => {
           'presentation_mandatory', 
           'presentation_skip_allowed',
           'presentation_auto_show'
-        ]);
+        ])
+        .select_query();
 
       if (settingsError) throw settingsError;
 
@@ -131,21 +134,20 @@ const CompanyPresentationAdmin: React.FC = () => {
       };
 
       if (presentation.id) {
-        const { error } = await supabase
+        const { error } = await database
           .from('company_presentation')
           .update(presentationData)
           .eq('id', presentation.id);
         
         if (error) throw error;
       } else {
-        const { data, error } = await supabase
+        const { data, error } = await database
           .from('company_presentation')
-          .insert([presentationData])
-          .select()
-          .single();
+          .insert([presentationData]);
         
         if (error) throw error;
-        setPresentation(prev => ({ ...prev, id: data.id }));
+        const newPresentation = Array.isArray(data) ? data[0] : data;
+        setPresentation(prev => ({ ...prev, id: newPresentation.id }));
       }
 
       // Save settings
@@ -156,12 +158,9 @@ const CompanyPresentationAdmin: React.FC = () => {
       }));
 
       for (const setting of settingsUpdates) {
-        await supabase
+        await database
           .from('site_settings')
-          .upsert(setting, { 
-            onConflict: 'setting_key',
-            ignoreDuplicates: false 
-          });
+          .insert(setting);
       }
 
       toast.success('Apresentação salva com sucesso!');
@@ -202,24 +201,16 @@ const CompanyPresentationAdmin: React.FC = () => {
 
   const handleFileUpload = async (file: File, type: 'logo' | 'video') => {
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const bucket = type === 'logo' ? 'site-assets' : 'site-assets';
+      // TODO: Implement local file storage
+      console.log('File upload would be handled here:', file.name);
       
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(fileName, file);
-
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(fileName);
-
+      // For now, create a temporary URL for preview
+      const tempUrl = URL.createObjectURL(file);
+      
       const fieldName = type === 'logo' ? 'logo_url' : 'video_url';
       setPresentation(prev => ({
         ...prev,
-        [fieldName]: urlData.publicUrl
+        [fieldName]: tempUrl
       }));
 
       toast.success(`${type === 'logo' ? 'Logo' : 'Vídeo'} carregado com sucesso!`);

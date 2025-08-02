@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { database } from '@/lib/database';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import type { CSVImportData, CSVImportResult, BulkOperationResult } from '@/types/assignment.types';
 
@@ -11,6 +12,7 @@ interface ImportAssignmentsParams {
 export const useCSVImport = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const importAssignments = useMutation({
     mutationFn: async ({ data, validateOnly = false }: ImportAssignmentsParams): Promise<CSVImportResult> => {
@@ -99,11 +101,13 @@ export const useCSVImport = () => {
 
         try {
           // Find user by email
-          const { data: userData, error: userError } = await supabase
+          const { data: userDataResult, error: userError } = await database
             .from('profiles')
             .select('user_id')
             .eq('email', row.userEmail)
-            .single();
+            .select_query();
+
+          const userData = Array.isArray(userDataResult) ? userDataResult[0] : userDataResult;
 
           if (userError || !userData) {
             errors.push({
@@ -119,24 +123,28 @@ export const useCSVImport = () => {
           let contentType: 'course' | 'simulado' = 'course';
 
           // First try video_courses
-          const { data: courseData } = await supabase
+          const { data: courseDataResult } = await database
             .from('video_courses')
             .select('id')
             .eq('title', row.courseTitle)
             .eq('is_active', true)
-            .single();
+            .select_query();
+
+          const courseData = Array.isArray(courseDataResult) ? courseDataResult[0] : courseDataResult;
 
           if (courseData) {
             contentId = courseData.id;
             contentType = 'course';
           } else {
             // Try simulados
-            const { data: simuladoData } = await supabase
+            const { data: simuladoDataResult } = await database
               .from('simulados')
               .select('id')
               .eq('title', row.courseTitle)
               .eq('is_active', true)
-              .single();
+              .select_query();
+
+            const simuladoData = Array.isArray(simuladoDataResult) ? simuladoDataResult[0] : simuladoDataResult;
 
             if (simuladoData) {
               contentId = simuladoData.id;
@@ -154,13 +162,15 @@ export const useCSVImport = () => {
           }
 
           // Check if assignment already exists
-          const { data: existingAssignment } = await supabase
+          const { data: existingAssignmentResult } = await database
             .from('course_assignments')
             .select('id')
             .eq('user_id', userData.user_id)
             .eq('content_id', contentId)
             .eq('content_type', contentType)
-            .single();
+            .select_query();
+
+          const existingAssignment = Array.isArray(existingAssignmentResult) ? existingAssignmentResult[0] : existingAssignmentResult;
 
           if (existingAssignment) {
             errors.push({
@@ -176,18 +186,18 @@ export const useCSVImport = () => {
             user_id: userData.user_id,
             content_type: contentType,
             content_id: contentId,
-            assigned_by: (await supabase.auth.getUser()).data.user?.id || '',
+            assigned_by: user?.id || '',
             due_date: row.dueDate || null,
             priority: row.priority || 'medium',
             notes: row.notes || null,
             status: 'assigned' as const,
           };
 
-          const { data: newAssignment, error: assignmentError } = await supabase
+          const { data: newAssignmentData, error: assignmentError } = await database
             .from('course_assignments')
-            .insert(assignmentData)
-            .select('id')
-            .single();
+            .insert(assignmentData);
+
+          const newAssignment = Array.isArray(newAssignmentData) ? newAssignmentData[0] : newAssignmentData;
 
           if (assignmentError || !newAssignment) {
             errors.push({

@@ -32,7 +32,7 @@ import {
   ArrowUp,
   ArrowDown
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { database } from '@/lib/database';
 import { toast } from 'sonner';
 import { OrganizationalChart } from '@/components/presentation/OrganizationalChart';
 import { OrganizationalChartNode } from '@/hooks/useCompanyPresentation';
@@ -76,10 +76,11 @@ const OrganizationalChartAdmin: React.FC = () => {
   const fetchData = async () => {
     try {
       // Fetch positions
-      const { data: positionsData, error: positionsError } = await supabase
+      const { data: positionsData, error: positionsError } = await database
         .from('organizational_chart')
         .select('*')
-        .order('order_position');
+        .order('order_position')
+        .select_query();
 
       if (positionsError) throw positionsError;
 
@@ -87,11 +88,12 @@ const OrganizationalChartAdmin: React.FC = () => {
       buildChartData(positionsData || []);
 
       // Fetch departments
-      const { data: departmentsData, error: departmentsError } = await supabase
+      const { data: departmentsData, error: departmentsError } = await database
         .from('departments')
         .select('*')
         .eq('is_active', true)
-        .order('name');
+        .order('name')
+        .select_query();
 
       if (departmentsError) throw departmentsError;
       setDepartments(departmentsData || []);
@@ -147,7 +149,7 @@ const OrganizationalChartAdmin: React.FC = () => {
     try {
       if (position.id) {
         // Update existing position
-        const { error } = await supabase
+        const { error } = await database
           .from('organizational_chart')
           .update(position)
           .eq('id', position.id);
@@ -156,11 +158,9 @@ const OrganizationalChartAdmin: React.FC = () => {
         toast.success('Posição atualizada com sucesso!');
       } else {
         // Create new position
-        const { data, error } = await supabase
+        const { data, error } = await database
           .from('organizational_chart')
-          .insert([position])
-          .select()
-          .single();
+          .insert([position]);
         
         if (error) throw error;
         toast.success('Posição criada com sucesso!');
@@ -179,10 +179,10 @@ const OrganizationalChartAdmin: React.FC = () => {
     if (!confirm('Tem certeza que deseja excluir esta posição?')) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await database
         .from('organizational_chart')
-        .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .delete();
       
       if (error) throw error;
       toast.success('Posição excluída com sucesso!');
@@ -195,23 +195,16 @@ const OrganizationalChartAdmin: React.FC = () => {
 
   const handleFileUpload = async (file: File, positionId: string) => {
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `org-chart/${positionId}-${Date.now()}.${fileExt}`;
+      // TODO: Implement local file storage
+      console.log('File upload would be handled here:', file.name);
       
-      const { data, error } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file);
-
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
+      // For now, create a temporary URL for preview
+      const tempUrl = URL.createObjectURL(file);
+      
       if (editingPosition) {
         setEditingPosition(prev => prev ? {
           ...prev,
-          photo_url: urlData.publicUrl
+          photo_url: tempUrl
         } : null);
       }
 
@@ -242,12 +235,12 @@ const OrganizationalChartAdmin: React.FC = () => {
     try {
       const temp = pos1.order_position;
       
-      await supabase
+      await database
         .from('organizational_chart')
         .update({ order_position: pos2.order_position })
         .eq('id', pos1.id);
       
-      await supabase
+      await database
         .from('organizational_chart')
         .update({ order_position: temp })
         .eq('id', pos2.id);

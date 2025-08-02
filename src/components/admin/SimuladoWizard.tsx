@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { database } from '@/lib/database';
 import { Plus, Trash2, Check, X, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -85,14 +85,15 @@ export const SimuladoWizard: React.FC<SimuladoWizardProps> = ({
     if (!simulado?.id) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('questoes')
         .select(`
           *,
           opcoes_resposta(*)
         `)
         .eq('simulado_id', simulado.id)
-        .order('order_number');
+        .order('order_number')
+        .select_query();
 
       if (error) throw error;
 
@@ -226,32 +227,31 @@ export const SimuladoWizard: React.FC<SimuladoWizardProps> = ({
 
       // Salvar ou atualizar simulado
       if (simuladoId) {
-        const { error } = await supabase
+        const { error } = await database
           .from('simulados')
           .update(simuladoData)
           .eq('id', simuladoId);
         if (error) throw error;
       } else {
-        const { data, error } = await supabase
+        const { data, error } = await database
           .from('simulados')
-          .insert([simuladoData])
-          .select()
-          .single();
+          .insert([simuladoData]);
         if (error) throw error;
-        simuladoId = data.id;
+        const newSimulado = Array.isArray(data) ? data[0] : data;
+        simuladoId = newSimulado.id;
       }
 
       // Remover questões existentes se estiver editando
       if (simulado?.id) {
-        await supabase
+        await database
           .from('questoes')
-          .delete()
-          .eq('simulado_id', simuladoId);
+          .eq('simulado_id', simuladoId)
+          .delete();
       }
 
       // Salvar questões
       for (const question of questions) {
-        const { data: questionData, error: questionError } = await supabase
+        const { data: questionDataResult, error: questionError } = await database
           .from('questoes')
           .insert([{
             simulado_id: simuladoId,
@@ -259,11 +259,10 @@ export const SimuladoWizard: React.FC<SimuladoWizardProps> = ({
             question_type: question.type,
             explanation: question.explanation,
             order_number: question.order_number,
-          }])
-          .select()
-          .single();
+          }]);
 
         if (questionError) throw questionError;
+        const questionData = Array.isArray(questionDataResult) ? questionDataResult[0] : questionDataResult;
 
         // Salvar opções (se houver)
         if (question.options.length > 0) {
@@ -274,7 +273,7 @@ export const SimuladoWizard: React.FC<SimuladoWizardProps> = ({
             order_number: opt.order_number,
           }));
 
-          const { error: optionsError } = await supabase
+          const { error: optionsError } = await database
             .from('opcoes_resposta')
             .insert(optionsData);
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { database } from '@/lib/database';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,14 +24,15 @@ const VideoCoursesAdmin = () => {
   const { data: courses = [], isLoading } = useQuery({
     queryKey: ['video-courses'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('video_courses')
         .select(`
           *,
           video_lessons (count),
           course_enrollments (count)
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .select_query();
       
       if (error) throw error;
       return data;
@@ -57,10 +58,10 @@ const VideoCoursesAdmin = () => {
 
   const handleDeleteCourse = async (courseId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await database
         .from('video_courses')
-        .delete()
-        .eq('id', courseId);
+        .eq('id', courseId)
+        .delete();
 
       if (error) throw error;
 

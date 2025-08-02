@@ -29,7 +29,7 @@ import CSVImportTool from "./CSVImportTool";
 import { formatAngolaDate, getAngolaTime, startOfDayAngola } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { database } from "@/lib/database";
 import { useBulkAssignments } from "@/hooks/useAssignments";
 import { bulkAssignmentSchema } from "@/lib/validations/assignment";
 import type { BulkAssignmentData, ContentType } from "@/types/assignment.types";
@@ -72,7 +72,7 @@ export default function BulkAssignmentTool() {
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ["users", userSearch, selectedDepartment],
     queryFn: async () => {
-      let query = supabase
+      let query = database
         .from("profiles")
         .select("user_id, name, email, department, job_position")
         .order("name");
@@ -85,7 +85,7 @@ export default function BulkAssignmentTool() {
         query = query.eq("department", selectedDepartment);
       }
 
-      const { data, error } = await query.limit(50);
+      const { data, error } = await query.limit(50).select_query();
       if (error) throw error;
       return data as User[];
     },
@@ -95,11 +95,12 @@ export default function BulkAssignmentTool() {
   const { data: departments = [] } = useQuery({
     queryKey: ["departments"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("profiles")
         .select("department")
         .not("department", "is", null)
-        .order("department");
+        .order("department")
+        .select_query();
 
       if (error) throw error;
       
@@ -113,7 +114,7 @@ export default function BulkAssignmentTool() {
   const { data: courses = [], isLoading: coursesLoading } = useQuery({
     queryKey: ["courses", courseSearch],
     queryFn: async () => {
-      let query = supabase
+      let query = database
         .from("video_courses")
         .select("id, title, description, duration_minutes")
         .eq("is_active", true)
@@ -123,7 +124,7 @@ export default function BulkAssignmentTool() {
         query = query.or(`title.ilike.%${courseSearch}%,description.ilike.%${courseSearch}%`);
       }
 
-      const { data, error } = await query.limit(20);
+      const { data, error } = await query.limit(20).select_query();
       if (error) throw error;
       return (data || []) as Course[];
     },

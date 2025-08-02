@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { database } from "@/lib/database";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useCommonHook } from "@/hooks/useCommonHook";
 import type { 
@@ -22,7 +23,7 @@ export const useAssignments = (filters?: AssignmentFilters): UseAssignmentsRetur
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["assignments", filters],
     queryFn: async () => {
-      let query = supabase
+      let query = database
         .from("course_assignments")
         .select('*');
 
@@ -117,29 +118,31 @@ export const useAssignment = (assignmentId: string) => {
   return useQuery({
     queryKey: ["assignment", assignmentId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("course_assignments")
         .select('*')
         .eq("id", assignmentId)
-        .single();
+        .select_query();
+      
+      const assignment = Array.isArray(data) ? data[0] : data;
 
       if (error) throw error;
-      if (!data) throw new Error('Assignment não encontrado');
+      if (!assignment) throw new Error('Assignment não encontrado');
 
       return {
-        id: data.id,
-        userId: data.user_id,
-        contentType: data.content_type as ContentType,
-        contentId: data.content_id,
-        assignedBy: data.assigned_by,
-        assignedAt: data.assigned_at,
-        dueDate: data.due_date,
-        priority: data.priority as AssignmentPriority,
-        status: data.status as AssignmentStatus,
-        completedAt: data.completed_at,
-        notes: data.notes,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
+        id: assignment.id,
+        userId: assignment.user_id,
+        contentType: assignment.content_type as ContentType,
+        contentId: assignment.content_id,
+        assignedBy: assignment.assigned_by,
+        assignedAt: assignment.assigned_at,
+        dueDate: assignment.due_date,
+        priority: assignment.priority as AssignmentPriority,
+        status: assignment.status as AssignmentStatus,
+        completedAt: assignment.completed_at,
+        notes: assignment.notes,
+        createdAt: assignment.created_at,
+        updatedAt: assignment.updated_at
       } as CourseAssignment;
     },
     enabled: !!assignmentId,
@@ -149,6 +152,7 @@ export const useAssignment = (assignmentId: string) => {
 // Hook para criar uma nova atribuição
 export const useCreateAssignment = () => {
   const { invalidateQueries, showError, showSuccess } = useCommonHook();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (data: CreateAssignmentData) => {
@@ -158,29 +162,27 @@ export const useCreateAssignment = () => {
         throw new Error(`Dados inválidos: ${validation.error.errors.map(e => e.message).join(', ')}`);
       }
 
-      // Get current user
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não autenticado");
+      // Check if user is authenticated
+      if (!user) throw new Error("Usuário não autenticado");
 
       // Create assignment
-      const { data: assignment, error } = await supabase
+      const { data: assignmentData, error } = await database
         .from("course_assignments")
         .insert({
           user_id: data.userId,
           content_type: data.contentType,
           content_id: data.contentId,
-          assigned_by: user.user.id,
+          assigned_by: user.id,
           due_date: data.dueDate,
           priority: data.priority,
           notes: data.notes,
-        })
-        .select()
-        .single();
+        });
 
       if (error) throw error;
+      const assignment = Array.isArray(assignmentData) ? assignmentData[0] : assignmentData;
 
       // Create notification
-      await supabase
+      await database
         .from("assignment_notifications")
         .insert({
           assignment_id: assignment.id,
@@ -212,12 +214,12 @@ export const useUpdateAssignment = () => {
       if (data.status !== undefined) updateData.status = data.status;
       if (data.notes !== undefined) updateData.notes = data.notes;
       
-      const { data: assignment, error } = await supabase
+      const { data: assignmentData, error } = await database
         .from("course_assignments")
         .update(updateData)
-        .eq("id", id)
-        .select()
-        .single();
+        .eq("id", id);
+      
+      const assignment = Array.isArray(assignmentData) ? assignmentData[0] : assignmentData;
 
       if (error) throw error;
       return assignment;
@@ -238,10 +240,10 @@ export const useDeleteAssignment = () => {
 
   return useMutation({
     mutationFn: async (assignmentId: string) => {
-      const { error } = await supabase
+      const { error } = await database
         .from("course_assignments")
-        .delete()
-        .eq("id", assignmentId);
+        .eq("id", assignmentId)
+        .delete();
 
       if (error) throw error;
       return assignmentId;
@@ -269,9 +271,9 @@ export const useBulkAssignments = () => {
         throw new Error(`Dados inválidos: ${validation.error.errors.map(e => e.message).join(', ')}`);
       }
 
-      // Get current user
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não autenticado");
+      // Get current user from auth context
+      const { user } = useAuth();
+      if (!user) throw new Error("Usuário não autenticado");
 
       const results: BulkOperationResult = {
         success: true,
@@ -285,12 +287,14 @@ export const useBulkAssignments = () => {
       for (const userId of data.userIds) {
         try {
           // Check if assignment already exists
-          const { data: existing } = await supabase
+          const { data: existingData } = await database
             .from("course_assignments")
             .select("id")
             .eq("user_id", userId)
             .eq("content_id", data.contentId)
-            .single();
+            .select_query();
+          
+          const existing = Array.isArray(existingData) ? existingData[0] : existingData;
 
           if (existing) {
             results.errorCount++;
@@ -302,24 +306,23 @@ export const useBulkAssignments = () => {
           }
 
           // Create assignment
-          const { data: assignment, error } = await supabase
+          const { data: assignmentData, error } = await database
             .from("course_assignments")
             .insert({
               user_id: userId,
               content_type: data.contentType,
               content_id: data.contentId,
-              assigned_by: user.user.id,
+              assigned_by: user.id,
               due_date: data.dueDate,
               priority: data.priority,
               notes: data.notes,
-            })
-            .select()
-            .single();
+            });
 
           if (error) throw error;
+          const assignment = Array.isArray(assignmentData) ? assignmentData[0] : assignmentData;
 
           // Create notification
-          await supabase
+          await database
             .from("assignment_notifications")
             .insert({
               assignment_id: assignment.id,
@@ -372,11 +375,12 @@ export const useUserAssignments = (userId: string) => {
   return useQuery({
     queryKey: ["user-assignments", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("course_assignments")
         .select('*')
         .eq("user_id", userId)
-        .order("assigned_at", { ascending: false });
+        .order("assigned_at", { ascending: false })
+        .select_query();
 
       if (error) throw error;
       
@@ -402,18 +406,20 @@ export const useUserAssignments = (userId: string) => {
 
 // Hook para buscar atribuições do usuário atual (para estudantes)
 export const useMyAssignments = () => {
+  const { user } = useAuth();
+  
   return useQuery({
     queryKey: ["my-assignments"],
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não autenticado");
+      if (!user) throw new Error("Usuário não autenticado");
 
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("course_assignments")
         .select('*')
-        .eq("user_id", user.user.id)
+        .eq("user_id", user.id)
         .order("priority", { ascending: false })
-        .order("due_date", { ascending: true, nullsFirst: false });
+        .order("due_date", { ascending: true })
+        .select_query();
 
       if (error) throw error;
       
@@ -433,6 +439,7 @@ export const useMyAssignments = () => {
         updatedAt: assignment.updated_at
       })) as CourseAssignment[];
     },
+    enabled: !!user,
   });
 };
 
@@ -442,15 +449,14 @@ export const useStartAssignment = () => {
 
   return useMutation({
     mutationFn: async (assignmentId: string) => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("course_assignments")
         .update({ status: "in_progress" })
-        .eq("id", assignmentId)
-        .select()
-        .single();
+        .eq("id", assignmentId);
 
       if (error) throw error;
-      return data;
+      const assignment = Array.isArray(data) ? data[0] : data;
+      return assignment;
     },
     onSuccess: (assignment) => {
       queryClient.invalidateQueries({ queryKey: ["assignments"] });

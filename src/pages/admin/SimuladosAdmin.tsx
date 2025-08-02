@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { database } from '@/lib/database';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { SimuladoWizard } from '@/components/admin/SimuladoWizard';
 import { 
@@ -47,14 +47,15 @@ const SimuladosAdmin = () => {
 
   const loadSimulados = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('simulados')
         .select(`
           *,
           questoes(count),
           simulado_attempts(count)
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .select_query();
 
       if (error) throw error;
 
@@ -80,7 +81,7 @@ const SimuladosAdmin = () => {
 
   const handleToggleActive = async (simulado: Simulado) => {
     try {
-      const { error } = await supabase
+      const { error } = await database
         .from('simulados')
         .update({ is_active: !simulado.is_active })
         .eq('id', simulado.id);
@@ -100,10 +101,10 @@ const SimuladosAdmin = () => {
     }
 
     try {
-      const { error } = await supabase
+      const { error } = await database
         .from('simulados')
-        .delete()
-        .eq('id', simulado.id);
+        .eq('id', simulado.id)
+        .delete();
 
       if (error) throw error;
 

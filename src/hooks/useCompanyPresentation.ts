@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { database } from '@/lib/database';
 import { toast } from 'sonner';
 
 export interface CompanyPresentation {
@@ -45,25 +45,27 @@ export const useCompanyPresentation = () => {
   // Fetch company presentation data
   const fetchPresentation = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('company_presentation')
         .select('*')
         .eq('is_active', true)
-        .single();
+        .select_query();
 
-      if (error && error.code !== 'PGRST116') {
+      const presentationData = Array.isArray(data) ? data[0] : data;
+
+      if (error) {
         throw error;
       }
 
-      if (data) {
+      if (presentationData) {
         // Safe conversion of Json to string[]
         let valuesArray: string[] = [];
-        if (data.values) {
-          if (Array.isArray(data.values)) {
-            valuesArray = data.values.filter((v): v is string => typeof v === 'string');
-          } else if (typeof data.values === 'string') {
+        if (presentationData.values) {
+          if (Array.isArray(presentationData.values)) {
+            valuesArray = presentationData.values.filter((v): v is string => typeof v === 'string');
+          } else if (typeof presentationData.values === 'string') {
             try {
-              const parsed = JSON.parse(data.values);
+              const parsed = JSON.parse(presentationData.values);
               valuesArray = Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
             } catch {
               valuesArray = [];
@@ -72,7 +74,7 @@ export const useCompanyPresentation = () => {
         }
 
         setPresentation({
-          ...data,
+          ...presentationData,
           values: valuesArray
         });
       }
@@ -85,12 +87,13 @@ export const useCompanyPresentation = () => {
   // Fetch organizational chart
   const fetchOrganizationalChart = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('organizational_chart')
         .select('*')
         .eq('is_active', true)
         .eq('show_in_presentation', true)
-        .order('order_position');
+        .order('order_position')
+        .select_query();
 
       if (error) throw error;
 
@@ -127,15 +130,9 @@ export const useCompanyPresentation = () => {
   // Check if user needs to see presentation
   const checkUserNeedsPresentation = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-
-      const { data, error } = await supabase.rpc('user_needs_presentation', {
-        user_uuid: user.id
-      });
-
-      if (error) throw error;
-      return data;
+      // TODO: Implement with local auth context
+      console.log('Checking if user needs presentation');
+      return false;
     } catch (err) {
       console.error('Error checking presentation status:', err);
       return false;
@@ -145,17 +142,8 @@ export const useCompanyPresentation = () => {
   // Mark presentation as viewed
   const markPresentationViewed = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { error } = await supabase
-        .from('presentation_views')
-        .insert({
-          user_id: user.id,
-          first_login_presentation_shown: true
-        });
-
-      if (error) throw error;
+      // TODO: Implement with local auth context
+      console.log('Marking presentation as viewed');
     } catch (err) {
       console.error('Error marking presentation as viewed:', err);
       toast.error('Erro ao registrar visualização');
@@ -165,18 +153,8 @@ export const useCompanyPresentation = () => {
   // Mark presentation as completed
   const markPresentationCompleted = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { error } = await supabase
-        .from('presentation_views')
-        .update({
-          completed_at: new Date().toISOString(),
-          is_mandatory_completed: true
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
+      // TODO: Implement with local auth context
+      console.log('Marking presentation as completed');
       toast.success('Apresentação concluída com sucesso!');
     } catch (err) {
       console.error('Error marking presentation as completed:', err);

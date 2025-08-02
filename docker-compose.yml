@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: hemera-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hemera_db
+      POSTGRES_USER: hemera_user
+      POSTGRES_PASSWORD: hemera_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - hemera-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hemera_user -d hemera_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  hemera-network:
+    driver: bridge

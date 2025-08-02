@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { database } from "@/lib/database";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
 // Since we don't have notifications and notification_preferences tables yet,
@@ -16,44 +17,50 @@ export interface Notification {
 
 // Hook para buscar notificações de assignments
 export const useAssignmentNotifications = (limit = 20) => {
+  const { user } = useAuth();
+  
   return useQuery({
     queryKey: ["assignment-notifications", limit],
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não autenticado");
+      if (!user) throw new Error("Usuário não autenticado");
 
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("assignment_notifications")
         .select(`
           *,
           course_assignments!inner(user_id)
         `)
-        .eq("course_assignments.user_id", user.user.id)
+        .eq("course_assignments.user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(limit);
+        .limit(limit)
+        .select_query();
 
       if (error) throw error;
       return data as any[];
     },
+    enabled: !!user,
   });
 };
 
 // Hook para buscar contagem de notificações não lidas
 export const useUnreadNotificationCount = () => {
+  const { user } = useAuth();
+  
   return useQuery({
     queryKey: ["unread-notification-count"],
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return 0;
+      if (!user) return 0;
 
-      const { count, error } = await supabase
+      const { data, error } = await database
         .from("assignment_notifications")
-        .select("*", { count: "exact", head: true })
-        .eq("in_app_read", false);
+        .select("*")
+        .eq("in_app_read", false)
+        .select_query();
 
       if (error) throw error;
-      return count || 0;
+      return data?.length || 0;
     },
+    enabled: !!user,
     refetchInterval: 30000, // Atualiza a cada 30 segundos
   });
 };
@@ -64,7 +71,7 @@ export const useMarkNotificationRead = () => {
 
   return useMutation({
     mutationFn: async (notificationId: string) => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("assignment_notifications")
         .update({ in_app_read: true })
         .eq("id", notificationId);
@@ -86,10 +93,7 @@ export const useMarkAllNotificationsRead = () => {
 
   return useMutation({
     mutationFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não autenticado");
-
-      const { error } = await supabase
+      const { error } = await database
         .from("assignment_notifications")
         .update({ in_app_read: true })
         .eq("in_app_read", false);
@@ -128,16 +132,16 @@ export const useCreateAssignmentNotification = () => {
       notificationType: string;
       emailSent?: boolean;
     }) => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("assignment_notifications")
         .insert({
           assignment_id: assignmentId,
           notification_type: notificationType,
           email_sent: emailSent,
           in_app_read: false
-        })
-        .select()
-        .single();
+        });
+
+      const notification = Array.isArray(data) ? data[0] : data;
 
       if (error) throw error;
       return data;
@@ -156,10 +160,10 @@ export const useDeleteNotification = () => {
 
   return useMutation({
     mutationFn: async (notificationId: string) => {
-      const { error } = await supabase
+      const { error } = await database
         .from("assignment_notifications")
-        .delete()
-        .eq("id", notificationId);
+        .eq("id", notificationId)
+        .delete();
 
       if (error) throw error;
     },
@@ -184,34 +188,20 @@ export const useDeleteNotification = () => {
 // Hook para notificações em tempo real
 export const useRealtimeNotifications = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useQuery({
     queryKey: ["realtime-notifications"],
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return null;
+      if (!user) return null;
 
-      // Setup realtime subscription for assignment notifications
-      const channel = supabase
-        .channel('assignment_notifications')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'assignment_notifications',
-          },
-          (payload) => {
-            // Invalidate queries to refresh data
-            queryClient.invalidateQueries({ queryKey: ["assignment-notifications"] });
-            queryClient.invalidateQueries({ queryKey: ["unread-notification-count"] });
-          }
-        )
-        .subscribe();
-
-      return channel;
+      // TODO: Implement realtime notifications with local database
+      // For now, we'll use polling instead of realtime subscriptions
+      console.log('Realtime notifications would be set up here');
+      
+      return null;
     },
-    enabled: true,
+    enabled: !!user,
     staleTime: Infinity,
   });
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { database } from "@/lib/database";
 import { useToast } from "@/hooks/use-toast";
 import { useCommonHook } from "@/hooks/useCommonHook";
 import type { UserCompleteData } from "@/lib/validations/user";
@@ -38,7 +38,7 @@ export function useUsers() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('get_users_with_details');
+      const { data, error } = await database.rpc('get_users_with_details');
       
       if (error) throw error;
       
@@ -52,7 +52,7 @@ export function useUsers() {
 
   const fetchDepartments = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('departments')
         .select('*')
         .eq('is_active', true)
@@ -80,7 +80,7 @@ export function useUsers() {
         }
       }
 
-      const { data, error } = await supabase.rpc('create_user_with_profile', {
+      const { data, error } = await database.rpc('create_user_with_profile', {
         p_email: userData.email,
         p_password: userData.password,
         p_name: userData.name,
@@ -100,22 +100,15 @@ export function useUsers() {
       if (result?.success) {
         // Gerar senha temporária e enviar email de boas-vindas
         try {
-          const tempPasswordResult = await supabase.rpc('generate_temporary_password', {
+          const tempPasswordResult = await database.rpc('generate_temporary_password', {
             p_user_id: result.user_id,
             p_expires_hours: 24
           });
 
           if (tempPasswordResult.data) {
             // Enviar email de boas-vindas
-            await supabase.functions.invoke('send-welcome-email', {
-              body: {
-                name: userData.name,
-                email: userData.email,
-                temporaryPassword: tempPasswordResult.data,
-                loginUrl: window.location.origin,
-                companyName: "Hemera Capital"
-              }
-            });
+            // TODO: Implement local email service
+            console.log('Welcome email would be sent to:', userData.email);
           }
         } catch (emailError) {
           console.error('Erro ao enviar email de boas-vindas:', emailError);
@@ -136,7 +129,7 @@ export function useUsers() {
 
   const updateUserStatus = async (userId: string, isActive: boolean) => {
     try {
-      const { error } = await supabase
+      const { error } = await database
         .from('profiles')
         .update({ is_active: isActive })
         .eq('user_id', userId);
@@ -153,7 +146,7 @@ export function useUsers() {
 
   const createDepartment = async (name: string, description?: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await database
         .from('departments')
         .insert({ name, description });
 

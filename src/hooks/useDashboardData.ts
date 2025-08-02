@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { database } from "@/lib/database";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserLevel, useUserBadges, useUserPoints } from "./useGamification";
 import { useMyAssignments } from "./useAssignments";
@@ -22,10 +22,11 @@ export const useDashboardData = () => {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("user_levels")
         .select("user_id, total_points, profiles!inner(name)")
-        .order("total_points", { ascending: false });
+        .order("total_points", { ascending: false })
+        .select_query();
       
       if (error) throw error;
       
@@ -44,12 +45,13 @@ export const useDashboardData = () => {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("user_points")
         .select("points, created_at, activity_type")
         .eq("user_id", user.id)
         .gte("created_at", sevenDaysAgo.toISOString())
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true })
+        .select_query();
       
       if (error) throw error;
       
@@ -76,13 +78,14 @@ export const useDashboardData = () => {
       if (!user?.id) return [];
       
       // Buscar progresso de cursos por categoria
-      const { data: courseProgress, error: courseError } = await supabase
+      const { data: courseProgress, error: courseError } = await database
         .from("course_enrollments")
         .select(`
           progress_percentage,
           video_courses!inner(category)
         `)
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .select_query();
       
       if (courseError) throw courseError;
       

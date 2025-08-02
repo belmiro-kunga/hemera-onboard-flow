@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { database } from "@/lib/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,42 +40,47 @@ export default function CertificatesAdmin() {
     queryKey: ["admin-certificates", searchTerm, filterType],
     queryFn: async () => {
       // Fetch course certificates with manual joins
-      const { data: courseCerts, error: courseError } = await supabase
+      const { data: courseCerts, error: courseError } = await database
         .from("course_certificates")
-        .select("id, user_id, issued_at, certificate_url, course_id");
+        .select("id, user_id, issued_at, certificate_url, course_id")
+        .select_query();
 
       if (courseError) throw courseError;
 
       // Get course details
       const courseIds = courseCerts?.map(c => c.course_id) || [];
-      const { data: courses } = await supabase
+      const { data: courses } = await database
         .from("video_courses")
         .select("id, title")
-        .in("id", courseIds);
+        .in("id", courseIds)
+        .select_query();
 
       // Fetch simulado certificates
-      const { data: simuladoCerts, error: simuladoError } = await supabase
+      const { data: simuladoCerts, error: simuladoError } = await database
         .from("simulado_certificates")
-        .select("id, user_id, issued_at, certificate_url, score, simulado_id");
+        .select("id, user_id, issued_at, certificate_url, score, simulado_id")
+        .select_query();
 
       if (simuladoError) throw simuladoError;
 
       // Get simulado details
       const simuladoIds = simuladoCerts?.map(c => c.simulado_id) || [];
-      const { data: simulados } = await supabase
+      const { data: simulados } = await database
         .from("simulados")
         .select("id, title")
-        .in("id", simuladoIds);
+        .in("id", simuladoIds)
+        .select_query();
 
       // Get user profiles
       const allUserIds = [
         ...(courseCerts?.map(c => c.user_id) || []),
         ...(simuladoCerts?.map(c => c.user_id) || [])
       ];
-      const { data: profiles } = await supabase
+      const { data: profiles } = await database
         .from("profiles")
         .select("user_id, name")
-        .in("user_id", allUserIds);
+        .in("user_id", allUserIds)
+        .select_query();
 
       // Transform and combine data
       const courseCertificates: Certificate[] = (courseCerts || []).map(cert => {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { database } from '@/lib/database';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -15,11 +16,15 @@ const StudentCourses = () => {
   const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
   const [showPlayer, setShowPlayer] = useState(false);
 
+  const { user } = useAuth();
+
   // Fetch user's course enrollments
   const { data: enrollments = [], isLoading } = useQuery({
     queryKey: ['my-course-enrollments'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      if (!user) throw new Error("User not authenticated");
+
+      const { data, error } = await database
         .from('course_enrollments')
         .select(`
           *,
@@ -28,29 +33,35 @@ const StudentCourses = () => {
             video_lessons (count)
           )
         `)
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-        .order('enrolled_at', { ascending: false });
+        .eq('user_id', user.id)
+        .order('enrolled_at', { ascending: false })
+        .select_query();
       
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: !!user,
   });
 
   // Fetch certificates
   const { data: certificates = [] } = useQuery({
     queryKey: ['my-certificates'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      if (!user) throw new Error("User not authenticated");
+
+      const { data, error } = await database
         .from('course_certificates')
         .select(`
           *,
           video_courses (title, category)
         `)
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+        .eq('user_id', user.id)
+        .select_query();
       
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: !!user,
   });
 
   // Filter enrollments

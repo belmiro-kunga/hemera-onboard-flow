@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { database } from '@/lib/database';
 import { useToast } from '@/hooks/use-toast';
 
 // Hook comum para estados de busca e filtro
@@ -32,9 +32,8 @@ export const useCurrentUser = () => {
   return useQuery({
     queryKey: ['current-user'],
     queryFn: async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) throw new Error('User not authenticated');
-      return user;
+      // TODO: Implement with local auth context
+      throw new Error('Use useAuth hook from AuthContext instead');
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
@@ -70,11 +69,12 @@ export const useUsersQuery = () => {
   return useQuery({
     queryKey: ['users'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('profiles')
         .select('user_id, name, email, department, job_position, photo_url, is_active')
         .eq('is_active', true)
-        .order('name', { ascending: true });
+        .order('name', { ascending: true })
+        .select_query();
       
       if (error) throw error;
       return data;
@@ -87,11 +87,12 @@ export const useCoursesQuery = () => {
   return useQuery({
     queryKey: ['courses'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('video_courses')
         .select('id, title, description, duration_hours, difficulty, is_active')
         .eq('is_active', true)
-        .order('title', { ascending: true });
+        .order('title', { ascending: true })
+        .select_query();
       
       if (error) throw error;
       return data;
@@ -104,11 +105,12 @@ export const useSimuladosQuery = () => {
   return useQuery({
     queryKey: ['simulados'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('simulados')
         .select('id, title, description, duration_minutes, difficulty, total_questions, is_active')
         .eq('is_active', true)
-        .order('title', { ascending: true });
+        .order('title', { ascending: true })
+        .select_query();
       
       if (error) throw error;
       return data;
@@ -121,11 +123,12 @@ export const useDepartmentsQuery = () => {
   return useQuery({
     queryKey: ['departments'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('profiles')
         .select('department')
         .not('department', 'is', null)
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .select_query();
       
       if (error) throw error;
       
@@ -141,11 +144,12 @@ export const useCategoriesQuery = () => {
   return useQuery({
     queryKey: ['course-categories'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from('video_courses')
         .select('category')
         .not('category', 'is', null)
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .select_query();
       
       if (error) throw error;
       

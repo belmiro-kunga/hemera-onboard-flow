@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Users, User, MapPin } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { database } from '@/lib/database';
 
 interface Department {
   id: string;
@@ -26,11 +26,12 @@ const DepartmentView: React.FC = () => {
   const fetchDepartments = async () => {
     try {
       // First get departments
-      const { data: deptData, error: deptError } = await supabase
+      const { data: deptData, error: deptError } = await database
         .from('departments')
         .select('*')
         .eq('is_active', true)
-        .order('name');
+        .order('name')
+        .select_query();
 
       if (deptError) throw deptError;
 
@@ -38,27 +39,30 @@ const DepartmentView: React.FC = () => {
       const departmentsWithInfo = await Promise.all(
         (deptData || []).map(async (dept) => {
           // Get employee count
-          const { count } = await supabase
+          const { data: employeeData } = await database
             .from('profiles')
-            .select('*', { count: 'exact', head: true })
+            .select('*')
             .eq('department', dept.name)
-            .eq('is_active', true);
+            .eq('is_active', true)
+            .select_query();
+
+          const count = employeeData?.length || 0;
 
           // Get manager info if manager_id exists
           let managerInfo = null;
           if (dept.manager_id) {
-            const { data: managerData } = await supabase
+            const { data: managerDataResult } = await database
               .from('profiles')
               .select('name, photo_url')
               .eq('user_id', dept.manager_id)
-              .single();
+              .select_query();
             
-            managerInfo = managerData;
+            managerInfo = Array.isArray(managerDataResult) ? managerDataResult[0] : managerDataResult;
           }
 
           return {
             ...dept,
-            employee_count: count || 0,
+            employee_count: count,
             manager_name: managerInfo?.name,
             manager_photo: managerInfo?.photo_url
           };

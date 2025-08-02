@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { database } from "@/lib/database";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import type { 
   AssignmentTemplate, 
@@ -20,7 +21,7 @@ export const useAssignmentTemplates = (filters?: TemplateFilters): UseAssignment
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["assignment-templates", filters],
     queryFn: async () => {
-      let query = supabase
+      let query = database
         .from("assignment_templates")
         .select(`
           *,
@@ -106,29 +107,31 @@ export const useAssignmentTemplate = (templateId: string) => {
   return useQuery({
     queryKey: ["assignment-template", templateId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("assignment_templates")
         .select(`
           *,
           template_courses(*)
         `)
         .eq("id", templateId)
-        .single();
+        .select_query();
+      
+      const templateData = Array.isArray(data) ? data[0] : data;
 
       if (error) throw error;
-      if (!data) throw new Error('Template não encontrado');
+      if (!templateData) throw new Error('Template não encontrado');
 
       return {
-        id: data.id,
-        name: data.name,
-        department: data.department,
-        jobTitle: data.job_title,
-        description: data.description,
-        isActive: data.is_active,
-        createdBy: data.created_by,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        courses: (Array.isArray(data.template_courses) ? data.template_courses : [])?.map(course => ({
+        id: templateData.id,
+        name: templateData.name,
+        department: templateData.department,
+        jobTitle: templateData.job_title,
+        description: templateData.description,
+        isActive: templateData.is_active,
+        createdBy: templateData.created_by,
+        createdAt: templateData.created_at,
+        updatedAt: templateData.updated_at,
+        courses: (Array.isArray(templateData.template_courses) ? templateData.template_courses : [])?.map(course => ({
           id: course.id,
           templateId: course.template_id,
           contentType: course.content_type as ContentType,
@@ -148,6 +151,7 @@ export const useAssignmentTemplate = (templateId: string) => {
 export const useCreateTemplate = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (data: CreateTemplateData) => {
@@ -157,24 +161,22 @@ export const useCreateTemplate = () => {
         throw new Error(`Dados inválidos: ${validation.error.errors.map(e => e.message).join(', ')}`);
       }
 
-      // Get current user
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não autenticado");
+      // Check if user is authenticated
+      if (!user) throw new Error("Usuário não autenticado");
 
       // Create template
-      const { data: template, error: templateError } = await supabase
+      const { data: templateData, error: templateError } = await database
         .from("assignment_templates")
         .insert({
           name: data.name,
           department: data.department,
           job_title: data.jobTitle,
           description: data.description,
-          created_by: user.user.id,
-        })
-        .select()
-        .single();
+          created_by: user.id,
+        });
 
       if (templateError) throw templateError;
+      const template = Array.isArray(templateData) ? templateData[0] : templateData;
 
       // Create template courses
       const templateCourses = data.contents.map(content => ({
@@ -186,7 +188,7 @@ export const useCreateTemplate = () => {
         priority: content.priority,
       }));
 
-      const { error: coursesError } = await supabase
+      const { error: coursesError } = await database
         .from("template_courses")
         .insert(templateCourses);
 
@@ -226,12 +228,12 @@ export const useUpdateTemplate = () => {
       if (data.description !== undefined) updateData.description = data.description;
       if (data.isActive !== undefined) updateData.is_active = data.isActive;
       
-      const { data: template, error } = await supabase
+      const { data: templateData, error } = await database
         .from("assignment_templates")
         .update(updateData)
-        .eq("id", id)
-        .select()
-        .single();
+        .eq("id", id);
+      
+      const template = Array.isArray(templateData) ? templateData[0] : templateData;
 
       if (error) throw error;
       return template;
@@ -261,10 +263,10 @@ export const useDeleteTemplate = () => {
 
   return useMutation({
     mutationFn: async (templateId: string) => {
-      const { error } = await supabase
+      const { error } = await database
         .from("assignment_templates")
-        .delete()
-        .eq("id", templateId);
+        .eq("id", templateId)
+        .delete();
 
       if (error) throw error;
       return templateId;
@@ -298,7 +300,7 @@ export const useApplyTemplate = () => {
       // Apply template to each user
       for (const userId of userIds) {
         try {
-          const { data, error } = await supabase.rpc('apply_template_to_user', {
+          const { data, error } = await database.rpc('apply_template_to_user', {
             p_template_id: templateId,
             p_user_id: userId
           });
@@ -359,7 +361,7 @@ export const useTemplatesByRole = (department?: string, jobTitle?: string) => {
   return useQuery({
     queryKey: ["templates-by-role", department, jobTitle],
     queryFn: async () => {
-      let query = supabase
+      let query = database
         .from("assignment_templates")
         .select(`
           *,
@@ -412,36 +414,36 @@ export const useDuplicateTemplate = () => {
 
   return useMutation({
     mutationFn: async (templateId: string) => {
-      // Get current user
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não autenticado");
+      // Get current user from auth context
+      const { user } = useAuth();
+      if (!user) throw new Error("Usuário não autenticado");
 
       // Get original template
-      const { data: originalTemplate, error: templateError } = await supabase
+      const { data: originalTemplateData, error: templateError } = await database
         .from("assignment_templates")
         .select(`
           *,
           template_courses(*)
         `)
         .eq("id", templateId)
-        .single();
+        .select_query();
 
       if (templateError) throw templateError;
+      const originalTemplate = Array.isArray(originalTemplateData) ? originalTemplateData[0] : originalTemplateData;
 
       // Create new template
-      const { data: newTemplate, error: newTemplateError } = await supabase
+      const { data: newTemplateData, error: newTemplateError } = await database
         .from("assignment_templates")
         .insert({
           name: `${originalTemplate.name} (Cópia)`,
           department: originalTemplate.department,
           job_title: originalTemplate.job_title,
           description: originalTemplate.description,
-          created_by: user.user.id,
-        })
-        .select()
-        .single();
+          created_by: user.id,
+        });
 
       if (newTemplateError) throw newTemplateError;
+      const newTemplate = Array.isArray(newTemplateData) ? newTemplateData[0] : newTemplateData;
 
       // Copy template courses
       if (Array.isArray(originalTemplate.template_courses) && originalTemplate.template_courses.length > 0) {
@@ -454,7 +456,7 @@ export const useDuplicateTemplate = () => {
           priority: course.priority,
         }));
 
-        const { error: coursesError } = await supabase
+        const { error: coursesError } = await database
           .from("template_courses")
           .insert(templateCourses);
 
@@ -485,11 +487,12 @@ export const useTemplateCourses = (templateId: string) => {
   return useQuery({
     queryKey: ["template-courses", templateId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await database
         .from("template_courses")
         .select('*')
         .eq("template_id", templateId)
-        .order("created_at");
+        .order("created_at")
+        .select_query();
 
       if (error) throw error;
 
@@ -522,10 +525,10 @@ export const useUpdateTemplateCourses = () => {
       courses: Omit<TemplateCourse, "id" | "createdAt" | "templateId">[] 
     }) => {
       // Delete existing courses
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await database
         .from("template_courses")
-        .delete()
-        .eq("template_id", templateId);
+        .eq("template_id", templateId)
+        .delete();
 
       if (deleteError) throw deleteError;
 
@@ -540,7 +543,7 @@ export const useUpdateTemplateCourses = () => {
           priority: course.priority
         }));
 
-        const { error: insertError } = await supabase
+        const { error: insertError } = await database
           .from("template_courses")
           .insert(coursesToInsert);
 
