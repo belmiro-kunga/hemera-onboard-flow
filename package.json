@@ -33,7 +33,9 @@
     "test:migration": "vitest run src/lib/__tests__/migration-validation.test.ts",
     "test:hooks": "vitest run src/hooks/__tests__/",
     "test:database": "vitest run src/lib/__tests__/database.test.ts",
-    "test:auth": "vitest run src/lib/auth/__tests__/auth-system.test.ts"
+    "test:auth": "vitest run src/lib/auth/__tests__/auth-system.test.ts",
+    "api:start": "cd backend && npm install && node api-server.js",
+    "api:dev": "cd backend && npm install && nodemon api-server.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
