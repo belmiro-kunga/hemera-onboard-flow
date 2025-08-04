@@ -1,41 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Play, Users, Clock, BarChart3, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { database } from '@/lib/database';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { SimuladoWizard } from '@/components/admin/SimuladoWizard';
+import { useSimulados } from '@/hooks/useSimulados';
+import { type Simulado } from '@/lib/api/simulados';
 import { 
   useSearchAndFilter,
   createSearchFilter,
-  createCategoryFilter,
-  handleError,
-  handleSuccess
+  createCategoryFilter
 } from '@/lib/common-patterns';
 
-interface Simulado {
-  id: string;
-  title: string;
-  description: string;
-  duration_minutes: number;
-  total_questions: number;
-  difficulty: 'facil' | 'medio' | 'dificil';
-  is_active: boolean;
-  created_at: string;
-  _count?: {
-    attempts: number;
-    questions: number;
-  };
-}
-
 const SimuladosAdmin = () => {
-  const { toast } = useToast();
-  const [simulados, setSimulados] = useState<Simulado[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingSimulado, setEditingSimulado] = useState<Simulado | null>(null);
+  
+  // Usando o hook personalizado para simulados
+  const {
+    simulados,
+    loading,
+    toggleSimuladoStatus,
+    deleteSimulado
+  } = useSimulados();
   
   // Usando hooks comuns para eliminar duplicação
   const {
@@ -45,74 +33,15 @@ const SimuladosAdmin = () => {
     setSelectedCategory
   } = useSearchAndFilter();
 
-  const loadSimulados = async () => {
-    try {
-      const { data, error } = await database
-        .from('simulados')
-        .select(`
-          *,
-          questoes(count),
-          simulado_attempts(count)
-        `)
-        .order('created_at', { ascending: false })
-        .select_query();
-
-      if (error) throw error;
-
-      const simuladosWithCounts = data?.map(simulado => ({
-        ...simulado,
-        _count: {
-          questions: simulado.questoes?.length || 0,
-          attempts: simulado.simulado_attempts?.length || 0
-        }
-      })) || [];
-
-      setSimulados(simuladosWithCounts);
-    } catch (error) {
-      handleError(error, toast, 'Não foi possível carregar os simulados.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadSimulados();
-  }, []);
-
   const handleToggleActive = async (simulado: Simulado) => {
-    try {
-      const { error } = await database
-        .from('simulados')
-        .update({ is_active: !simulado.is_active })
-        .eq('id', simulado.id);
-
-      if (error) throw error;
-
-      handleSuccess(toast, `Simulado ${simulado.is_active ? 'desativado' : 'ativado'} com sucesso.`);
-      loadSimulados();
-    } catch (error) {
-      handleError(error, toast, 'Não foi possível alterar o status do simulado.');
-    }
+    await toggleSimuladoStatus(simulado);
   };
 
   const handleDelete = async (simulado: Simulado) => {
     if (!confirm(`Tem certeza que deseja excluir o simulado "${simulado.title}"?`)) {
       return;
     }
-
-    try {
-      const { error } = await database
-        .from('simulados')
-        .eq('id', simulado.id)
-        .delete();
-
-      if (error) throw error;
-
-      handleSuccess(toast, 'Simulado excluído com sucesso.');
-      loadSimulados();
-    } catch (error) {
-      handleError(error, toast, 'Não foi possível excluir o simulado.');
-    }
+    await deleteSimulado(simulado);
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -177,7 +106,6 @@ const SimuladosAdmin = () => {
               onSuccess={() => {
                 setIsWizardOpen(false);
                 setEditingSimulado(null);
-                loadSimulados();
               }}
               onCancel={() => {
                 setIsWizardOpen(false);

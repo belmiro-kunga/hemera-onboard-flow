@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "Backend API for Hemera LMS - User Management",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node server.js",
+    "api": "node api-server.js",
     "dev": "nodemon server.js",
+    "dev-api": "nodemon api-server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
