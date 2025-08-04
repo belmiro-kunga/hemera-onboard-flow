@@ -1,24 +1,18 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { BaseSettingsComponent, useSettingsManager } from "./base/BaseSettingsComponent";
+import { BackupManagerComponent } from "./base/BackupManagerComponent";
+import { useCommonHook } from "@/hooks/useCommonHook";
 import { 
   Server, 
   Upload, 
-  Download, 
   RefreshCw,
   HardDrive,
-  Database,
-  FileText,
-  Calendar,
-  AlertTriangle,
-  CheckCircle,
   Clock,
-  Trash2,
-  FolderOpen,
-  Archive
+  FolderOpen
 } from "lucide-react";
 
 export default function SystemManager() {
@@ -26,26 +20,26 @@ export default function SystemManager() {
     {
       id: 1,
       name: "backup-2024-01-15-full.zip",
-      type: "full",
+      type: "full" as const,
       size: "245 MB",
       date: "2024-01-15 02:00",
-      status: "completed"
+      status: "completed" as const
     },
     {
       id: 2,
       name: "backup-2024-01-14-incremental.zip",
-      type: "incremental",
+      type: "incremental" as const,
       size: "45 MB",
       date: "2024-01-14 02:00",
-      status: "completed"
+      status: "completed" as const
     },
     {
       id: 3,
       name: "backup-2024-01-13-full.zip",
-      type: "full",
+      type: "full" as const,
       size: "238 MB",
       date: "2024-01-13 02:00",
-      status: "completed"
+      status: "completed" as const
     }
   ]);
 
@@ -57,269 +51,193 @@ export default function SystemManager() {
     memoryUsage: 42,
     cpuUsage: 23
   });
+  
+  const { saveSettings, resetSettings } = useSettingsManager();
+  const { showSuccess } = useCommonHook();
 
-  const getBackupTypeColor = (type: string) => {
-    return type === 'full' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
+  const handleSave = async () => {
+    const settings = {
+      systemInfo,
+      backups
+    };
+    await saveSettings(settings, 'system');
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'running': return 'bg-yellow-100 text-yellow-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const handleReset = async () => {
+    await resetSettings('system');
   };
 
-  return (
-    <div className="space-y-6">
-      <Tabs defaultValue="updates" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="updates">Atualizações</TabsTrigger>
-          <TabsTrigger value="backups">Backups</TabsTrigger>
-          <TabsTrigger value="files">Arquivos</TabsTrigger>
-          <TabsTrigger value="system">Sistema</TabsTrigger>
-        </TabsList>
+  const handleCreateBackup = () => {
+    showSuccess('Backup criado com sucesso!');
+  };
 
-        <TabsContent value="updates" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* System Updates */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
-                  Atualizações do Sistema
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 border rounded-lg bg-muted/50">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">Versão Atual</span>
-                    <Badge variant="outline">{systemInfo.version}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Última atualização: {systemInfo.lastUpdate}
-                  </p>
-                </div>
+  const handleRestoreBackup = (backupId: number) => {
+    showSuccess(`Backup ${backupId} restaurado com sucesso!`);
+  };
 
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Verificar atualizações</span>
-                    <Button size="sm" variant="outline">
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Verificar
-                    </Button>
-                  </div>
+  const handleDownloadBackup = (backupId: number) => {
+    showSuccess(`Download do backup ${backupId} iniciado!`);
+  };
 
-                  <div className="p-3 border rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm font-medium">Sistema atualizado</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Não há atualizações disponíveis no momento
-                    </p>
-                  </div>
-                </div>
+  const handleDeleteBackup = (backupId: number) => {
+    showSuccess(`Backup ${backupId} removido com sucesso!`);
+  };
 
-                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                  <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm font-medium mb-1">Upload Manual</p>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Faça upload de um arquivo de atualização
-                  </p>
-                  <Button size="sm">
-                    Selecionar Arquivo
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Update History */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Histórico de Atualizações
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {[
-                    { version: "2.1.4", date: "2024-01-10", type: "patch" },
-                    { version: "2.1.3", date: "2024-01-05", type: "patch" },
-                    { version: "2.1.0", date: "2023-12-20", type: "minor" },
-                    { version: "2.0.0", date: "2023-12-01", type: "major" }
-                  ].map((update, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium text-sm">v{update.version}</p>
-                        <p className="text-xs text-muted-foreground">{update.date}</p>
-                      </div>
-                      <Badge variant="outline" className={
-                        update.type === 'major' ? 'border-red-200 text-red-800' :
-                        update.type === 'minor' ? 'border-blue-200 text-blue-800' :
-                        'border-green-200 text-green-800'
-                      }>
-                        {update.type}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="backups" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-medium">Gerenciador de Backups</h3>
-              <p className="text-sm text-muted-foreground">
-                Backups automáticos e restauração do sistema
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Restaurar
-              </Button>
-              <Button>
-                <Archive className="h-4 w-4 mr-2" />
-                Criar Backup
-              </Button>
-            </div>
-          </div>
-
-          {/* Backup Configuration */}
+  // Configuração das tabs
+  const tabs = [
+    {
+      value: "updates",
+      label: "Atualizações",
+      content: (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* System Updates */}
           <Card>
             <CardHeader>
-              <CardTitle>Configuração de Backup Automático</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Atualizações do Sistema
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Frequência</label>
-                  <select className="w-full p-2 border rounded-md">
-                    <option value="daily">Diário</option>
-                    <option value="weekly">Semanal</option>
-                    <option value="monthly">Mensal</option>
-                  </select>
+              <div className="p-4 border rounded-lg bg-muted/50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium">Versão Atual</span>
+                  <Badge variant="outline">{systemInfo.version}</Badge>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Horário</label>
-                  <input type="time" className="w-full p-2 border rounded-md" defaultValue="02:00" />
+                <p className="text-sm text-muted-foreground">
+                  Última atualização: {systemInfo.lastUpdate}
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Verificar atualizações</span>
+                  <Button size="sm" variant="outline">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Verificar
+                  </Button>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Retenção (dias)</label>
-                  <input type="number" className="w-full p-2 border rounded-md" defaultValue="30" />
+
+                <div className="p-3 border rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-medium">Sistema atualizado</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Não há atualizações disponíveis no momento
+                  </p>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" defaultChecked />
-                  <span className="text-sm">Incluir banco de dados</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" defaultChecked />
-                  <span className="text-sm">Incluir arquivos de mídia</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" />
-                  <span className="text-sm">Compressão avançada</span>
-                </label>
+
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm font-medium mb-1">Upload Manual</p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Faça upload de um arquivo de atualização
+                </p>
+                <Button size="sm">
+                  Selecionar Arquivo
+                </Button>
               </div>
-              
-              <Button>Salvar Configuração</Button>
             </CardContent>
           </Card>
 
-          {/* Backup List */}
+          {/* Update History */}
           <Card>
             <CardHeader>
-              <CardTitle>Backups Disponíveis</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Histórico de Atualizações
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {backups.map((backup) => (
-                  <div key={backup.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Database className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium text-sm">{backup.name}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="secondary" className={getBackupTypeColor(backup.type)}>
-                            {backup.type === 'full' ? 'Completo' : 'Incremental'}
-                          </Badge>
-                          <Badge variant="secondary" className={getStatusColor(backup.status)}>
-                            {backup.status === 'completed' ? 'Concluído' : backup.status}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">{backup.size}</span>
-                        </div>
-                      </div>
+                {[
+                  { version: "2.1.4", date: "2024-01-10", type: "patch" },
+                  { version: "2.1.3", date: "2024-01-05", type: "patch" },
+                  { version: "2.1.0", date: "2023-12-20", type: "minor" },
+                  { version: "2.0.0", date: "2023-12-01", type: "major" }
+                ].map((update, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">v{update.version}</p>
+                      <p className="text-xs text-muted-foreground">{update.date}</p>
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">{backup.date}</span>
-                      <Button size="sm" variant="outline">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        Restaurar
-                      </Button>
-                      <Button size="sm" variant="ghost" className="text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Badge variant="outline" className={
+                      update.type === 'major' ? 'border-red-200 text-red-800' :
+                      update.type === 'minor' ? 'border-blue-200 text-blue-800' :
+                      'border-green-200 text-green-800'
+                    }>
+                      {update.type}
+                    </Badge>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="files" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FolderOpen className="h-5 w-5" />
-                Gerenciador de Arquivos Avançado
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Gerenciador de Arquivos</h3>
-                <p className="text-muted-foreground mb-4">
-                  Interface avançada para gerenciamento de arquivos do sistema
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md mx-auto text-sm">
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Funcionalidades:</h4>
-                    <ul className="space-y-1 text-muted-foreground text-left">
-                      <li>• Navegação por diretórios</li>
-                      <li>• Upload e download de arquivos</li>
-                      <li>• Editor de código integrado</li>
-                      <li>• Permissões de arquivo</li>
-                    </ul>
-                  </div>
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Recursos:</h4>
-                    <ul className="space-y-1 text-muted-foreground text-left">
-                      <li>• Busca avançada</li>
-                      <li>• Compressão/descompressão</li>
-                      <li>• Preview de arquivos</li>
-                      <li>• Controle de versões</li>
-                    </ul>
-                  </div>
+        </div>
+      )
+    },
+    {
+      value: "backups",
+      label: "Backups",
+      content: (
+        <BackupManagerComponent
+          backups={backups}
+          onCreateBackup={handleCreateBackup}
+          onRestoreBackup={handleRestoreBackup}
+          onDownloadBackup={handleDownloadBackup}
+          onDeleteBackup={handleDeleteBackup}
+        />
+      )
+    },
+    {
+      value: "files",
+      label: "Arquivos",
+      content: (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FolderOpen className="h-5 w-5" />
+              Gerenciador de Arquivos Avançado
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-12">
+              <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Gerenciador de Arquivos</h3>
+              <p className="text-muted-foreground mb-4">
+                Interface avançada para gerenciamento de arquivos do sistema
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md mx-auto text-sm">
+                <div className="space-y-2">
+                  <h4 className="font-medium">Funcionalidades:</h4>
+                  <ul className="space-y-1 text-muted-foreground text-left">
+                    <li>• Navegação por diretórios</li>
+                    <li>• Upload e download de arquivos</li>
+                    <li>• Editor de código integrado</li>
+                    <li>• Permissões de arquivo</li>
+                  </ul>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-medium">Recursos:</h4>
+                  <ul className="space-y-1 text-muted-foreground text-left">
+                    <li>• Busca avançada</li>
+                    <li>• Compressão/descompressão</li>
+                    <li>• Preview de arquivos</li>
+                    <li>• Controle de versões</li>
+                  </ul>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="system" className="space-y-6">
+            </div>
+          </CardContent>
+        </Card>
+      )
+    },
+    {
+      value: "system",
+      label: "Sistema",
+      content: (
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -436,8 +354,18 @@ export default function SystemManager() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+        </div>
+      )
+    }
+  ];
+
+  return (
+    <BaseSettingsComponent
+      title="Gerenciador do Sistema"
+      tabs={tabs}
+      defaultTab="updates"
+      onSave={handleSave}
+      onReset={handleReset}
+    />
   );
 }

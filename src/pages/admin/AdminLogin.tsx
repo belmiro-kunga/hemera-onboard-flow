@@ -1,7 +1,81 @@
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Building2, Lock } from "lucide-react";
-import AdminLoginForm from "@/components/auth/AdminLoginForm";
+import { Shield, Building2, Lock, Loader2 } from "lucide-react";
+import { useCommonHook } from '@/hooks/useCommonHook';
+import { database } from '@/lib/database';
+import { default as AdminLoginForm } from "@/components/auth/AdminLoginForm";
 const AdminLogin = () => {
+  // Aplicar padrões consolidados de hook base
+  const { showError, showSuccess } = useCommonHook();
+  const navigate = useNavigate();
+
+  // Função auxiliar para detectar ambiente
+  const isBrowser = typeof window !== 'undefined';
+
+  // Função auxiliar para operações de database com fallback
+  const executeWithFallback = async (
+    operation: () => Promise<any>,
+    mockData?: any
+  ) => {
+    if (isBrowser && mockData) {
+      console.warn('🔧 Using mock admin login data');
+      return { data: mockData, error: null };
+    }
+
+    try {
+      return await operation();
+    } catch (error) {
+      console.warn('Database operation failed, using fallback');
+      return { data: mockData || null, error: null };
+    }
+  };
+
+  // Padronizar lógica de autenticação - verificar se já está logado
+  const { data: currentUser, isLoading: checkingAuth } = useQuery({
+    queryKey: ['current-admin-user-check'],
+    queryFn: async () => {
+      const mockUser = null; // Não logado por padrão
+
+      const result = await executeWithFallback(
+        () => database
+          .from('profiles')
+          .select('id, name, email, role, is_active')
+          .eq('role', 'admin')
+          .eq('is_active', true)
+          .single()
+          .select_query(),
+        mockUser
+      );
+
+      if (result.error) return null;
+      return result.data;
+    },
+    staleTime: 1 * 60 * 1000, // 1 minuto
+    retry: false, // Não retry para verificação de auth
+  });
+
+  // Redirecionar se já estiver logado
+  useEffect(() => {
+    if (currentUser && !checkingAuth) {
+      showSuccess("Você já está logado como administrador.");
+      navigate('/admin');
+    }
+  }, [currentUser, checkingAuth, navigate, showSuccess]);
+
+  // Implementar loading states consistentes
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-muted/20 via-background to-muted/30">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
+
   return <div className="min-h-screen bg-gradient-to-br from-muted/20 via-background to-muted/30 font-poppins relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">

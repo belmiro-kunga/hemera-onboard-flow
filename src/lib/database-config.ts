@@ -1,9 +1,18 @@
-// Database configuration and environment setup
+// Database configuration with environment detection
 
-import { config } from 'dotenv';
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
 
-// Load environment variables
-config();
+// Load environment variables only on server-side
+if (!isBrowser) {
+  try {
+    // Only import dotenv on server-side
+    const dotenv = require('dotenv');
+    dotenv.config();
+  } catch (error) {
+    console.warn('Could not load dotenv, using environment variables directly');
+  }
+}
 
 export interface DatabaseConfig {
   host: string;
@@ -32,38 +41,82 @@ export interface AppConfig {
   logLevel: 'debug' | 'info' | 'warn' | 'error';
 }
 
-// Database configuration
-export const databaseConfig: DatabaseConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  database: process.env.DB_NAME || 'hemera_db',
-  username: process.env.DB_USER || 'hemera_user',
-  password: process.env.DB_PASSWORD || 'hemera_password',
-  ssl: process.env.DB_SSL === 'true',
-  maxConnections: parseInt(process.env.DB_MAX_CONNECTIONS || '20', 10),
-  idleTimeout: parseInt(process.env.DB_IDLE_TIMEOUT || '20', 10),
-  connectTimeout: parseInt(process.env.DB_CONNECT_TIMEOUT || '10', 10),
-  queryTimeout: parseInt(process.env.DB_QUERY_TIMEOUT || '30', 10),
-  retryAttempts: parseInt(process.env.DB_RETRY_ATTEMPTS || '3', 10),
-  retryDelay: parseInt(process.env.DB_RETRY_DELAY || '1000', 10),
+// Browser-safe configuration (mock values)
+const browserConfig = {
+  database: {
+    host: 'localhost',
+    port: 5432,
+    database: 'hemera_db',
+    username: 'hemera_user',
+    password: 'hemera_password',
+    ssl: false,
+    maxConnections: 20,
+    idleTimeout: 20,
+    connectTimeout: 10,
+    queryTimeout: 30,
+    retryAttempts: 3,
+    retryDelay: 1000,
+  },
+  jwt: {
+    secret: 'mock-jwt-secret-for-browser',
+    expiresIn: '7d',
+    algorithm: 'HS256' as const,
+  },
+  app: {
+    nodeEnv: 'development',
+    apiUrl: 'http://localhost:3000',
+    logLevel: 'info' as const,
+  }
 };
 
-// JWT configuration
-export const jwtConfig: JWTConfig = {
-  secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
-  expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  algorithm: 'HS256',
-};
+// Server configuration (loaded from environment)
+let serverConfig = browserConfig;
 
-// Application configuration
-export const appConfig: AppConfig = {
-  nodeEnv: process.env.NODE_ENV || 'development',
-  apiUrl: process.env.VITE_API_URL || 'http://localhost:3000',
-  logLevel: (process.env.LOG_LEVEL as any) || (process.env.NODE_ENV === 'development' ? 'debug' : 'error'),
-};
+if (!isBrowser) {
+  try {
+    serverConfig = {
+      database: {
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '5432', 10),
+        database: process.env.DB_NAME || 'hemera_db',
+        username: process.env.DB_USER || 'hemera_user',
+        password: process.env.DB_PASSWORD || 'hemera_password',
+        ssl: process.env.DB_SSL === 'true',
+        maxConnections: parseInt(process.env.DB_MAX_CONNECTIONS || '20', 10),
+        idleTimeout: parseInt(process.env.DB_IDLE_TIMEOUT || '20', 10),
+        connectTimeout: parseInt(process.env.DB_CONNECT_TIMEOUT || '10', 10),
+        queryTimeout: parseInt(process.env.DB_QUERY_TIMEOUT || '30', 10),
+        retryAttempts: parseInt(process.env.DB_RETRY_ATTEMPTS || '3', 10),
+        retryDelay: parseInt(process.env.DB_RETRY_DELAY || '1000', 10),
+      },
+      jwt: {
+        secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
+        expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+        algorithm: 'HS256' as const,
+      },
+      app: {
+        nodeEnv: process.env.NODE_ENV || 'development',
+        apiUrl: process.env.VITE_API_URL || 'http://localhost:3000',
+        logLevel: (process.env.LOG_LEVEL as any) || (process.env.NODE_ENV === 'development' ? 'debug' : 'error'),
+      }
+    };
+  } catch (error) {
+    console.warn('Could not load server configuration, using defaults');
+  }
+}
+
+// Export the appropriate configuration
+export const databaseConfig: DatabaseConfig = isBrowser ? browserConfig.database : serverConfig.database;
+export const jwtConfig: JWTConfig = isBrowser ? browserConfig.jwt : serverConfig.jwt;
+export const appConfig: AppConfig = isBrowser ? browserConfig.app : serverConfig.app;
 
 // Validation functions
 export function validateDatabaseConfig(): { isValid: boolean; errors: string[] } {
+  if (isBrowser) {
+    // Skip validation in browser
+    return { isValid: true, errors: [] };
+  }
+
   const errors: string[] = [];
 
   if (!databaseConfig.host) {
@@ -97,6 +150,11 @@ export function validateDatabaseConfig(): { isValid: boolean; errors: string[] }
 }
 
 export function validateJWTConfig(): { isValid: boolean; errors: string[] } {
+  if (isBrowser) {
+    // Skip validation in browser
+    return { isValid: true, errors: [] };
+  }
+
   const errors: string[] = [];
 
   if (!jwtConfig.secret || jwtConfig.secret.length < 32) {

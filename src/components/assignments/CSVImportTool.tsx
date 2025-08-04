@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,10 @@ import {
   CheckCircle,
   X,
   Eye,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Loader2
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useCommonHook } from "@/hooks/useCommonHook";
 import { useCSVImport, validateCSVFormat, parseCSVToData } from "@/hooks/useCSVImport";
 import { csvImportSchema } from "@/lib/validations/assignment.schemas";
 import type { CSVImportData, CSVImportResult } from "@/types/assignment.types";
@@ -28,13 +29,16 @@ interface CSVImportToolProps {
 }
 
 export default function CSVImportTool({ onImportComplete }: CSVImportToolProps) {
+  // Aplicar padrões consolidados de hook base
+  const { showError, showSuccess, invalidateQueries } = useCommonHook();
+  
+  // Estados consolidados para importação de CSV
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvData, setCsvData] = useState<CSVImportData[]>([]);
   const [importResult, setImportResult] = useState<CSVImportResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
   const { importAssignments, isImporting } = useCSVImport();
 
   const form = useForm({
@@ -44,42 +48,46 @@ export default function CSVImportTool({ onImportComplete }: CSVImportToolProps) 
     },
   });
 
-  // CSV template for download
-  const csvTemplate = `userEmail,courseTitle,dueDate,priority,notes
+  // Criar componente reutilizável de upload - CSV template memoizado
+  const csvTemplate = useMemo(() => `userEmail,courseTitle,dueDate,priority,notes
 funcionario1@empresa.com,Curso de Segurança,2024-12-31,high,Obrigatório para todos
 funcionario2@empresa.com,Treinamento de Vendas,2024-11-30,medium,Recomendado para equipe comercial
-funcionario3@empresa.com,Curso de Liderança,,low,Desenvolvimento pessoal`;
+funcionario3@empresa.com,Curso de Liderança,,low,Desenvolvimento pessoal`, []);
 
-  const downloadTemplate = () => {
-    const blob = new Blob([csvTemplate], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'template_atribuicoes.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  // Implementar validações e tratamento de erros padronizados
+  const downloadTemplate = useCallback(() => {
+    try {
+      const blob = new Blob([csvTemplate], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'template_atribuicoes.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      showSuccess("Template CSV baixado com sucesso!");
+    } catch (error: any) {
+      showError(error, "Erro ao baixar template");
+    }
+  }, [csvTemplate, showSuccess, showError]);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     if (!file.name.endsWith('.csv')) {
-      toast({
-        title: "Erro",
-        description: "Por favor, selecione um arquivo CSV válido.",
-        variant: "destructive",
-      });
+      showError(new Error("Arquivo inválido"), "Por favor, selecione um arquivo CSV válido.");
       return;
     }
 
     setCsvFile(file);
     parseCSVFile(file);
-  };
+  }, [showError]);
 
-  const parseCSVFile = (file: File) => {
+  const parseCSVFile = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
@@ -87,11 +95,7 @@ funcionario3@empresa.com,Curso de Liderança,,low,Desenvolvimento pessoal`;
       // Validate CSV format
       const validation = validateCSVFormat(text);
       if (!validation.isValid) {
-        toast({
-          title: "Erro no formato",
-          description: validation.error,
-          variant: "destructive",
-        });
+        showError(new Error(validation.error), "Erro no formato do CSV");
         return;
       }
 
@@ -102,30 +106,20 @@ funcionario3@empresa.com,Curso de Liderança,,low,Desenvolvimento pessoal`;
         setCsvData(data);
         setPreviewMode(true);
         
-        toast({
-          title: "Arquivo carregado",
-          description: `${data.length} linhas encontradas no arquivo CSV.`,
-        });
-      } catch (error) {
-        toast({
-          title: "Erro ao processar arquivo",
-          description: "Não foi possível processar o arquivo CSV. Verifique o formato.",
-          variant: "destructive",
-        });
+        showSuccess(`Arquivo carregado com sucesso! ${data.length} linhas encontradas no arquivo CSV.`);
+      } catch (error: any) {
+        showError(error, "Não foi possível processar o arquivo CSV. Verifique o formato.");
       }
     };
     reader.readAsText(file);
-  };
+  }, [showError, showSuccess]);
 
 
 
-  const handleImport = async (validateOnly = false) => {
+  // Consolidar lógica de importação de CSV com padrões comuns
+  const handleImport = useCallback(async (validateOnly = false) => {
     if (csvData.length === 0) {
-      toast({
-        title: "Erro",
-        description: "Nenhum dado para importar.",
-        variant: "destructive",
-      });
+      showError(new Error("Dados insuficientes"), "Nenhum dado para importar.");
       return;
     }
 
@@ -139,23 +133,28 @@ funcionario3@empresa.com,Curso de Liderança,,low,Desenvolvimento pessoal`;
             setImportResult(result);
             onImportComplete?.(result);
             setIsProcessing(false);
+            
+            if (result.success) {
+              showSuccess(`Importação concluída com sucesso! ${result.successCount} atribuições criadas.`);
+              // Invalidar queries relacionadas para atualizar dados
+              invalidateQueries(['assignments', 'user-assignments', 'assignment-stats', 'bulk-assignments']);
+            } else {
+              showError(new Error("Validação falhou"), `Encontrados ${result.errorCount} erros na validação.`);
+            }
           },
-          onError: () => {
+          onError: (error: any) => {
             setIsProcessing(false);
+            showError(error, "Erro durante a importação");
           }
         }
       );
-    } catch (error) {
+    } catch (error: any) {
       setIsProcessing(false);
-      toast({
-        title: "Erro na importação",
-        description: "Ocorreu um erro durante a importação. Tente novamente.",
-        variant: "destructive",
-      });
+      showError(error, "Ocorreu um erro durante a importação. Tente novamente.");
     }
-  };
+  }, [csvData, importAssignments, onImportComplete, showError, showSuccess, invalidateQueries]);
 
-  const resetImport = () => {
+  const resetImport = useCallback(() => {
     setCsvFile(null);
     setCsvData([]);
     setImportResult(null);
@@ -163,7 +162,19 @@ funcionario3@empresa.com,Curso de Liderança,,low,Desenvolvimento pessoal`;
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
+  }, []);
+
+  // Implementar validações padronizadas com useMemo
+  const fileSize = useMemo(() => {
+    if (!csvFile?.size) return '0 bytes';
+    return csvFile.size < 1024 
+      ? `${csvFile.size} bytes`
+      : `${Math.round(csvFile.size / 1024)} KB`;
+  }, [csvFile?.size]);
+
+  const previewData = useMemo(() => {
+    return csvData.slice(0, 5);
+  }, [csvData]);
 
   return (
     <div className="space-y-6">

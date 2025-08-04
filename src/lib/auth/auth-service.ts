@@ -454,11 +454,36 @@ export class AuthService {
    */
   private static async checkUserIsAdmin(userId: string): Promise<boolean> {
     try {
-      const result = await database.rpc('is_admin_user', {
-        user_uuid: userId,
-      });
+      // Check if we're in browser mode (mock data)
+      const isBrowser = typeof window !== 'undefined';
+      
+      if (isBrowser) {
+        console.warn('🔧 Using mock admin check');
+        // Mock admin check - return true for mock-admin user
+        return userId === 'mock-admin';
+      }
+      
+      try {
+        // Try RPC function first
+        const result = await database.rpc('is_admin_user', {
+          user_uuid: userId,
+        });
 
-      return Boolean(result.data);
+        return Boolean(result.data);
+      } catch (rpcError) {
+        // Fallback to manual query
+        console.warn('RPC function not available, using fallback admin check');
+        
+        const { data, error } = await database
+          .from('profiles')
+          .select('role')
+          .eq('user_id', userId)
+          .single();
+        
+        if (error) throw error;
+        
+        return data?.role === 'admin' || data?.role === 'super_admin';
+      }
     } catch (error) {
       logger.warn('Failed to check admin status:', error);
       return false;

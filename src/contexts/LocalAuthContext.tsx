@@ -1,7 +1,7 @@
 // Local authentication context using the new auth system
 
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
-import { auth, type User as LocalUser, type UserProfile, type SessionState } from '@/lib/auth';
+import auth, { type User as LocalUser, type Session as LocalSession } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/lib/database-utils';
 
@@ -25,6 +25,16 @@ export interface Session {
   expires_at?: number;
   expires_in?: number;
   token_type?: string;
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  department?: string;
+  job_position?: string;
+  role: string;
+  is_active: boolean;
 }
 
 export interface AuthContextType {
@@ -66,23 +76,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return {
       id: localUser.id,
       email: localUser.email,
-      created_at: localUser.created_at,
-      updated_at: localUser.updated_at,
-      email_confirmed: localUser.email_confirmed,
-      last_sign_in_at: localUser.last_sign_in_at,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      email_confirmed: true,
+      last_sign_in_at: new Date().toISOString(),
       user_metadata: {},
       app_metadata: {},
     };
   }, []);
 
   // Convert session state to compatible format
-  const convertSession = useCallback((sessionState: SessionState): Session | null => {
+  const convertSession = useCallback((sessionState: LocalSession): Session | null => {
     if (!sessionState.isAuthenticated || !sessionState.user || !sessionState.tokens) {
       return null;
     }
 
-    const expiresAt = Math.floor(sessionState.tokens.expiresAt.getTime() / 1000);
-    const expiresIn = Math.max(0, expiresAt - Math.floor(Date.now() / 1000));
+    const expiresAt = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
+    const expiresIn = 3600; // 1 hour
 
     return {
       user: convertUser(sessionState.user),
@@ -108,8 +118,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           
           setUser(compatibleUser);
           setSession(compatibleSession);
-          setProfile(sessionState.profile);
-          setIsAdmin(sessionState.isAdmin);
+          setProfile({
+            id: sessionState.user.id,
+            name: sessionState.user.name || 'Mock User',
+            email: sessionState.user.email,
+            role: sessionState.user.role || 'funcionario',
+            is_active: true
+          });
+          setIsAdmin(sessionState.user.role === 'admin');
           
           logger.info(`User session loaded: ${sessionState.user.id}`);
         } else {
@@ -134,49 +150,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     loadSession();
   }, [convertUser, convertSession]);
 
-  // Set up session refresh interval
-  useEffect(() => {
-    if (!session) return;
-
-    const refreshInterval = setInterval(async () => {
-      try {
-        const sessionState = await auth.getCurrentSession();
-        
-        if (sessionState.isAuthenticated && sessionState.user) {
-          const compatibleUser = convertUser(sessionState.user);
-          const compatibleSession = convertSession(sessionState);
-          
-          setUser(compatibleUser);
-          setSession(compatibleSession);
-          setProfile(sessionState.profile);
-          setIsAdmin(sessionState.isAdmin);
-        } else {
-          // Session expired or invalid
-          setUser(null);
-          setSession(null);
-          setProfile(null);
-          setIsAdmin(false);
-          
-          toast({
-            title: "Sessão expirada",
-            description: "Sua sessão expirou. Faça login novamente.",
-            variant: "destructive"
-          });
-        }
-      } catch (error) {
-        logger.error('Session refresh failed:', error);
-      }
-    }, 5 * 60 * 1000); // Check every 5 minutes
-
-    return () => clearInterval(refreshInterval);
-  }, [session, convertUser, convertSession, toast]);
-
   // Sign in function
   const signIn = useCallback(async (email: string, password: string): Promise<{ error?: string }> => {
     try {
       setLoading(true);
       
-      const result = await auth.login({ email, password });
+      const result = await auth.signIn(email, password);
       
       if (!result.success) {
         return { error: result.error || 'Login failed' };
@@ -184,19 +163,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       if (result.user && result.tokens) {
         const compatibleUser = convertUser(result.user);
-        const sessionState: SessionState = {
+        const sessionState: LocalSession = {
           isAuthenticated: true,
           user: result.user,
-          profile: result.profile || null,
-          isAdmin: result.isAdmin || false,
           tokens: result.tokens,
         };
         const compatibleSession = convertSession(sessionState);
 
         setUser(compatibleUser);
         setSession(compatibleSession);
-        setProfile(result.profile || null);
-        setIsAdmin(result.isAdmin || false);
+        setProfile({
+          id: result.user.id,
+          name: result.user.name || 'User',
+          email: result.user.email,
+          role: result.user.role || 'funcionario',
+          is_active: true
+        });
+        setIsAdmin(result.user.role === 'admin');
 
         toast({
           title: "Login realizado",
@@ -224,7 +207,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setLoading(true);
       
-      const result = await auth.register({
+      const result = await auth.signUp({
         email,
         password,
         full_name: userData?.full_name,
@@ -238,19 +221,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       if (result.user && result.tokens) {
         const compatibleUser = convertUser(result.user);
-        const sessionState: SessionState = {
+        const sessionState: LocalSession = {
           isAuthenticated: true,
           user: result.user,
-          profile: result.profile || null,
-          isAdmin: result.isAdmin || false,
           tokens: result.tokens,
         };
         const compatibleSession = convertSession(sessionState);
 
         setUser(compatibleUser);
         setSession(compatibleSession);
-        setProfile(result.profile || null);
-        setIsAdmin(result.isAdmin || false);
+        setProfile({
+          id: result.user.id,
+          name: result.user.name || 'User',
+          email: result.user.email,
+          role: result.user.role || 'funcionario',
+          is_active: true
+        });
+        setIsAdmin(result.user.role === 'admin');
 
         toast({
           title: "Conta criada",
@@ -273,7 +260,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signOut = useCallback(async () => {
     try {
       // Clear local session
-      auth.clearSession();
+      await auth.signOut();
       
       setUser(null);
       setSession(null);
@@ -308,8 +295,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         setUser(compatibleUser);
         setSession(compatibleSession);
-        setProfile(sessionState.profile);
-        setIsAdmin(sessionState.isAdmin);
+        setProfile({
+          id: sessionState.user.id,
+          name: sessionState.user.name || 'User',
+          email: sessionState.user.email,
+          role: sessionState.user.role || 'funcionario',
+          is_active: true
+        });
+        setIsAdmin(sessionState.user.role === 'admin');
         
         logger.debug('Session refreshed successfully');
       } else {

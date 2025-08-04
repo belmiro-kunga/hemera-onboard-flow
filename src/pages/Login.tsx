@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2 } from "lucide-react";
-import LoginForm from "@/components/auth/LoginForm";
+import { default as LoginForm } from "@/components/auth/LoginForm";
 import BirthdaySection from "@/components/birthday/BirthdaySection";
 import useScrollEffect from "@/hooks/useScrollEffect";
 const Login = () => {

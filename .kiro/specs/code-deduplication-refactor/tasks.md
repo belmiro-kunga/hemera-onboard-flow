@@ -51,31 +51,31 @@
   - Padronizar tratamento de mutations
   - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ] 3.2 Refatorar useUsers.ts
+- [x] 3.2 Refatorar useUsers.ts
   - Aplicar padrão `useCommonHook()` para eliminar duplicação
   - Consolidar lógica de CRUD de usuários
   - Implementar tratamento padronizado de erros
   - _Requirements: 3.1, 3.2, 3.4_
 
-- [ ] 3.3 Refatorar useEmailTemplates.ts
+- [x] 3.3 Refatorar useEmailTemplates.ts
   - Substituir queryClient e toast por utilitários comuns
   - Padronizar mutations de templates de email
   - Consolidar validações e tratamento de erros
   - _Requirements: 3.1, 3.2, 3.4_
 
-- [ ] 3.4 Refatorar useNotifications.ts
+- [x] 3.4 Refatorar useNotifications.ts
   - Aplicar padrões comuns de hook base
   - Consolidar lógica de notificações
   - Implementar invalidação inteligente de queries
   - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ] 3.5 Refatorar useCompanyPresentation.ts
+- [x] 3.5 Refatorar useCompanyPresentation.ts
   - Eliminar duplicação com `useCommonHook()`
   - Padronizar mutations de apresentação da empresa
   - Consolidar tratamento de uploads e erros
   - _Requirements: 3.1, 3.2, 3.4_
 
-- [ ] 3.6 Refatorar useAssignmentTemplates.ts
+- [x] 3.6 Refatorar useAssignmentTemplates.ts
   - Aplicar padrões consolidados de hook base
   - Eliminar duplicação de lógica de templates
   - Implementar tratamento consistente de CRUD
@@ -83,25 +83,25 @@
 
 ## Fase 4: Refatoração de Admin Pages Restantes
 
-- [ ] 4.1 Refatorar VideoCoursesAdmin.tsx
+- [x] 4.1 Refatorar VideoCoursesAdmin.tsx
   - Aplicar todos os padrões comuns estabelecidos
   - Consolidar lógica de gerenciamento de cursos
   - Implementar loading e error states padronizados
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 4.2 Refatorar AdminDashboard.tsx
+- [x] 4.2 Refatorar AdminDashboard.tsx
   - Consolidar widgets e métricas com padrões comuns
   - Implementar queries otimizadas para dashboard
   - Padronizar layout e componentes de estatísticas
   - _Requirements: 2.1, 2.2, 2.3_
 
-- [ ] 4.3 Refatorar AdminLayout.tsx
+- [x] 4.3 Refatorar AdminLayout.tsx
   - Consolidar lógica de layout e navegação
   - Implementar tratamento padronizado de autenticação
   - Otimizar re-renders e performance
   - _Requirements: 2.1, 2.3_
 
-- [ ] 4.4 Refatorar AdminLogin.tsx
+- [x] 4.4 Refatorar AdminLogin.tsx
   - Padronizar lógica de autenticação
   - Consolidar validações e tratamento de erros
   - Implementar loading states consistentes
@@ -109,25 +109,25 @@
 
 ## Fase 5: Consolidação de Componentes de Assignment
 
-- [ ] 5.1 Refatorar AssignmentManager.tsx
+- [x] 5.1 Refatorar AssignmentManager.tsx
   - Consolidar lógica de gerenciamento de atribuições
   - Aplicar padrões comuns de formulários e validações
   - Implementar queries otimizadas
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 5.2 Refatorar AssignmentReports.tsx
+- [x] 5.2 Refatorar AssignmentReports.tsx
   - Consolidar lógica de relatórios e filtros
   - Implementar componentes de gráficos reutilizáveis
   - Padronizar exportação de dados
   - _Requirements: 4.1, 4.2_
 
-- [ ] 5.3 Refatorar BulkAssignmentTool.tsx
+- [x] 5.3 Refatorar BulkAssignmentTool.tsx
   - Consolidar lógica de atribuições em massa
   - Implementar validações padronizadas
   - Otimizar performance para grandes volumes
   - _Requirements: 4.1, 4.3_
 
-- [ ] 5.4 Refatorar CSVImportTool.tsx
+- [x] 5.4 Refatorar CSVImportTool.tsx
   - Consolidar lógica de importação de CSV
   - Implementar validações e tratamento de erros padronizados
   - Criar componente reutilizável de upload
@@ -135,25 +135,25 @@
 
 ## Fase 6: Consolidação de Componentes CMS
 
-- [ ] 6.1 Refatorar componentes de configuração
+- [x] 6.1 Refatorar componentes de configuração
   - Consolidar BrandingSettings, GeneralSettings, SystemManager
   - Criar componente base para configurações
   - Implementar validações e persistência padronizadas
   - _Requirements: 4.1, 4.2, 4.4_
 
-- [ ] 6.2 Refatorar componentes de conteúdo
+- [x] 6.2 Refatorar componentes de conteúdo
   - Consolidar MediaLibrary, PageManager, MenuManager
   - Criar componentes reutilizáveis de upload e edição
   - Implementar drag-and-drop padronizado
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 6.3 Refatorar componentes de templates
+- [x] 6.3 Refatorar componentes de templates
   - Consolidar CertificateTemplateEditor e EmailTemplateEditor
   - Criar editor base reutilizável
   - Implementar preview e validação padronizados
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 6.4 Refatorar RoleManager.tsx
+- [x] 6.4 Refatorar RoleManager.tsx
   - Consolidar lógica de gerenciamento de roles
   - Implementar permissões padronizadas
   - Criar componente de seleção de permissões reutilizável

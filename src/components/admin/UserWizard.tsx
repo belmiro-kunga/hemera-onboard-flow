@@ -108,98 +108,114 @@ export default function UserWizard({ open, onOpenChange }: UserWizardProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Criar Novo Usuário</DialogTitle>
+      <DialogContent className="max-w-4xl w-[95vw] h-[85vh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0 pb-2">
+          <DialogTitle className="text-xl font-bold">Criar Novo Usuário</DialogTitle>
         </DialogHeader>
 
         {/* Progress Bar */}
-        <div className="space-y-4">
-          <Progress value={progress} className="w-full" />
+        <div className="flex-shrink-0 space-y-3 pb-4">
+          <Progress value={progress} className="w-full h-2" />
           
-          {/* Steps Indicator */}
-          <div className="flex items-center justify-between">
+          {/* Steps Indicator - Responsive */}
+          <div className="hidden md:flex items-center justify-between">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center">
-                <div className="flex flex-col items-center space-y-2">
+                <div className="flex flex-col items-center space-y-1">
                   {currentStep > step.id ? (
-                    <CheckCircle2 className="h-8 w-8 text-primary" />
+                    <CheckCircle2 className="h-6 w-6 text-primary" />
                   ) : (
                     <Circle 
-                      className={`h-8 w-8 ${
+                      className={`h-6 w-6 ${
                         currentStep === step.id ? 'text-primary fill-primary/10' : 'text-muted-foreground'
                       }`} 
                     />
                   )}
-                  <span className={`text-sm font-medium ${
+                  <span className={`text-xs font-medium text-center ${
                     currentStep === step.id ? 'text-primary' : 'text-muted-foreground'
                   }`}>
                     {step.title}
                   </span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={`h-px w-16 mx-4 ${
+                  <div className={`h-px w-8 mx-2 ${
                     currentStep > step.id ? 'bg-primary' : 'bg-muted'
                   }`} />
                 )}
               </div>
             ))}
           </div>
+          
+          {/* Mobile Steps Indicator */}
+          <div className="md:hidden flex items-center justify-center space-x-2">
+            <span className="text-sm font-medium text-muted-foreground">
+              Passo {currentStep} de {steps.length}
+            </span>
+            <span className="text-sm font-semibold text-primary">
+              {steps[currentStep - 1]?.title}
+            </span>
+          </div>
         </div>
 
-        {/* Step Content */}
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="min-h-[400px]">
-              {CurrentStepComponent && (
-                <CurrentStepComponent form={form} />
-              )}
-            </div>
+        {/* Step Content - Flexible height */}
+        <div className="flex-1 overflow-hidden">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="h-full flex flex-col">
+              <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+                {CurrentStepComponent && (
+                  <CurrentStepComponent form={form} />
+                )}
+              </div>
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-between pt-6 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 1}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Anterior
-            </Button>
-
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleClose}
-              >
-                Cancelar
-              </Button>
-
-              {currentStep < steps.length ? (
+              {/* Navigation Buttons - Fixed at bottom */}
+              <div className="flex-shrink-0 flex justify-between pt-4 mt-4 border-t bg-background">
                 <Button
                   type="button"
-                  onClick={handleNext}
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={currentStep === 1}
                   className="flex items-center gap-2"
+                  size="sm"
                 >
-                  Próximo
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Anterior</span>
                 </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex items-center gap-2"
-                >
-                  {isSubmitting ? "Criando..." : "Criar Usuário"}
-                </Button>
-              )}
-            </div>
-          </div>
-          </form>
-        </Form>
+
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleClose}
+                    size="sm"
+                  >
+                    Cancelar
+                  </Button>
+
+                  {currentStep < steps.length ? (
+                    <Button
+                      type="button"
+                      onClick={handleNext}
+                      className="flex items-center gap-2"
+                      size="sm"
+                    >
+                      <span className="hidden sm:inline">Próximo</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="flex items-center gap-2"
+                      size="sm"
+                    >
+                      {isSubmitting ? "Criando..." : "Criar Usuário"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useEmailTemplates } from "@/hooks/useEmailTemplates";
-import { EmailTemplateEditor } from "./EmailTemplateEditor";
+import EmailTemplateEditor from "./EmailTemplateEditor";
 import { SMTPConfiguration } from "./SMTPConfiguration";
 import { Mail, Send, Clock, CheckCircle, XCircle, AlertCircle, Plus, RefreshCw } from "lucide-react";
 import { formatAngolaDate } from "@/lib/date-utils";

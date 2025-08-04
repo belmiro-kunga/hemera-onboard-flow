@@ -8,6 +8,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    fs: {
+      strict: false,
+    },
   },
   plugins: [
     react(),
@@ -19,4 +22,42 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    global: 'globalThis',
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@tanstack/react-query',
+      'date-fns',
+      'zod',
+      'clsx',
+      'lucide-react'
+    ],
+    exclude: [
+      'postgres',
+      'dotenv',
+      'bcryptjs', 
+      'jsonwebtoken',
+      'pg'
+    ],
+    force: true
+  },
+  cacheDir: '.vite-cache',
+  build: {
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          query: ['@tanstack/react-query'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+          utils: ['date-fns', 'zod', 'clsx']
+        }
+      }
+    }
+  }
 }));

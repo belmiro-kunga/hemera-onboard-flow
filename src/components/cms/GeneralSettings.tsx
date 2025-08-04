@@ -3,20 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { BaseSettingsComponent, useSettingsManager } from "./base/BaseSettingsComponent";
+import { LanguageManagerComponent } from "./base/LanguageManagerComponent";
 import { 
   Globe, 
   Type, 
   Settings, 
-  Languages,
   Wrench,
-  Eye,
-  EyeOff,
-  Save,
-  RefreshCw,
   AlertTriangle,
   CheckCircle
 } from "lucide-react";
@@ -24,12 +20,17 @@ import {
 export default function GeneralSettings() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("pt-AO");
+  const [autoDetectLanguage, setAutoDetectLanguage] = useState(false);
+  const [rtlSupport, setRtlSupport] = useState(false);
+  const [fallbackLanguage, setFallbackLanguage] = useState("pt-AO");
+  
+  const { saveSettings, resetSettings } = useSettingsManager();
   
   const [languages] = useState([
-    { code: "pt-AO", name: "Português (Angola)", flag: "🇦🇴", status: "active" },
-    { code: "en-US", name: "English (US)", flag: "🇺🇸", status: "active" },
-    { code: "pt-PT", name: "Português (Portugal)", flag: "🇵🇹", status: "draft" },
-    { code: "fr-FR", name: "Français", flag: "🇫🇷", status: "draft" }
+    { code: "pt-AO", name: "Português (Angola)", flag: "🇦🇴", status: "active" as const },
+    { code: "en-US", name: "English (US)", flag: "🇺🇸", status: "active" as const },
+    { code: "pt-PT", name: "Português (Portugal)", flag: "🇵🇹", status: "draft" as const },
+    { code: "fr-FR", name: "Français", flag: "🇫🇷", status: "draft" as const }
   ]);
 
   const [textKeys] = useState([
@@ -47,6 +48,28 @@ export default function GeneralSettings() {
     { name: "Zapier", status: "disconnected", config: "" }
   ]);
 
+  const handleSave = async () => {
+    const settings = {
+      maintenanceMode,
+      selectedLanguage,
+      autoDetectLanguage,
+      rtlSupport,
+      fallbackLanguage,
+      textKeys,
+      integrations
+    };
+    await saveSettings(settings, 'general');
+  };
+
+  const handleReset = async () => {
+    await resetSettings('general');
+    setMaintenanceMode(false);
+    setSelectedLanguage("pt-AO");
+    setAutoDetectLanguage(false);
+    setRtlSupport(false);
+    setFallbackLanguage("pt-AO");
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
@@ -57,17 +80,13 @@ export default function GeneralSettings() {
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="general">Configurações Gerais</TabsTrigger>
-          <TabsTrigger value="texts">Textos da Interface</TabsTrigger>
-          <TabsTrigger value="i18n">Internacionalização</TabsTrigger>
-          <TabsTrigger value="integrations">Integrações</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="general" className="space-y-6">
+  // Configuração das tabs
+  const tabs = [
+    {
+      value: "general",
+      label: "Configurações Gerais",
+      content: (
+        <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Site Configuration */}
             <Card>
@@ -234,172 +253,70 @@ export default function GeneralSettings() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="texts" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-medium">Editor de Textos da Interface</h3>
-              <p className="text-sm text-muted-foreground">
-                Personalize textos e mensagens do sistema
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Recarregar
-              </Button>
-              <Button>
-                <Save className="h-4 w-4 mr-2" />
-                Salvar Alterações
-              </Button>
-            </div>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Type className="h-5 w-5" />
-                Textos por Categoria
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {["Interface", "Autenticação", "Cursos", "Certificados", "Erros"].map((category) => (
-                  <div key={category} className="space-y-3">
-                    <h4 className="font-medium text-sm border-b pb-2">{category}</h4>
-                    <div className="space-y-2">
-                      {textKeys
-                        .filter(item => item.category === category)
-                        .map((item, index) => (
-                          <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 border rounded-lg">
-                            <div>
-                              <Label className="text-xs text-muted-foreground">Chave</Label>
-                              <p className="text-sm font-mono">{item.key}</p>
-                            </div>
-                            <div className="md:col-span-2">
-                              <Label className="text-xs text-muted-foreground">Valor</Label>
-                              <Input defaultValue={item.value} className="text-sm" />
-                            </div>
+        </div>
+      )
+    },
+    {
+      value: "texts",
+      label: "Textos da Interface",
+      content: (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Type className="h-5 w-5" />
+              Textos por Categoria
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {["Interface", "Autenticação", "Cursos", "Certificados", "Erros"].map((category) => (
+                <div key={category} className="space-y-3">
+                  <h4 className="font-medium text-sm border-b pb-2">{category}</h4>
+                  <div className="space-y-2">
+                    {textKeys
+                      .filter(item => item.category === category)
+                      .map((item, index) => (
+                        <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 border rounded-lg">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Chave</Label>
+                            <p className="text-sm font-mono">{item.key}</p>
                           </div>
-                        ))}
-                    </div>
+                          <div className="md:col-span-2">
+                            <Label className="text-xs text-muted-foreground">Valor</Label>
+                            <Input defaultValue={item.value} className="text-sm" />
+                          </div>
+                        </div>
+                      ))}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="i18n" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-medium">Sistema de Internacionalização</h3>
-              <p className="text-sm text-muted-foreground">
-                Gerencie idiomas e traduções do sistema
-              </p>
-            </div>
-            <Button>
-              <Languages className="h-4 w-4 mr-2" />
-              Adicionar Idioma
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {languages.map((lang) => (
-              <Card key={lang.code} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{lang.flag}</span>
-                      <div>
-                        <CardTitle className="text-base">{lang.name}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{lang.code}</p>
-                      </div>
-                    </div>
-                    <Badge variant="secondary" className={getStatusColor(lang.status)}>
-                      {lang.status === 'active' ? 'Ativo' : 'Rascunho'}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="flex-1">
-                      Editar
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      {lang.status === 'active' ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                    </Button>
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground">
-                    <p>Traduzido: 85%</p>
-                    <p>Última atualização: 12/01/2024</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Configurações de Idioma</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="default-language">Idioma Padrão</Label>
-                  <select 
-                    id="default-language" 
-                    className="w-full p-2 border rounded-md"
-                    value={selectedLanguage}
-                    onChange={(e) => setSelectedLanguage(e.target.value)}
-                  >
-                    {languages.map((lang) => (
-                      <option key={lang.code} value={lang.code}>
-                        {lang.flag} {lang.name}
-                      </option>
-                    ))}
-                  </select>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="fallback-language">Idioma de Fallback</Label>
-                  <select id="fallback-language" className="w-full p-2 border rounded-md">
-                    <option value="pt-AO">🇦🇴 Português (Angola)</option>
-                    <option value="en-US">🇺🇸 English (US)</option>
-                    <option value="pt-PT">🇵🇹 Português (Portugal)</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Switch id="auto-detect" />
-                <Label htmlFor="auto-detect">Detectar idioma automaticamente</Label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Switch id="rtl-support" />
-                <Label htmlFor="rtl-support">Suporte a idiomas RTL</Label>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="integrations" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-medium">Integrações Externas</h3>
-              <p className="text-sm text-muted-foreground">
-                Configure integrações com serviços externos
-              </p>
+              ))}
             </div>
-            <Button>
-              <Settings className="h-4 w-4 mr-2" />
-              Nova Integração
-            </Button>
-          </div>
-
+          </CardContent>
+        </Card>
+      )
+    },
+    {
+      value: "i18n",
+      label: "Internacionalização",
+      content: (
+        <LanguageManagerComponent
+          languages={languages}
+          selectedLanguage={selectedLanguage}
+          onLanguageSelect={setSelectedLanguage}
+          autoDetect={autoDetectLanguage}
+          onAutoDetectChange={setAutoDetectLanguage}
+          rtlSupport={rtlSupport}
+          onRtlSupportChange={setRtlSupport}
+          fallbackLanguage={fallbackLanguage}
+          onFallbackChange={setFallbackLanguage}
+        />
+      )
+    },
+    {
+      value: "integrations",
+      label: "Integrações",
+      content: (
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {integrations.map((integration, index) => (
               <Card key={index} className="hover:shadow-md transition-shadow">
@@ -459,8 +376,18 @@ export default function GeneralSettings() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+        </div>
+      )
+    }
+  ];
+
+  return (
+    <BaseSettingsComponent
+      title="Configurações Gerais"
+      tabs={tabs}
+      defaultTab="general"
+      onSave={handleSave}
+      onReset={handleReset}
+    />
   );
 }

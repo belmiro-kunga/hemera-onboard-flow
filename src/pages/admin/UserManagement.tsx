@@ -4,10 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Plus, Users, UserCheck, TrendingUp, UserPlus, MoreHorizontal } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useUsers } from '@/hooks/useUsers';
+import { Search, Plus, Users, UserCheck, TrendingUp, UserPlus, MoreHorizontal, Eye, Edit, Trash2, Download } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { useUsers, type User } from '@/hooks/useUsers';
 import UserWizard from '@/components/admin/UserWizard';
+import UserEditDialog from '@/components/admin/UserEditDialog';
+import UserViewDialog from '@/components/admin/UserViewDialog';
+import UserDeleteDialog from '@/components/admin/UserDeleteDialog';
 import { 
   useSearchAndFilter,
   createSearchFilter,
@@ -19,7 +22,11 @@ import { useToast } from '@/hooks/use-toast';
 const UserManagement = () => {
   const { toast } = useToast();
   const [showUserWizard, setShowUserWizard] = useState(false);
-  const { users, loading, updateUserStatus } = useUsers();
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const { users, loading, updateUser, updateUserStatus, deleteUser } = useUsers();
   
   // Usando hooks comuns para eliminar duplicação
   const {
@@ -46,6 +53,70 @@ const UserManagement = () => {
     ) : (
       <Badge variant="secondary">Inativo</Badge>
     );
+  };
+
+  // Handler functions for CRUD operations
+  const handleViewUser = (user: User) => {
+    setSelectedUser(user);
+    setShowViewDialog(true);
+  };
+
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setShowEditDialog(true);
+  };
+
+  const handleDeleteUser = (user: User) => {
+    setSelectedUser(user);
+    setShowDeleteDialog(true);
+  };
+
+  const handleSaveUser = async (userId: string, userData: any) => {
+    try {
+      await updateUser(userId, userData);
+      handleSuccess(toast, 'Usuário atualizado com sucesso!');
+    } catch (error) {
+      handleError(error, toast, 'Erro ao atualizar usuário');
+    }
+  };
+
+  const handleConfirmDelete = async (userId: string) => {
+    try {
+      await deleteUser(userId);
+      handleSuccess(toast, 'Usuário excluído com sucesso!');
+    } catch (error) {
+      handleError(error, toast, 'Erro ao excluir usuário');
+    }
+  };
+
+  const handleExportUsers = () => {
+    // Create CSV content
+    const headers = ['Nome', 'Email', 'Departamento', 'Cargo', 'Função', 'Status', 'Criado em'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredUsers.map(user => [
+        `"${user.name}"`,
+        `"${user.email}"`,
+        `"${user.department || ''}"`,
+        `"${user.job_position || ''}"`,
+        `"${user.role}"`,
+        `"${user.is_active ? 'Ativo' : 'Inativo'}"`,
+        `"${new Date(user.created_at).toLocaleDateString('pt-BR')}"`
+      ].join(','))
+    ].join('\n');
+
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `usuarios_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    handleSuccess(toast, 'Lista de usuários exportada com sucesso!');
   };
 
   const stats = {
@@ -156,6 +227,15 @@ const UserManagement = () => {
           >
             Inativos
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportUsers}
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Exportar
+          </Button>
           <Button 
             className="flex items-center gap-2"
             onClick={() => setShowUserWizard(true)}
@@ -228,8 +308,15 @@ const UserManagement = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Editar</DropdownMenuItem>
-                          <DropdownMenuItem>Enviar Email</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewUser(user)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Visualizar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem 
                             onClick={() => {
                               try {
@@ -240,7 +327,16 @@ const UserManagement = () => {
                               }
                             }}
                           >
+                            <UserCheck className="h-4 w-4 mr-2" />
                             {user.is_active ? 'Desativar' : 'Ativar'}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteUser(user)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -257,6 +353,31 @@ const UserManagement = () => {
       <UserWizard 
         open={showUserWizard} 
         onOpenChange={setShowUserWizard} 
+      />
+
+      {/* User Edit Dialog */}
+      <UserEditDialog
+        user={selectedUser}
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        onSave={handleSaveUser}
+      />
+
+      {/* User View Dialog */}
+      <UserViewDialog
+        user={selectedUser}
+        open={showViewDialog}
+        onOpenChange={setShowViewDialog}
+        onEdit={handleEditUser}
+        onDelete={handleDeleteUser}
+      />
+
+      {/* User Delete Dialog */}
+      <UserDeleteDialog
+        user={selectedUser}
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );
