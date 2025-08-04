@@ -216,7 +216,7 @@ app.post('/api/departments', async (req, res) => {
 // Get all simulados
 app.get('/api/simulados', async (req, res) => {
   try {
-    console.log('🔄 Fetching simulados from database...');
+    console.log('🔄 [SIMULADOS] Fetching simulados from database...');
     
     // First, try a simple query to see if the table exists and has data
     const simulados = await sql`
@@ -224,7 +224,7 @@ app.get('/api/simulados', async (req, res) => {
       ORDER BY created_at DESC
     `;
     
-    console.log('✅ Found', simulados.length, 'simulados');
+    console.log('✅ [SIMULADOS] Found', simulados.length, 'simulados');
     
     // For each simulado, get counts separately to avoid complex joins
     const formattedSimulados = [];

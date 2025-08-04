@@ -41,6 +41,8 @@ class SimuladosAPI {
       throw new Error('API calls only available in browser');
     }
 
+    console.log(`🔄 [API] Making request to ${API_BASE_URL}${endpoint}`);
+
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         headers: {
@@ -50,15 +52,26 @@ class SimuladosAPI {
         ...options,
       });
 
+      console.log(`📡 [API] Response status: ${response.status}`);
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log(`✅ [API] Response data:`, data);
+      return data;
     } catch (error) {
-      // If API is not available, fall back to mock data
-      console.warn('Simulados API not available, using mock data:', error);
-      return this.getMockData(endpoint, options.method);
+      console.error(`❌ [API] Request failed:`, error);
+      
+      // Check if it's a connection error (API server not running)
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.warn('⚠️ [API] Server appears to be down, using mock data');
+        return this.getMockData(endpoint, options.method);
+      }
+      
+      // For other errors, throw them so they can be handled properly
+      throw error;
     }
   }
 

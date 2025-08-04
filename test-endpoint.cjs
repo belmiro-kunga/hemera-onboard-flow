@@ -1,28 +1,32 @@
-// Simple test for endpoint
+// Test endpoint using http module
 const http = require('http');
 
-function testEndpoint(port, path) {
+function testEndpoint(path) {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: 'localhost',
-      port: port,
+      port: 3001,
       path: path,
       method: 'GET',
-      timeout: 5000
+      headers: {
+        'Content-Type': 'application/json'
+      }
     };
 
     const req = http.request(options, (res) => {
       let data = '';
-      
+
       res.on('data', (chunk) => {
         data += chunk;
       });
-      
+
       res.on('end', () => {
-        resolve({
-          status: res.statusCode,
-          data: data
-        });
+        try {
+          const jsonData = JSON.parse(data);
+          resolve({ status: res.statusCode, data: jsonData });
+        } catch (error) {
+          resolve({ status: res.statusCode, data: data });
+        }
       });
     });
 
@@ -30,33 +34,36 @@ function testEndpoint(port, path) {
       reject(error);
     });
 
-    req.on('timeout', () => {
-      req.destroy();
-      reject(new Error('Request timeout'));
-    });
-
     req.end();
   });
 }
 
-async function runTests() {
-  console.log('🔄 Testing endpoints...');
-  
+async function testAPI() {
   try {
-    // Test the test server
-    console.log('Testing port 3002...');
-    const result1 = await testEndpoint(3002, '/api/test');
-    console.log('✅ Port 3002 test:', result1.status, result1.data);
-    
-    const result2 = await testEndpoint(3002, '/api/simulados/test');
-    console.log('✅ Port 3002 simulados test:', result2.status, result2.data);
-    
-    const result3 = await testEndpoint(3002, '/api/simulados');
-    console.log('✅ Port 3002 simulados:', result3.status, result3.data);
-    
+    console.log('🔄 Testing API endpoints...');
+
+    // Test health
+    console.log('\n1. Testing health endpoint...');
+    const healthResult = await testEndpoint('/api/health');
+    console.log(`Status: ${healthResult.status}`);
+    console.log(`Response:`, healthResult.data);
+
+    // Test simulados
+    console.log('\n2. Testing simulados endpoint...');
+    const simuladosResult = await testEndpoint('/api/simulados');
+    console.log(`Status: ${simuladosResult.status}`);
+    console.log(`Response:`, simuladosResult.data);
+
+    if (simuladosResult.data && simuladosResult.data.success) {
+      console.log(`\n✅ Found ${simuladosResult.data.data.length} simulados`);
+      if (simuladosResult.data.data.length > 0) {
+        console.log('First simulado:', simuladosResult.data.data[0].title);
+      }
+    }
+
   } catch (error) {
-    console.error('❌ Test failed:', error.message);
+    console.error('❌ Error testing API:', error.message);
   }
 }
 
-runTests();
+testAPI();

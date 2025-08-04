@@ -1,15 +1,13 @@
-// Simple test to start the API server
+// Keep server running for testing
 const { spawn } = require('child_process');
 const path = require('path');
 
-console.log('🚀 Starting API server test...');
+console.log('🚀 Starting API server for testing...');
 
-const serverPath = path.join(__dirname, 'backend', 'api-server.js');
-console.log('Server path:', serverPath);
-
-const server = spawn('node', [serverPath], {
+const server = spawn('npm', ['run', 'api'], {
   cwd: path.join(__dirname, 'backend'),
-  stdio: 'inherit'
+  stdio: 'inherit',
+  detached: false
 });
 
 server.on('error', (error) => {
@@ -20,8 +18,11 @@ server.on('close', (code) => {
   console.log(`Server process exited with code ${code}`);
 });
 
-// Keep the process alive for a few seconds
-setTimeout(() => {
-  console.log('Stopping test...');
+// Handle process termination
+process.on('SIGINT', () => {
+  console.log('\n🛑 Stopping server...');
   server.kill();
-}, 10000);
+  process.exit(0);
+});
+
+console.log('✅ Server started. Press Ctrl+C to stop.');
