@@ -459,22 +459,38 @@ app.post('/api/simulados', async (req, res) => {
     await client.query('BEGIN');
     
     const { simulado, questions } = req.body;
+    
+    console.log('🆕 Creating new simulado');
+    console.log('📝 Simulado data:', simulado);
+    console.log('❓ Questions count:', questions ? questions.length : 0);
+    
     const {
       title,
       description,
       duration_minutes,
-      difficulty = 'medio'
+      difficulty = 'medio',
+      is_active = true
     } = simulado;
     
     // Create simulado
     const simuladoQuery = `
       INSERT INTO public.simulados (id, title, description, duration_minutes, total_questions, difficulty, is_active, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
       RETURNING id
     `;
     
     const simuladoId = uuidv4();
     const totalQuestions = questions ? questions.length : 0;
+    
+    console.log('📊 Inserting simulado with data:', {
+      id: simuladoId,
+      title,
+      description,
+      duration_minutes,
+      totalQuestions,
+      difficulty,
+      is_active
+    });
     
     await client.query(simuladoQuery, [
       simuladoId,
@@ -482,7 +498,8 @@ app.post('/api/simulados', async (req, res) => {
       description,
       duration_minutes,
       totalQuestions,
-      difficulty
+      difficulty,
+      is_active
     ]);
     
     // Create questions if provided
@@ -562,18 +579,24 @@ app.put('/api/simulados/:simuladoId', async (req, res) => {
     
     const { simuladoId } = req.params;
     const { simulado, questions } = req.body;
+    
+    console.log('🔄 Updating simulado:', simuladoId);
+    console.log('📝 Simulado data:', simulado);
+    console.log('❓ Questions count:', questions ? questions.length : 0);
+    
     const {
       title,
       description,
       duration_minutes,
-      difficulty
+      difficulty,
+      is_active
     } = simulado;
     
     // Update simulado
     const simuladoQuery = `
       UPDATE public.simulados 
-      SET title = $1, description = $2, duration_minutes = $3, difficulty = $4, total_questions = $5, updated_at = NOW()
-      WHERE id = $6
+      SET title = $1, description = $2, duration_minutes = $3, difficulty = $4, total_questions = $5, is_active = $6, updated_at = NOW()
+      WHERE id = $7
     `;
     
     const totalQuestions = questions ? questions.length : 0;
@@ -584,8 +607,11 @@ app.put('/api/simulados/:simuladoId', async (req, res) => {
       duration_minutes,
       difficulty,
       totalQuestions,
+      is_active !== undefined ? is_active : true,
       simuladoId
     ]);
+    
+    console.log('✅ Simulado basic data updated successfully');
     
     // Delete existing questions and options
     await client.query('DELETE FROM public.opcoes_resposta WHERE questao_id IN (SELECT id FROM public.questoes WHERE simulado_id = $1)', [simuladoId]);

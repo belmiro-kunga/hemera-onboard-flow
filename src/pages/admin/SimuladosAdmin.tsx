@@ -21,6 +21,7 @@ const SimuladosAdmin = () => {
   const {
     simulados,
     loading,
+    fetchSimulados,
     toggleSimuladoStatus,
     deleteSimulado
   } = useSimulados();
@@ -103,9 +104,11 @@ const SimuladosAdmin = () => {
             </DialogHeader>
             <SimuladoWizard 
               simulado={editingSimulado} 
-              onSuccess={() => {
+              onSuccess={async () => {
                 setIsWizardOpen(false);
                 setEditingSimulado(null);
+                // Force refresh the simulados list
+                await fetchSimulados();
               }}
               onCancel={() => {
                 setIsWizardOpen(false);
