@@ -1,26 +1,15 @@
 import {
-  useCallbackRef,
   useLayoutEffect2
-} from "./chunk-Z3H4NIL7.js";
+} from "./chunk-H6FZE3AF.js";
 import {
   useComposedRefs
-} from "./chunk-JTNMH6Q6.js";
+} from "./chunk-L5VKHKFW.js";
 import {
   require_react
 } from "./chunk-32E4H3EV.js";
 import {
   __toESM
 } from "./chunk-G3PMV62Z.js";
-
-// node_modules/@radix-ui/primitive/dist/index.mjs
-function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForDefaultPrevented = true } = {}) {
-  return function handleEvent(event) {
-    originalEventHandler?.(event);
-    if (checkForDefaultPrevented === false || !event.defaultPrevented) {
-      return ourEventHandler?.(event);
-    }
-  };
-}
 
 // node_modules/@radix-ui/react-presence/dist/index.mjs
 var React2 = __toESM(require_react(), 1);
@@ -42,7 +31,7 @@ var Presence = (props) => {
 Presence.displayName = "Presence";
 function usePresence(present) {
   const [node, setNode] = React2.useState();
-  const stylesRef = React2.useRef({});
+  const stylesRef = React2.useRef(null);
   const prevPresentRef = React2.useRef(present);
   const prevAnimationNameRef = React2.useRef("none");
   const initialState = present ? "mounted" : "unmounted";
@@ -126,7 +115,7 @@ function usePresence(present) {
   return {
     isPresent: ["mounted", "unmountSuspended"].includes(state),
     ref: React2.useCallback((node2) => {
-      if (node2) stylesRef.current = getComputedStyle(node2);
+      stylesRef.current = node2 ? getComputedStyle(node2) : null;
       setNode(node2);
     }, [])
   };
@@ -148,52 +137,7 @@ function getElementRef(element) {
   return element.props.ref || element.ref;
 }
 
-// node_modules/@radix-ui/react-use-controllable-state/dist/index.mjs
-var React3 = __toESM(require_react(), 1);
-function useControllableState({
-  prop,
-  defaultProp,
-  onChange = () => {
-  }
-}) {
-  const [uncontrolledProp, setUncontrolledProp] = useUncontrolledState({ defaultProp, onChange });
-  const isControlled = prop !== void 0;
-  const value = isControlled ? prop : uncontrolledProp;
-  const handleChange = useCallbackRef(onChange);
-  const setValue = React3.useCallback(
-    (nextValue) => {
-      if (isControlled) {
-        const setter = nextValue;
-        const value2 = typeof nextValue === "function" ? setter(prop) : nextValue;
-        if (value2 !== prop) handleChange(value2);
-      } else {
-        setUncontrolledProp(nextValue);
-      }
-    },
-    [isControlled, prop, setUncontrolledProp, handleChange]
-  );
-  return [value, setValue];
-}
-function useUncontrolledState({
-  defaultProp,
-  onChange
-}) {
-  const uncontrolledState = React3.useState(defaultProp);
-  const [value] = uncontrolledState;
-  const prevValueRef = React3.useRef(value);
-  const handleChange = useCallbackRef(onChange);
-  React3.useEffect(() => {
-    if (prevValueRef.current !== value) {
-      handleChange(value);
-      prevValueRef.current = value;
-    }
-  }, [value, prevValueRef, handleChange]);
-  return uncontrolledState;
-}
-
 export {
-  composeEventHandlers,
-  Presence,
-  useControllableState
+  Presence
 };
-//# sourceMappingURL=chunk-IEMBT4ZR.js.map
+//# sourceMappingURL=chunk-BP7CW3NO.js.map

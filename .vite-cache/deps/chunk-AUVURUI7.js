@@ -1,12 +1,12 @@
 import {
-  Slot
-} from "./chunk-JTNMH6Q6.js";
-import {
-  require_react_dom
-} from "./chunk-XHU36PYF.js";
+  createSlot
+} from "./chunk-L5VKHKFW.js";
 import {
   require_jsx_runtime
 } from "./chunk-IHRST5LR.js";
+import {
+  require_react_dom
+} from "./chunk-XHU36PYF.js";
 import {
   require_react
 } from "./chunk-32E4H3EV.js";
@@ -32,11 +32,13 @@ var NODES = [
   "nav",
   "ol",
   "p",
+  "select",
   "span",
   "svg",
   "ul"
 ];
 var Primitive = NODES.reduce((primitive, node) => {
+  const Slot = createSlot(`Primitive.${node}`);
   const Node = React.forwardRef((props, forwardedRef) => {
     const { asChild, ...primitiveProps } = props;
     const Comp = asChild ? Slot : node;
@@ -56,4 +58,4 @@ export {
   Primitive,
   dispatchDiscreteCustomEvent
 };
-//# sourceMappingURL=chunk-S6GKADSP.js.map
+//# sourceMappingURL=chunk-AUVURUI7.js.map

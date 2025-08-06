@@ -11,6 +11,7 @@ import { PublicRoute } from "@/components/auth/PublicRoute";
 import Login from "./pages/Login";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import UserManagement from "./pages/admin/UserManagement";
 import Modules from "./pages/Modules";
 import ModulePlayer from "./pages/ModulePlayer";
 import ProgressPage from "./pages/Progress";
@@ -69,6 +70,11 @@ const App = () => (
             <Route path="/admin/dashboard" element={
               <ProtectedRoute requireAdmin={true}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/usuarios" element={
+              <ProtectedRoute requireAdmin={true}>
+                <UserManagement />
               </ProtectedRoute>
             } />
             

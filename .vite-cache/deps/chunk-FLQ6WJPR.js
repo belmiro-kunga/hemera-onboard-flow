@@ -1,19 +1,27 @@
 import {
-  useCallbackRef,
+  useSize
+} from "./chunk-WUQQWXXO.js";
+import {
+  useCallbackRef
+} from "./chunk-NTJ5PA6H.js";
+import {
   useLayoutEffect2
-} from "./chunk-Z3H4NIL7.js";
+} from "./chunk-H6FZE3AF.js";
+import {
+  createContextScope
+} from "./chunk-SBO6WYF4.js";
 import {
   Primitive
-} from "./chunk-S6GKADSP.js";
+} from "./chunk-AUVURUI7.js";
 import {
   useComposedRefs
-} from "./chunk-JTNMH6Q6.js";
-import {
-  require_react_dom
-} from "./chunk-XHU36PYF.js";
+} from "./chunk-L5VKHKFW.js";
 import {
   require_jsx_runtime
 } from "./chunk-IHRST5LR.js";
+import {
+  require_react_dom
+} from "./chunk-XHU36PYF.js";
 import {
   require_react
 } from "./chunk-32E4H3EV.js";
@@ -22,7 +30,7 @@ import {
 } from "./chunk-G3PMV62Z.js";
 
 // node_modules/@radix-ui/react-popper/dist/index.mjs
-var React5 = __toESM(require_react(), 1);
+var React3 = __toESM(require_react(), 1);
 
 // node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs
 var sides = ["top", "right", "bottom", "left"];
@@ -64,8 +72,9 @@ function getOppositeAxis(axis) {
 function getAxisLength(axis) {
   return axis === "y" ? "height" : "width";
 }
+var yAxisSides = /* @__PURE__ */ new Set(["top", "bottom"]);
 function getSideAxis(placement) {
-  return ["top", "bottom"].includes(getSide(placement)) ? "y" : "x";
+  return yAxisSides.has(getSide(placement)) ? "y" : "x";
 }
 function getAlignmentAxis(placement) {
   return getOppositeAxis(getSideAxis(placement));
@@ -90,19 +99,19 @@ function getExpandedPlacements(placement) {
 function getOppositeAlignmentPlacement(placement) {
   return placement.replace(/start|end/g, (alignment) => oppositeAlignmentMap[alignment]);
 }
+var lrPlacement = ["left", "right"];
+var rlPlacement = ["right", "left"];
+var tbPlacement = ["top", "bottom"];
+var btPlacement = ["bottom", "top"];
 function getSideList(side, isStart, rtl) {
-  const lr = ["left", "right"];
-  const rl = ["right", "left"];
-  const tb = ["top", "bottom"];
-  const bt = ["bottom", "top"];
   switch (side) {
     case "top":
     case "bottom":
-      if (rtl) return isStart ? rl : lr;
-      return isStart ? lr : rl;
+      if (rtl) return isStart ? rlPlacement : lrPlacement;
+      return isStart ? lrPlacement : rlPlacement;
     case "left":
     case "right":
-      return isStart ? tb : bt;
+      return isStart ? tbPlacement : btPlacement;
     default:
       return [];
   }
@@ -472,15 +481,20 @@ var flip = function(options) {
         const nextIndex = (((_middlewareData$flip2 = middlewareData.flip) == null ? void 0 : _middlewareData$flip2.index) || 0) + 1;
         const nextPlacement = placements2[nextIndex];
         if (nextPlacement) {
-          return {
-            data: {
-              index: nextIndex,
-              overflows: overflowsData
-            },
-            reset: {
-              placement: nextPlacement
-            }
-          };
+          const ignoreCrossAxisOverflow = checkCrossAxis === "alignment" ? initialSideAxis !== getSideAxis(nextPlacement) : false;
+          if (!ignoreCrossAxisOverflow || // We leave the current main axis only if every placement on that axis
+          // overflows the main axis.
+          overflowsData.every((d) => getSideAxis(d.placement) === initialSideAxis ? d.overflows[0] > 0 : true)) {
+            return {
+              data: {
+                index: nextIndex,
+                overflows: overflowsData
+              },
+              reset: {
+                placement: nextPlacement
+              }
+            };
+          }
         }
         let resetPlacement = (_overflowsData$filter = overflowsData.filter((d) => d.overflows[0] <= 0).sort((a, b) => a.overflows[1] - b.overflows[1])[0]) == null ? void 0 : _overflowsData$filter.placement;
         if (!resetPlacement) {
@@ -578,6 +592,7 @@ var hide = function(options) {
     }
   };
 };
+var originSides = /* @__PURE__ */ new Set(["left", "top"]);
 async function convertValueToCoords(state, options) {
   const {
     placement,
@@ -588,7 +603,7 @@ async function convertValueToCoords(state, options) {
   const side = getSide(placement);
   const alignment = getAlignment(placement);
   const isVertical = getSideAxis(placement) === "y";
-  const mainAxisMulti = ["left", "top"].includes(side) ? -1 : 1;
+  const mainAxisMulti = originSides.has(side) ? -1 : 1;
   const crossAxisMulti = rtl && isVertical ? -1 : 1;
   const rawValue = evaluate(options, state);
   let {
@@ -766,7 +781,7 @@ var limitShift = function(options) {
       if (checkCrossAxis) {
         var _middlewareData$offse, _middlewareData$offse2;
         const len = mainAxis === "y" ? "width" : "height";
-        const isOriginSide = ["top", "left"].includes(getSide(placement));
+        const isOriginSide = originSides.has(getSide(placement));
         const limitMin = rects.reference[crossAxis] - rects.floating[len] + (isOriginSide ? ((_middlewareData$offse = middlewareData.offset) == null ? void 0 : _middlewareData$offse[crossAxis]) || 0 : 0) + (isOriginSide ? 0 : computedOffset.crossAxis);
         const limitMax = rects.reference[crossAxis] + rects.reference[len] + (isOriginSide ? 0 : ((_middlewareData$offse2 = middlewareData.offset) == null ? void 0 : _middlewareData$offse2[crossAxis]) || 0) - (isOriginSide ? computedOffset.crossAxis : 0);
         if (crossAxisCoord < limitMin) {
@@ -903,6 +918,7 @@ function isShadowRoot(value) {
   }
   return value instanceof ShadowRoot || value instanceof getWindow(value).ShadowRoot;
 }
+var invalidOverflowDisplayValues = /* @__PURE__ */ new Set(["inline", "contents"]);
 function isOverflowElement(element) {
   const {
     overflow,
@@ -910,24 +926,29 @@ function isOverflowElement(element) {
     overflowY,
     display
   } = getComputedStyle(element);
-  return /auto|scroll|overlay|hidden|clip/.test(overflow + overflowY + overflowX) && !["inline", "contents"].includes(display);
+  return /auto|scroll|overlay|hidden|clip/.test(overflow + overflowY + overflowX) && !invalidOverflowDisplayValues.has(display);
 }
+var tableElements = /* @__PURE__ */ new Set(["table", "td", "th"]);
 function isTableElement(element) {
-  return ["table", "td", "th"].includes(getNodeName(element));
+  return tableElements.has(getNodeName(element));
 }
+var topLayerSelectors = [":popover-open", ":modal"];
 function isTopLayer(element) {
-  return [":popover-open", ":modal"].some((selector) => {
+  return topLayerSelectors.some((selector) => {
     try {
       return element.matches(selector);
-    } catch (e) {
+    } catch (_e) {
       return false;
     }
   });
 }
+var transformProperties = ["transform", "translate", "scale", "rotate", "perspective"];
+var willChangeValues = ["transform", "translate", "scale", "rotate", "perspective", "filter"];
+var containValues = ["paint", "layout", "strict", "content"];
 function isContainingBlock(elementOrCss) {
   const webkit = isWebKit();
   const css = isElement(elementOrCss) ? getComputedStyle(elementOrCss) : elementOrCss;
-  return css.transform !== "none" || css.perspective !== "none" || (css.containerType ? css.containerType !== "normal" : false) || !webkit && (css.backdropFilter ? css.backdropFilter !== "none" : false) || !webkit && (css.filter ? css.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css.contain || "").includes(value));
+  return transformProperties.some((value) => css[value] ? css[value] !== "none" : false) || (css.containerType ? css.containerType !== "normal" : false) || !webkit && (css.backdropFilter ? css.backdropFilter !== "none" : false) || !webkit && (css.filter ? css.filter !== "none" : false) || willChangeValues.some((value) => (css.willChange || "").includes(value)) || containValues.some((value) => (css.contain || "").includes(value));
 }
 function getContainingBlock(element) {
   let currentNode = getParentNode(element);
@@ -945,8 +966,9 @@ function isWebKit() {
   if (typeof CSS === "undefined" || !CSS.supports) return false;
   return CSS.supports("-webkit-backdrop-filter", "none");
 }
+var lastTraversableNodeNames = /* @__PURE__ */ new Set(["html", "body", "#document"]);
 function isLastTraversableNode(node) {
-  return ["html", "body", "#document"].includes(getNodeName(node));
+  return lastTraversableNodeNames.has(getNodeName(node));
 }
 function getComputedStyle(element) {
   return getWindow(element).getComputedStyle(element);
@@ -1125,6 +1147,28 @@ function getBoundingClientRect(element, includeScale, isFixedStrategy, offsetPar
     y
   });
 }
+function getWindowScrollBarX(element, rect) {
+  const leftScroll = getNodeScroll(element).scrollLeft;
+  if (!rect) {
+    return getBoundingClientRect(getDocumentElement(element)).left + leftScroll;
+  }
+  return rect.left + leftScroll;
+}
+function getHTMLOffset(documentElement, scroll, ignoreScrollbarX) {
+  if (ignoreScrollbarX === void 0) {
+    ignoreScrollbarX = false;
+  }
+  const htmlRect = documentElement.getBoundingClientRect();
+  const x = htmlRect.left + scroll.scrollLeft - (ignoreScrollbarX ? 0 : (
+    // RTL <body> scrollbar.
+    getWindowScrollBarX(documentElement, htmlRect)
+  ));
+  const y = htmlRect.top + scroll.scrollTop;
+  return {
+    x,
+    y
+  };
+}
 function convertOffsetParentRelativeRectToViewportRelativeRect(_ref) {
   let {
     elements,
@@ -1156,22 +1200,16 @@ function convertOffsetParentRelativeRectToViewportRelativeRect(_ref) {
       offsets.y = offsetRect.y + offsetParent.clientTop;
     }
   }
+  const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll, true) : createCoords(0);
   return {
     width: rect.width * scale.x,
     height: rect.height * scale.y,
-    x: rect.x * scale.x - scroll.scrollLeft * scale.x + offsets.x,
-    y: rect.y * scale.y - scroll.scrollTop * scale.y + offsets.y
+    x: rect.x * scale.x - scroll.scrollLeft * scale.x + offsets.x + htmlOffset.x,
+    y: rect.y * scale.y - scroll.scrollTop * scale.y + offsets.y + htmlOffset.y
   };
 }
 function getClientRects(element) {
   return Array.from(element.getClientRects());
-}
-function getWindowScrollBarX(element, rect) {
-  const leftScroll = getNodeScroll(element).scrollLeft;
-  if (!rect) {
-    return getBoundingClientRect(getDocumentElement(element)).left + leftScroll;
-  }
-  return rect.left + leftScroll;
 }
 function getDocumentRect(element) {
   const html = getDocumentElement(element);
@@ -1215,6 +1253,7 @@ function getViewportRect(element, strategy) {
     y
   };
 }
+var absoluteOrFixed = /* @__PURE__ */ new Set(["absolute", "fixed"]);
 function getInnerBoundingClientRect(element, strategy) {
   const clientRect = getBoundingClientRect(element, true, strategy === "fixed");
   const top = clientRect.top + element.clientTop;
@@ -1242,9 +1281,10 @@ function getClientRectFromClippingAncestor(element, clippingAncestor, strategy) 
   } else {
     const visualOffsets = getVisualOffsets(element);
     rect = {
-      ...clippingAncestor,
       x: clippingAncestor.x - visualOffsets.x,
-      y: clippingAncestor.y - visualOffsets.y
+      y: clippingAncestor.y - visualOffsets.y,
+      width: clippingAncestor.width,
+      height: clippingAncestor.height
     };
   }
   return rectToClientRect(rect);
@@ -1271,7 +1311,7 @@ function getClippingElementAncestors(element, cache) {
     if (!currentNodeIsContaining && computedStyle.position === "fixed") {
       currentContainingBlockComputedStyle = null;
     }
-    const shouldDropCurrentNode = elementIsFixed ? !currentNodeIsContaining && !currentContainingBlockComputedStyle : !currentNodeIsContaining && computedStyle.position === "static" && !!currentContainingBlockComputedStyle && ["absolute", "fixed"].includes(currentContainingBlockComputedStyle.position) || isOverflowElement(currentNode) && !currentNodeIsContaining && hasFixedPositionAncestor(element, currentNode);
+    const shouldDropCurrentNode = elementIsFixed ? !currentNodeIsContaining && !currentContainingBlockComputedStyle : !currentNodeIsContaining && computedStyle.position === "static" && !!currentContainingBlockComputedStyle && absoluteOrFixed.has(currentContainingBlockComputedStyle.position) || isOverflowElement(currentNode) && !currentNodeIsContaining && hasFixedPositionAncestor(element, currentNode);
     if (shouldDropCurrentNode) {
       result = result.filter((ancestor) => ancestor !== currentNode);
     } else {
@@ -1327,6 +1367,9 @@ function getRectRelativeToOffsetParent(element, offsetParent, strategy) {
     scrollTop: 0
   };
   const offsets = createCoords(0);
+  function setLeftRTLScrollbarOffset() {
+    offsets.x = getWindowScrollBarX(documentElement);
+  }
   if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
     if (getNodeName(offsetParent) !== "body" || isOverflowElement(documentElement)) {
       scroll = getNodeScroll(offsetParent);
@@ -1336,19 +1379,15 @@ function getRectRelativeToOffsetParent(element, offsetParent, strategy) {
       offsets.x = offsetRect.x + offsetParent.clientLeft;
       offsets.y = offsetRect.y + offsetParent.clientTop;
     } else if (documentElement) {
-      offsets.x = getWindowScrollBarX(documentElement);
+      setLeftRTLScrollbarOffset();
     }
   }
-  let htmlX = 0;
-  let htmlY = 0;
-  if (documentElement && !isOffsetParentAnElement && !isFixed) {
-    const htmlRect = documentElement.getBoundingClientRect();
-    htmlY = htmlRect.top + scroll.scrollTop;
-    htmlX = htmlRect.left + scroll.scrollLeft - // RTL <body> scrollbar.
-    getWindowScrollBarX(documentElement, htmlRect);
+  if (isFixed && !isOffsetParentAnElement && documentElement) {
+    setLeftRTLScrollbarOffset();
   }
-  const x = rect.left + scroll.scrollLeft - offsets.x - htmlX;
-  const y = rect.top + scroll.scrollTop - offsets.y - htmlY;
+  const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll) : createCoords(0);
+  const x = rect.left + scroll.scrollLeft - offsets.x - htmlOffset.x;
+  const y = rect.top + scroll.scrollTop - offsets.y - htmlOffset.y;
   return {
     x,
     y,
@@ -1425,6 +1464,9 @@ var platform = {
   isElement,
   isRTL
 };
+function rectsAreEqual(a, b) {
+  return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+}
 function observeMove(element, onMove) {
   let io = null;
   let timeoutId;
@@ -1443,12 +1485,13 @@ function observeMove(element, onMove) {
       threshold = 1;
     }
     cleanup();
+    const elementRectForRootMargin = element.getBoundingClientRect();
     const {
       left,
       top,
       width,
       height
-    } = element.getBoundingClientRect();
+    } = elementRectForRootMargin;
     if (!skip) {
       onMove();
     }
@@ -1479,6 +1522,9 @@ function observeMove(element, onMove) {
           refresh(false, ratio);
         }
       }
+      if (ratio === 1 && !rectsAreEqual(elementRectForRootMargin, element.getBoundingClientRect())) {
+        refresh();
+      }
       isFirstUpdate = false;
     }
     try {
@@ -1487,7 +1533,7 @@ function observeMove(element, onMove) {
         // Handle <iframe>s
         root: root.ownerDocument
       });
-    } catch (e) {
+    } catch (_e) {
       io = new IntersectionObserver(handleObserve, options);
     }
     io.observe(element);
@@ -1542,7 +1588,7 @@ function autoUpdate(reference, floating, update, options) {
   }
   function frameLoop() {
     const nextRefRect = getBoundingClientRect(reference);
-    if (prevRefRect && (nextRefRect.x !== prevRefRect.x || nextRefRect.y !== prevRefRect.y || nextRefRect.width !== prevRefRect.width || nextRefRect.height !== prevRefRect.height)) {
+    if (prevRefRect && !rectsAreEqual(prevRefRect, nextRefRect)) {
       update();
     }
     prevRefRect = nextRefRect;
@@ -1590,7 +1636,10 @@ var computePosition2 = (reference, floating, options) => {
 var React = __toESM(require_react(), 1);
 var import_react = __toESM(require_react(), 1);
 var ReactDOM = __toESM(require_react_dom(), 1);
-var index = typeof document !== "undefined" ? import_react.useLayoutEffect : import_react.useEffect;
+var isClient = typeof document !== "undefined";
+var noop = function noop2() {
+};
+var index = isClient ? import_react.useLayoutEffect : noop;
 function deepEqual(a, b) {
   if (a === b) {
     return true;
@@ -1889,132 +1938,34 @@ var Arrow = React2.forwardRef((props, forwardedRef) => {
 Arrow.displayName = NAME;
 var Root = Arrow;
 
-// node_modules/@radix-ui/react-popper/node_modules/@radix-ui/react-context/dist/index.mjs
-var React3 = __toESM(require_react(), 1);
-var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
-function createContextScope(scopeName, createContextScopeDeps = []) {
-  let defaultContexts = [];
-  function createContext3(rootComponentName, defaultContext) {
-    const BaseContext = React3.createContext(defaultContext);
-    const index2 = defaultContexts.length;
-    defaultContexts = [...defaultContexts, defaultContext];
-    function Provider(props) {
-      const { scope, children, ...context } = props;
-      const Context = scope?.[scopeName][index2] || BaseContext;
-      const value = React3.useMemo(() => context, Object.values(context));
-      return (0, import_jsx_runtime2.jsx)(Context.Provider, { value, children });
-    }
-    function useContext2(consumerName, scope) {
-      const Context = scope?.[scopeName][index2] || BaseContext;
-      const context = React3.useContext(Context);
-      if (context) return context;
-      if (defaultContext !== void 0) return defaultContext;
-      throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
-    }
-    Provider.displayName = rootComponentName + "Provider";
-    return [Provider, useContext2];
-  }
-  const createScope = () => {
-    const scopeContexts = defaultContexts.map((defaultContext) => {
-      return React3.createContext(defaultContext);
-    });
-    return function useScope(scope) {
-      const contexts = scope?.[scopeName] || scopeContexts;
-      return React3.useMemo(
-        () => ({ [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } }),
-        [scope, contexts]
-      );
-    };
-  };
-  createScope.scopeName = scopeName;
-  return [createContext3, composeContextScopes(createScope, ...createContextScopeDeps)];
-}
-function composeContextScopes(...scopes) {
-  const baseScope = scopes[0];
-  if (scopes.length === 1) return baseScope;
-  const createScope = () => {
-    const scopeHooks = scopes.map((createScope2) => ({
-      useScope: createScope2(),
-      scopeName: createScope2.scopeName
-    }));
-    return function useComposedScopes(overrideScopes) {
-      const nextScopes = scopeHooks.reduce((nextScopes2, { useScope, scopeName }) => {
-        const scopeProps = useScope(overrideScopes);
-        const currentScope = scopeProps[`__scope${scopeName}`];
-        return { ...nextScopes2, ...currentScope };
-      }, {});
-      return React3.useMemo(() => ({ [`__scope${baseScope.scopeName}`]: nextScopes }), [nextScopes]);
-    };
-  };
-  createScope.scopeName = baseScope.scopeName;
-  return createScope;
-}
-
-// node_modules/@radix-ui/react-use-size/dist/index.mjs
-var React4 = __toESM(require_react(), 1);
-function useSize(element) {
-  const [size4, setSize] = React4.useState(void 0);
-  useLayoutEffect2(() => {
-    if (element) {
-      setSize({ width: element.offsetWidth, height: element.offsetHeight });
-      const resizeObserver = new ResizeObserver((entries) => {
-        if (!Array.isArray(entries)) {
-          return;
-        }
-        if (!entries.length) {
-          return;
-        }
-        const entry = entries[0];
-        let width;
-        let height;
-        if ("borderBoxSize" in entry) {
-          const borderSizeEntry = entry["borderBoxSize"];
-          const borderSize = Array.isArray(borderSizeEntry) ? borderSizeEntry[0] : borderSizeEntry;
-          width = borderSize["inlineSize"];
-          height = borderSize["blockSize"];
-        } else {
-          width = element.offsetWidth;
-          height = element.offsetHeight;
-        }
-        setSize({ width, height });
-      });
-      resizeObserver.observe(element, { box: "border-box" });
-      return () => resizeObserver.unobserve(element);
-    } else {
-      setSize(void 0);
-    }
-  }, [element]);
-  return size4;
-}
-
 // node_modules/@radix-ui/react-popper/dist/index.mjs
-var import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
 var POPPER_NAME = "Popper";
 var [createPopperContext, createPopperScope] = createContextScope(POPPER_NAME);
 var [PopperProvider, usePopperContext] = createPopperContext(POPPER_NAME);
 var Popper = (props) => {
   const { __scopePopper, children } = props;
-  const [anchor, setAnchor] = React5.useState(null);
-  return (0, import_jsx_runtime3.jsx)(PopperProvider, { scope: __scopePopper, anchor, onAnchorChange: setAnchor, children });
+  const [anchor, setAnchor] = React3.useState(null);
+  return (0, import_jsx_runtime2.jsx)(PopperProvider, { scope: __scopePopper, anchor, onAnchorChange: setAnchor, children });
 };
 Popper.displayName = POPPER_NAME;
 var ANCHOR_NAME = "PopperAnchor";
-var PopperAnchor = React5.forwardRef(
+var PopperAnchor = React3.forwardRef(
   (props, forwardedRef) => {
     const { __scopePopper, virtualRef, ...anchorProps } = props;
     const context = usePopperContext(ANCHOR_NAME, __scopePopper);
-    const ref = React5.useRef(null);
+    const ref = React3.useRef(null);
     const composedRefs = useComposedRefs(forwardedRef, ref);
-    React5.useEffect(() => {
+    React3.useEffect(() => {
       context.onAnchorChange(virtualRef?.current || ref.current);
     });
-    return virtualRef ? null : (0, import_jsx_runtime3.jsx)(Primitive.div, { ...anchorProps, ref: composedRefs });
+    return virtualRef ? null : (0, import_jsx_runtime2.jsx)(Primitive.div, { ...anchorProps, ref: composedRefs });
   }
 );
 PopperAnchor.displayName = ANCHOR_NAME;
 var CONTENT_NAME = "PopperContent";
 var [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME);
-var PopperContent = React5.forwardRef(
+var PopperContent = React3.forwardRef(
   (props, forwardedRef) => {
     const {
       __scopePopper,
@@ -2033,9 +1984,9 @@ var PopperContent = React5.forwardRef(
       ...contentProps
     } = props;
     const context = usePopperContext(CONTENT_NAME, __scopePopper);
-    const [content, setContent] = React5.useState(null);
+    const [content, setContent] = React3.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-    const [arrow4, setArrow] = React5.useState(null);
+    const [arrow4, setArrow] = React3.useState(null);
     const arrowSize = useSize(arrow4);
     const arrowWidth = arrowSize?.width ?? 0;
     const arrowHeight = arrowSize?.height ?? 0;
@@ -2097,11 +2048,11 @@ var PopperContent = React5.forwardRef(
     const arrowX = middlewareData.arrow?.x;
     const arrowY = middlewareData.arrow?.y;
     const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0;
-    const [contentZIndex, setContentZIndex] = React5.useState();
+    const [contentZIndex, setContentZIndex] = React3.useState();
     useLayoutEffect2(() => {
       if (content) setContentZIndex(window.getComputedStyle(content).zIndex);
     }, [content]);
-    return (0, import_jsx_runtime3.jsx)(
+    return (0, import_jsx_runtime2.jsx)(
       "div",
       {
         ref: refs.setFloating,
@@ -2125,7 +2076,7 @@ var PopperContent = React5.forwardRef(
           }
         },
         dir: props.dir,
-        children: (0, import_jsx_runtime3.jsx)(
+        children: (0, import_jsx_runtime2.jsx)(
           PopperContentProvider,
           {
             scope: __scopePopper,
@@ -2134,7 +2085,7 @@ var PopperContent = React5.forwardRef(
             arrowX,
             arrowY,
             shouldHideArrow: cannotCenterArrow,
-            children: (0, import_jsx_runtime3.jsx)(
+            children: (0, import_jsx_runtime2.jsx)(
               Primitive.div,
               {
                 "data-side": placedSide,
@@ -2163,7 +2114,7 @@ var OPPOSITE_SIDE = {
   bottom: "top",
   left: "right"
 };
-var PopperArrow = React5.forwardRef(function PopperArrow2(props, forwardedRef) {
+var PopperArrow = React3.forwardRef(function PopperArrow2(props, forwardedRef) {
   const { __scopePopper, ...arrowProps } = props;
   const contentContext = useContentContext(ARROW_NAME, __scopePopper);
   const baseSide = OPPOSITE_SIDE[contentContext.placedSide];
@@ -2171,7 +2122,7 @@ var PopperArrow = React5.forwardRef(function PopperArrow2(props, forwardedRef) {
     // we have to use an extra wrapper because `ResizeObserver` (used by `useSize`)
     // doesn't report size as we'd expect on SVG elements.
     // it reports their bounding box which is effectively the largest path inside the SVG.
-    (0, import_jsx_runtime3.jsx)(
+    (0, import_jsx_runtime2.jsx)(
       "span",
       {
         ref: contentContext.onArrowChange,
@@ -2194,7 +2145,7 @@ var PopperArrow = React5.forwardRef(function PopperArrow2(props, forwardedRef) {
           }[contentContext.placedSide],
           visibility: contentContext.shouldHideArrow ? "hidden" : void 0
         },
-        children: (0, import_jsx_runtime3.jsx)(
+        children: (0, import_jsx_runtime2.jsx)(
           Root,
           {
             ...arrowProps,
@@ -2261,4 +2212,4 @@ export {
   Content,
   Arrow2 as Arrow
 };
-//# sourceMappingURL=chunk-MIA725IW.js.map
+//# sourceMappingURL=chunk-FLQ6WJPR.js.map

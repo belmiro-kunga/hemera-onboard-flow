@@ -1,29 +1,37 @@
 "use client";
 import {
+  useDirection
+} from "./chunk-VSVPIETK.js";
+import {
   createCollection
-} from "./chunk-OT32RRAD.js";
+} from "./chunk-UP22Q5E4.js";
+import {
+  Presence
+} from "./chunk-BP7CW3NO.js";
 import {
   useId
-} from "./chunk-HVE2KASW.js";
+} from "./chunk-5HDK3BAD.js";
 import {
-  Presence,
   composeEventHandlers,
   useControllableState
-} from "./chunk-IEMBT4ZR.js";
+} from "./chunk-VCF7G64N.js";
 import {
-  createContextScope,
   useCallbackRef
-} from "./chunk-Z3H4NIL7.js";
+} from "./chunk-NTJ5PA6H.js";
+import "./chunk-H6FZE3AF.js";
+import {
+  createContextScope
+} from "./chunk-SBO6WYF4.js";
 import {
   Primitive
-} from "./chunk-S6GKADSP.js";
+} from "./chunk-AUVURUI7.js";
 import {
   useComposedRefs
-} from "./chunk-JTNMH6Q6.js";
-import "./chunk-XHU36PYF.js";
+} from "./chunk-L5VKHKFW.js";
 import {
   require_jsx_runtime
 } from "./chunk-IHRST5LR.js";
+import "./chunk-XHU36PYF.js";
 import {
   require_react
 } from "./chunk-32E4H3EV.js";
@@ -32,99 +40,27 @@ import {
 } from "./chunk-G3PMV62Z.js";
 
 // node_modules/@radix-ui/react-tabs/dist/index.mjs
-var React4 = __toESM(require_react(), 1);
+var React2 = __toESM(require_react(), 1);
 
 // node_modules/@radix-ui/react-roving-focus/dist/index.mjs
-var React3 = __toESM(require_react(), 1);
-
-// node_modules/@radix-ui/react-roving-focus/node_modules/@radix-ui/react-context/dist/index.mjs
 var React = __toESM(require_react(), 1);
 var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
-function createContextScope2(scopeName, createContextScopeDeps = []) {
-  let defaultContexts = [];
-  function createContext3(rootComponentName, defaultContext) {
-    const BaseContext = React.createContext(defaultContext);
-    const index = defaultContexts.length;
-    defaultContexts = [...defaultContexts, defaultContext];
-    function Provider(props) {
-      const { scope, children, ...context } = props;
-      const Context = scope?.[scopeName][index] || BaseContext;
-      const value = React.useMemo(() => context, Object.values(context));
-      return (0, import_jsx_runtime.jsx)(Context.Provider, { value, children });
-    }
-    function useContext22(consumerName, scope) {
-      const Context = scope?.[scopeName][index] || BaseContext;
-      const context = React.useContext(Context);
-      if (context) return context;
-      if (defaultContext !== void 0) return defaultContext;
-      throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
-    }
-    Provider.displayName = rootComponentName + "Provider";
-    return [Provider, useContext22];
-  }
-  const createScope = () => {
-    const scopeContexts = defaultContexts.map((defaultContext) => {
-      return React.createContext(defaultContext);
-    });
-    return function useScope(scope) {
-      const contexts = scope?.[scopeName] || scopeContexts;
-      return React.useMemo(
-        () => ({ [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } }),
-        [scope, contexts]
-      );
-    };
-  };
-  createScope.scopeName = scopeName;
-  return [createContext3, composeContextScopes(createScope, ...createContextScopeDeps)];
-}
-function composeContextScopes(...scopes) {
-  const baseScope = scopes[0];
-  if (scopes.length === 1) return baseScope;
-  const createScope = () => {
-    const scopeHooks = scopes.map((createScope2) => ({
-      useScope: createScope2(),
-      scopeName: createScope2.scopeName
-    }));
-    return function useComposedScopes(overrideScopes) {
-      const nextScopes = scopeHooks.reduce((nextScopes2, { useScope, scopeName }) => {
-        const scopeProps = useScope(overrideScopes);
-        const currentScope = scopeProps[`__scope${scopeName}`];
-        return { ...nextScopes2, ...currentScope };
-      }, {});
-      return React.useMemo(() => ({ [`__scope${baseScope.scopeName}`]: nextScopes }), [nextScopes]);
-    };
-  };
-  createScope.scopeName = baseScope.scopeName;
-  return createScope;
-}
-
-// node_modules/@radix-ui/react-direction/dist/index.mjs
-var React2 = __toESM(require_react(), 1);
-var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
-var DirectionContext = React2.createContext(void 0);
-function useDirection(localDir) {
-  const globalDir = React2.useContext(DirectionContext);
-  return localDir || globalDir || "ltr";
-}
-
-// node_modules/@radix-ui/react-roving-focus/dist/index.mjs
-var import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
 var ENTRY_FOCUS = "rovingFocusGroup.onEntryFocus";
 var EVENT_OPTIONS = { bubbles: false, cancelable: true };
 var GROUP_NAME = "RovingFocusGroup";
 var [Collection, useCollection, createCollectionScope] = createCollection(GROUP_NAME);
-var [createRovingFocusGroupContext, createRovingFocusGroupScope] = createContextScope2(
+var [createRovingFocusGroupContext, createRovingFocusGroupScope] = createContextScope(
   GROUP_NAME,
   [createCollectionScope]
 );
 var [RovingFocusProvider, useRovingFocusContext] = createRovingFocusGroupContext(GROUP_NAME);
-var RovingFocusGroup = React3.forwardRef(
+var RovingFocusGroup = React.forwardRef(
   (props, forwardedRef) => {
-    return (0, import_jsx_runtime3.jsx)(Collection.Provider, { scope: props.__scopeRovingFocusGroup, children: (0, import_jsx_runtime3.jsx)(Collection.Slot, { scope: props.__scopeRovingFocusGroup, children: (0, import_jsx_runtime3.jsx)(RovingFocusGroupImpl, { ...props, ref: forwardedRef }) }) });
+    return (0, import_jsx_runtime.jsx)(Collection.Provider, { scope: props.__scopeRovingFocusGroup, children: (0, import_jsx_runtime.jsx)(Collection.Slot, { scope: props.__scopeRovingFocusGroup, children: (0, import_jsx_runtime.jsx)(RovingFocusGroupImpl, { ...props, ref: forwardedRef }) }) });
   }
 );
 RovingFocusGroup.displayName = GROUP_NAME;
-var RovingFocusGroupImpl = React3.forwardRef((props, forwardedRef) => {
+var RovingFocusGroupImpl = React.forwardRef((props, forwardedRef) => {
   const {
     __scopeRovingFocusGroup,
     orientation,
@@ -137,27 +73,28 @@ var RovingFocusGroupImpl = React3.forwardRef((props, forwardedRef) => {
     preventScrollOnEntryFocus = false,
     ...groupProps
   } = props;
-  const ref = React3.useRef(null);
+  const ref = React.useRef(null);
   const composedRefs = useComposedRefs(forwardedRef, ref);
   const direction = useDirection(dir);
-  const [currentTabStopId = null, setCurrentTabStopId] = useControllableState({
+  const [currentTabStopId, setCurrentTabStopId] = useControllableState({
     prop: currentTabStopIdProp,
-    defaultProp: defaultCurrentTabStopId,
-    onChange: onCurrentTabStopIdChange
+    defaultProp: defaultCurrentTabStopId ?? null,
+    onChange: onCurrentTabStopIdChange,
+    caller: GROUP_NAME
   });
-  const [isTabbingBackOut, setIsTabbingBackOut] = React3.useState(false);
+  const [isTabbingBackOut, setIsTabbingBackOut] = React.useState(false);
   const handleEntryFocus = useCallbackRef(onEntryFocus);
   const getItems = useCollection(__scopeRovingFocusGroup);
-  const isClickFocusRef = React3.useRef(false);
-  const [focusableItemsCount, setFocusableItemsCount] = React3.useState(0);
-  React3.useEffect(() => {
+  const isClickFocusRef = React.useRef(false);
+  const [focusableItemsCount, setFocusableItemsCount] = React.useState(0);
+  React.useEffect(() => {
     const node = ref.current;
     if (node) {
       node.addEventListener(ENTRY_FOCUS, handleEntryFocus);
       return () => node.removeEventListener(ENTRY_FOCUS, handleEntryFocus);
     }
   }, [handleEntryFocus]);
-  return (0, import_jsx_runtime3.jsx)(
+  return (0, import_jsx_runtime.jsx)(
     RovingFocusProvider,
     {
       scope: __scopeRovingFocusGroup,
@@ -165,20 +102,20 @@ var RovingFocusGroupImpl = React3.forwardRef((props, forwardedRef) => {
       dir: direction,
       loop,
       currentTabStopId,
-      onItemFocus: React3.useCallback(
+      onItemFocus: React.useCallback(
         (tabStopId) => setCurrentTabStopId(tabStopId),
         [setCurrentTabStopId]
       ),
-      onItemShiftTab: React3.useCallback(() => setIsTabbingBackOut(true), []),
-      onFocusableItemAdd: React3.useCallback(
+      onItemShiftTab: React.useCallback(() => setIsTabbingBackOut(true), []),
+      onFocusableItemAdd: React.useCallback(
         () => setFocusableItemsCount((prevCount) => prevCount + 1),
         []
       ),
-      onFocusableItemRemove: React3.useCallback(
+      onFocusableItemRemove: React.useCallback(
         () => setFocusableItemsCount((prevCount) => prevCount - 1),
         []
       ),
-      children: (0, import_jsx_runtime3.jsx)(
+      children: (0, import_jsx_runtime.jsx)(
         Primitive.div,
         {
           tabIndex: isTabbingBackOut || focusableItemsCount === 0 ? -1 : 0,
@@ -214,13 +151,14 @@ var RovingFocusGroupImpl = React3.forwardRef((props, forwardedRef) => {
   );
 });
 var ITEM_NAME = "RovingFocusGroupItem";
-var RovingFocusGroupItem = React3.forwardRef(
+var RovingFocusGroupItem = React.forwardRef(
   (props, forwardedRef) => {
     const {
       __scopeRovingFocusGroup,
       focusable = true,
       active = false,
       tabStopId,
+      children,
       ...itemProps
     } = props;
     const autoId = useId();
@@ -228,21 +166,21 @@ var RovingFocusGroupItem = React3.forwardRef(
     const context = useRovingFocusContext(ITEM_NAME, __scopeRovingFocusGroup);
     const isCurrentTabStop = context.currentTabStopId === id;
     const getItems = useCollection(__scopeRovingFocusGroup);
-    const { onFocusableItemAdd, onFocusableItemRemove } = context;
-    React3.useEffect(() => {
+    const { onFocusableItemAdd, onFocusableItemRemove, currentTabStopId } = context;
+    React.useEffect(() => {
       if (focusable) {
         onFocusableItemAdd();
         return () => onFocusableItemRemove();
       }
     }, [focusable, onFocusableItemAdd, onFocusableItemRemove]);
-    return (0, import_jsx_runtime3.jsx)(
+    return (0, import_jsx_runtime.jsx)(
       Collection.ItemSlot,
       {
         scope: __scopeRovingFocusGroup,
         id,
         focusable,
         active,
-        children: (0, import_jsx_runtime3.jsx)(
+        children: (0, import_jsx_runtime.jsx)(
           Primitive.span,
           {
             tabIndex: isCurrentTabStop ? 0 : -1,
@@ -274,7 +212,8 @@ var RovingFocusGroupItem = React3.forwardRef(
                 }
                 setTimeout(() => focusFirst(candidateNodes));
               }
-            })
+            }),
+            children: typeof children === "function" ? children({ isCurrentTabStop, hasTabStop: currentTabStopId != null }) : children
           }
         )
       }
@@ -317,14 +256,14 @@ var Root = RovingFocusGroup;
 var Item = RovingFocusGroupItem;
 
 // node_modules/@radix-ui/react-tabs/dist/index.mjs
-var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
 var TABS_NAME = "Tabs";
 var [createTabsContext, createTabsScope] = createContextScope(TABS_NAME, [
   createRovingFocusGroupScope
 ]);
 var useRovingFocusGroupScope = createRovingFocusGroupScope();
 var [TabsProvider, useTabsContext] = createTabsContext(TABS_NAME);
-var Tabs = React4.forwardRef(
+var Tabs = React2.forwardRef(
   (props, forwardedRef) => {
     const {
       __scopeTabs,
@@ -340,9 +279,10 @@ var Tabs = React4.forwardRef(
     const [value, setValue] = useControllableState({
       prop: valueProp,
       onChange: onValueChange,
-      defaultProp: defaultValue
+      defaultProp: defaultValue ?? "",
+      caller: TABS_NAME
     });
-    return (0, import_jsx_runtime4.jsx)(
+    return (0, import_jsx_runtime2.jsx)(
       TabsProvider,
       {
         scope: __scopeTabs,
@@ -352,7 +292,7 @@ var Tabs = React4.forwardRef(
         orientation,
         dir: direction,
         activationMode,
-        children: (0, import_jsx_runtime4.jsx)(
+        children: (0, import_jsx_runtime2.jsx)(
           Primitive.div,
           {
             dir: direction,
@@ -367,12 +307,12 @@ var Tabs = React4.forwardRef(
 );
 Tabs.displayName = TABS_NAME;
 var TAB_LIST_NAME = "TabsList";
-var TabsList = React4.forwardRef(
+var TabsList = React2.forwardRef(
   (props, forwardedRef) => {
     const { __scopeTabs, loop = true, ...listProps } = props;
     const context = useTabsContext(TAB_LIST_NAME, __scopeTabs);
     const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs);
-    return (0, import_jsx_runtime4.jsx)(
+    return (0, import_jsx_runtime2.jsx)(
       Root,
       {
         asChild: true,
@@ -380,7 +320,7 @@ var TabsList = React4.forwardRef(
         orientation: context.orientation,
         dir: context.dir,
         loop,
-        children: (0, import_jsx_runtime4.jsx)(
+        children: (0, import_jsx_runtime2.jsx)(
           Primitive.div,
           {
             role: "tablist",
@@ -395,7 +335,7 @@ var TabsList = React4.forwardRef(
 );
 TabsList.displayName = TAB_LIST_NAME;
 var TRIGGER_NAME = "TabsTrigger";
-var TabsTrigger = React4.forwardRef(
+var TabsTrigger = React2.forwardRef(
   (props, forwardedRef) => {
     const { __scopeTabs, value, disabled = false, ...triggerProps } = props;
     const context = useTabsContext(TRIGGER_NAME, __scopeTabs);
@@ -403,14 +343,14 @@ var TabsTrigger = React4.forwardRef(
     const triggerId = makeTriggerId(context.baseId, value);
     const contentId = makeContentId(context.baseId, value);
     const isSelected = value === context.value;
-    return (0, import_jsx_runtime4.jsx)(
+    return (0, import_jsx_runtime2.jsx)(
       Item,
       {
         asChild: true,
         ...rovingFocusGroupScope,
         focusable: !disabled,
         active: isSelected,
-        children: (0, import_jsx_runtime4.jsx)(
+        children: (0, import_jsx_runtime2.jsx)(
           Primitive.button,
           {
             type: "button",
@@ -447,19 +387,19 @@ var TabsTrigger = React4.forwardRef(
 );
 TabsTrigger.displayName = TRIGGER_NAME;
 var CONTENT_NAME = "TabsContent";
-var TabsContent = React4.forwardRef(
+var TabsContent = React2.forwardRef(
   (props, forwardedRef) => {
     const { __scopeTabs, value, forceMount, children, ...contentProps } = props;
     const context = useTabsContext(CONTENT_NAME, __scopeTabs);
     const triggerId = makeTriggerId(context.baseId, value);
     const contentId = makeContentId(context.baseId, value);
     const isSelected = value === context.value;
-    const isMountAnimationPreventedRef = React4.useRef(isSelected);
-    React4.useEffect(() => {
+    const isMountAnimationPreventedRef = React2.useRef(isSelected);
+    React2.useEffect(() => {
       const rAF = requestAnimationFrame(() => isMountAnimationPreventedRef.current = false);
       return () => cancelAnimationFrame(rAF);
     }, []);
-    return (0, import_jsx_runtime4.jsx)(Presence, { present: forceMount || isSelected, children: ({ present }) => (0, import_jsx_runtime4.jsx)(
+    return (0, import_jsx_runtime2.jsx)(Presence, { present: forceMount || isSelected, children: ({ present }) => (0, import_jsx_runtime2.jsx)(
       Primitive.div,
       {
         "data-state": isSelected ? "active" : "inactive",

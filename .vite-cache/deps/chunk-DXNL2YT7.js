@@ -1,6 +1,6 @@
 import {
   Primitive
-} from "./chunk-S6GKADSP.js";
+} from "./chunk-AUVURUI7.js";
 import {
   require_jsx_runtime
 } from "./chunk-IHRST5LR.js";
@@ -14,6 +14,19 @@ import {
 // node_modules/@radix-ui/react-visually-hidden/dist/index.mjs
 var React = __toESM(require_react(), 1);
 var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
+var VISUALLY_HIDDEN_STYLES = Object.freeze({
+  // See: https://github.com/twbs/bootstrap/blob/main/scss/mixins/_visually-hidden.scss
+  position: "absolute",
+  border: 0,
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: "hidden",
+  clip: "rect(0, 0, 0, 0)",
+  whiteSpace: "nowrap",
+  wordWrap: "normal"
+});
 var NAME = "VisuallyHidden";
 var VisuallyHidden = React.forwardRef(
   (props, forwardedRef) => {
@@ -22,20 +35,7 @@ var VisuallyHidden = React.forwardRef(
       {
         ...props,
         ref: forwardedRef,
-        style: {
-          // See: https://github.com/twbs/bootstrap/blob/master/scss/mixins/_screen-reader.scss
-          position: "absolute",
-          border: 0,
-          width: 1,
-          height: 1,
-          padding: 0,
-          margin: -1,
-          overflow: "hidden",
-          clip: "rect(0, 0, 0, 0)",
-          whiteSpace: "nowrap",
-          wordWrap: "normal",
-          ...props.style
-        }
+        style: { ...VISUALLY_HIDDEN_STYLES, ...props.style }
       }
     );
   }
@@ -44,7 +44,8 @@ VisuallyHidden.displayName = NAME;
 var Root = VisuallyHidden;
 
 export {
+  VISUALLY_HIDDEN_STYLES,
   VisuallyHidden,
   Root
 };
-//# sourceMappingURL=chunk-ULGUM6GZ.js.map
+//# sourceMappingURL=chunk-DXNL2YT7.js.map

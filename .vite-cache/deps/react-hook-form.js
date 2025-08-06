@@ -3,6 +3,7 @@ import {
   Form,
   FormProvider,
   appendErrors,
+  createFormControl,
   get,
   set,
   useController,
@@ -11,7 +12,7 @@ import {
   useFormContext,
   useFormState,
   useWatch
-} from "./chunk-3OO2OZAS.js";
+} from "./chunk-AOYRPJGI.js";
 import "./chunk-32E4H3EV.js";
 import "./chunk-G3PMV62Z.js";
 export {
@@ -19,6 +20,7 @@ export {
   Form,
   FormProvider,
   appendErrors,
+  createFormControl,
   get,
   set,
   useController,

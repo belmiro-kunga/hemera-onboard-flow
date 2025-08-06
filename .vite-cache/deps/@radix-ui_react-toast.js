@@ -1,38 +1,44 @@
 "use client";
 import {
   VisuallyHidden
-} from "./chunk-ULGUM6GZ.js";
+} from "./chunk-DXNL2YT7.js";
+import {
+  createCollection
+} from "./chunk-UP22Q5E4.js";
+import {
+  Presence
+} from "./chunk-BP7CW3NO.js";
 import {
   Branch,
   Portal,
   Root
-} from "./chunk-3UNPBB3Y.js";
+} from "./chunk-YV4I7LIJ.js";
 import {
-  createCollection
-} from "./chunk-OT32RRAD.js";
-import {
-  Presence,
   composeEventHandlers,
   useControllableState
-} from "./chunk-IEMBT4ZR.js";
+} from "./chunk-VCF7G64N.js";
 import {
-  createContextScope,
-  useCallbackRef,
+  useCallbackRef
+} from "./chunk-NTJ5PA6H.js";
+import {
   useLayoutEffect2
-} from "./chunk-Z3H4NIL7.js";
+} from "./chunk-H6FZE3AF.js";
+import {
+  createContextScope
+} from "./chunk-SBO6WYF4.js";
 import {
   Primitive,
   dispatchDiscreteCustomEvent
-} from "./chunk-S6GKADSP.js";
+} from "./chunk-AUVURUI7.js";
 import {
   useComposedRefs
-} from "./chunk-JTNMH6Q6.js";
-import {
-  require_react_dom
-} from "./chunk-XHU36PYF.js";
+} from "./chunk-L5VKHKFW.js";
 import {
   require_jsx_runtime
 } from "./chunk-IHRST5LR.js";
+import {
+  require_react_dom
+} from "./chunk-XHU36PYF.js";
 import {
   require_react
 } from "./chunk-32E4H3EV.js";
@@ -268,10 +274,11 @@ var TOAST_SWIPE_END = "toast.swipeEnd";
 var Toast = React.forwardRef(
   (props, forwardedRef) => {
     const { forceMount, open: openProp, defaultOpen, onOpenChange, ...toastProps } = props;
-    const [open = true, setOpen] = useControllableState({
+    const [open, setOpen] = useControllableState({
       prop: openProp,
-      defaultProp: defaultOpen,
-      onChange: onOpenChange
+      defaultProp: defaultOpen ?? true,
+      onChange: onOpenChange,
+      caller: TOAST_NAME
     });
     return (0, import_jsx_runtime.jsx)(Presence, { present: forceMount || open, children: (0, import_jsx_runtime.jsx)(
       ToastImpl,

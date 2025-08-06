@@ -1,10 +1,35 @@
 "use client";
 import {
-  require_react_dom
-} from "./chunk-XHU36PYF.js";
+  clamp,
+  usePrevious
+} from "./chunk-NY2JDFGM.js";
+import {
+  useDirection
+} from "./chunk-VSVPIETK.js";
+import {
+  createCollection
+} from "./chunk-UP22Q5E4.js";
+import {
+  useSize
+} from "./chunk-WUQQWXXO.js";
+import {
+  composeEventHandlers,
+  useControllableState
+} from "./chunk-VCF7G64N.js";
+import "./chunk-H6FZE3AF.js";
+import {
+  createContextScope
+} from "./chunk-SBO6WYF4.js";
+import {
+  Primitive
+} from "./chunk-AUVURUI7.js";
+import {
+  useComposedRefs
+} from "./chunk-L5VKHKFW.js";
 import {
   require_jsx_runtime
 } from "./chunk-IHRST5LR.js";
+import "./chunk-XHU36PYF.js";
 import {
   require_react
 } from "./chunk-32E4H3EV.js";
@@ -13,471 +38,8 @@ import {
 } from "./chunk-G3PMV62Z.js";
 
 // node_modules/@radix-ui/react-slider/dist/index.mjs
-var React13 = __toESM(require_react(), 1);
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/number/dist/index.mjs
-function clamp(value, [min, max]) {
-  return Math.min(max, Math.max(min, value));
-}
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/primitive/dist/index.mjs
-function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForDefaultPrevented = true } = {}) {
-  return function handleEvent(event) {
-    originalEventHandler?.(event);
-    if (checkForDefaultPrevented === false || !event.defaultPrevented) {
-      return ourEventHandler?.(event);
-    }
-  };
-}
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/react-compose-refs/dist/index.mjs
 var React = __toESM(require_react(), 1);
-function setRef(ref, value) {
-  if (typeof ref === "function") {
-    return ref(value);
-  } else if (ref !== null && ref !== void 0) {
-    ref.current = value;
-  }
-}
-function composeRefs(...refs) {
-  return (node) => {
-    let hasCleanup = false;
-    const cleanups = refs.map((ref) => {
-      const cleanup = setRef(ref, node);
-      if (!hasCleanup && typeof cleanup == "function") {
-        hasCleanup = true;
-      }
-      return cleanup;
-    });
-    if (hasCleanup) {
-      return () => {
-        for (let i = 0; i < cleanups.length; i++) {
-          const cleanup = cleanups[i];
-          if (typeof cleanup == "function") {
-            cleanup();
-          } else {
-            setRef(refs[i], null);
-          }
-        }
-      };
-    }
-  };
-}
-function useComposedRefs(...refs) {
-  return React.useCallback(composeRefs(...refs), refs);
-}
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/react-context/dist/index.mjs
-var React2 = __toESM(require_react(), 1);
 var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
-function createContextScope(scopeName, createContextScopeDeps = []) {
-  let defaultContexts = [];
-  function createContext3(rootComponentName, defaultContext) {
-    const BaseContext = React2.createContext(defaultContext);
-    const index = defaultContexts.length;
-    defaultContexts = [...defaultContexts, defaultContext];
-    const Provider = (props) => {
-      const { scope, children, ...context } = props;
-      const Context = scope?.[scopeName]?.[index] || BaseContext;
-      const value = React2.useMemo(() => context, Object.values(context));
-      return (0, import_jsx_runtime.jsx)(Context.Provider, { value, children });
-    };
-    Provider.displayName = rootComponentName + "Provider";
-    function useContext22(consumerName, scope) {
-      const Context = scope?.[scopeName]?.[index] || BaseContext;
-      const context = React2.useContext(Context);
-      if (context) return context;
-      if (defaultContext !== void 0) return defaultContext;
-      throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
-    }
-    return [Provider, useContext22];
-  }
-  const createScope = () => {
-    const scopeContexts = defaultContexts.map((defaultContext) => {
-      return React2.createContext(defaultContext);
-    });
-    return function useScope(scope) {
-      const contexts = scope?.[scopeName] || scopeContexts;
-      return React2.useMemo(
-        () => ({ [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } }),
-        [scope, contexts]
-      );
-    };
-  };
-  createScope.scopeName = scopeName;
-  return [createContext3, composeContextScopes(createScope, ...createContextScopeDeps)];
-}
-function composeContextScopes(...scopes) {
-  const baseScope = scopes[0];
-  if (scopes.length === 1) return baseScope;
-  const createScope = () => {
-    const scopeHooks = scopes.map((createScope2) => ({
-      useScope: createScope2(),
-      scopeName: createScope2.scopeName
-    }));
-    return function useComposedScopes(overrideScopes) {
-      const nextScopes = scopeHooks.reduce((nextScopes2, { useScope, scopeName }) => {
-        const scopeProps = useScope(overrideScopes);
-        const currentScope = scopeProps[`__scope${scopeName}`];
-        return { ...nextScopes2, ...currentScope };
-      }, {});
-      return React2.useMemo(() => ({ [`__scope${baseScope.scopeName}`]: nextScopes }), [nextScopes]);
-    };
-  };
-  createScope.scopeName = baseScope.scopeName;
-  return createScope;
-}
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/react-use-controllable-state/dist/index.mjs
-var React6 = __toESM(require_react(), 1);
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/react-use-layout-effect/dist/index.mjs
-var React3 = __toESM(require_react(), 1);
-var useLayoutEffect2 = globalThis?.document ? React3.useLayoutEffect : () => {
-};
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/react-use-controllable-state/dist/index.mjs
-var React22 = __toESM(require_react(), 1);
-
-// node_modules/@radix-ui/react-use-effect-event/node_modules/@radix-ui/react-use-layout-effect/dist/index.mjs
-var React4 = __toESM(require_react(), 1);
-var useLayoutEffect22 = globalThis?.document ? React4.useLayoutEffect : () => {
-};
-
-// node_modules/@radix-ui/react-use-effect-event/dist/index.mjs
-var React5 = __toESM(require_react(), 1);
-var useReactEffectEvent = React5[" useEffectEvent ".trim().toString()];
-var useReactInsertionEffect = React5[" useInsertionEffect ".trim().toString()];
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/react-use-controllable-state/dist/index.mjs
-var useInsertionEffect = React6[" useInsertionEffect ".trim().toString()] || useLayoutEffect2;
-function useControllableState({
-  prop,
-  defaultProp,
-  onChange = () => {
-  },
-  caller
-}) {
-  const [uncontrolledProp, setUncontrolledProp, onChangeRef] = useUncontrolledState({
-    defaultProp,
-    onChange
-  });
-  const isControlled = prop !== void 0;
-  const value = isControlled ? prop : uncontrolledProp;
-  if (true) {
-    const isControlledRef = React6.useRef(prop !== void 0);
-    React6.useEffect(() => {
-      const wasControlled = isControlledRef.current;
-      if (wasControlled !== isControlled) {
-        const from = wasControlled ? "controlled" : "uncontrolled";
-        const to = isControlled ? "controlled" : "uncontrolled";
-        console.warn(
-          `${caller} is changing from ${from} to ${to}. Components should not switch from controlled to uncontrolled (or vice versa). Decide between using a controlled or uncontrolled value for the lifetime of the component.`
-        );
-      }
-      isControlledRef.current = isControlled;
-    }, [isControlled, caller]);
-  }
-  const setValue = React6.useCallback(
-    (nextValue) => {
-      if (isControlled) {
-        const value2 = isFunction(nextValue) ? nextValue(prop) : nextValue;
-        if (value2 !== prop) {
-          onChangeRef.current?.(value2);
-        }
-      } else {
-        setUncontrolledProp(nextValue);
-      }
-    },
-    [isControlled, prop, setUncontrolledProp, onChangeRef]
-  );
-  return [value, setValue];
-}
-function useUncontrolledState({
-  defaultProp,
-  onChange
-}) {
-  const [value, setValue] = React6.useState(defaultProp);
-  const prevValueRef = React6.useRef(value);
-  const onChangeRef = React6.useRef(onChange);
-  useInsertionEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-  React6.useEffect(() => {
-    if (prevValueRef.current !== value) {
-      onChangeRef.current?.(value);
-      prevValueRef.current = value;
-    }
-  }, [value, prevValueRef]);
-  return [value, setValue, onChangeRef];
-}
-function isFunction(value) {
-  return typeof value === "function";
-}
-var SYNC_STATE = Symbol("RADIX:SYNC_STATE");
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/react-direction/dist/index.mjs
-var React7 = __toESM(require_react(), 1);
-var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
-var DirectionContext = React7.createContext(void 0);
-function useDirection(localDir) {
-  const globalDir = React7.useContext(DirectionContext);
-  return localDir || globalDir || "ltr";
-}
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/react-use-previous/dist/index.mjs
-var React8 = __toESM(require_react(), 1);
-function usePrevious(value) {
-  const ref = React8.useRef({ value, previous: value });
-  return React8.useMemo(() => {
-    if (ref.current.value !== value) {
-      ref.current.previous = ref.current.value;
-      ref.current.value = value;
-    }
-    return ref.current.previous;
-  }, [value]);
-}
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/react-use-size/dist/index.mjs
-var React9 = __toESM(require_react(), 1);
-function useSize(element) {
-  const [size, setSize] = React9.useState(void 0);
-  useLayoutEffect2(() => {
-    if (element) {
-      setSize({ width: element.offsetWidth, height: element.offsetHeight });
-      const resizeObserver = new ResizeObserver((entries) => {
-        if (!Array.isArray(entries)) {
-          return;
-        }
-        if (!entries.length) {
-          return;
-        }
-        const entry = entries[0];
-        let width;
-        let height;
-        if ("borderBoxSize" in entry) {
-          const borderSizeEntry = entry["borderBoxSize"];
-          const borderSize = Array.isArray(borderSizeEntry) ? borderSizeEntry[0] : borderSizeEntry;
-          width = borderSize["inlineSize"];
-          height = borderSize["blockSize"];
-        } else {
-          width = element.offsetWidth;
-          height = element.offsetHeight;
-        }
-        setSize({ width, height });
-      });
-      resizeObserver.observe(element, { box: "border-box" });
-      return () => resizeObserver.unobserve(element);
-    } else {
-      setSize(void 0);
-    }
-  }, [element]);
-  return size;
-}
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/react-primitive/dist/index.mjs
-var React11 = __toESM(require_react(), 1);
-var ReactDOM = __toESM(require_react_dom(), 1);
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/react-slot/dist/index.mjs
-var React10 = __toESM(require_react(), 1);
-var import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
-function createSlot(ownerName) {
-  const SlotClone = createSlotClone(ownerName);
-  const Slot2 = React10.forwardRef((props, forwardedRef) => {
-    const { children, ...slotProps } = props;
-    const childrenArray = React10.Children.toArray(children);
-    const slottable = childrenArray.find(isSlottable);
-    if (slottable) {
-      const newElement = slottable.props.children;
-      const newChildren = childrenArray.map((child) => {
-        if (child === slottable) {
-          if (React10.Children.count(newElement) > 1) return React10.Children.only(null);
-          return React10.isValidElement(newElement) ? newElement.props.children : null;
-        } else {
-          return child;
-        }
-      });
-      return (0, import_jsx_runtime3.jsx)(SlotClone, { ...slotProps, ref: forwardedRef, children: React10.isValidElement(newElement) ? React10.cloneElement(newElement, void 0, newChildren) : null });
-    }
-    return (0, import_jsx_runtime3.jsx)(SlotClone, { ...slotProps, ref: forwardedRef, children });
-  });
-  Slot2.displayName = `${ownerName}.Slot`;
-  return Slot2;
-}
-var Slot = createSlot("Slot");
-function createSlotClone(ownerName) {
-  const SlotClone = React10.forwardRef((props, forwardedRef) => {
-    const { children, ...slotProps } = props;
-    if (React10.isValidElement(children)) {
-      const childrenRef = getElementRef(children);
-      const props2 = mergeProps(slotProps, children.props);
-      if (children.type !== React10.Fragment) {
-        props2.ref = forwardedRef ? composeRefs(forwardedRef, childrenRef) : childrenRef;
-      }
-      return React10.cloneElement(children, props2);
-    }
-    return React10.Children.count(children) > 1 ? React10.Children.only(null) : null;
-  });
-  SlotClone.displayName = `${ownerName}.SlotClone`;
-  return SlotClone;
-}
-var SLOTTABLE_IDENTIFIER = Symbol("radix.slottable");
-function createSlottable(ownerName) {
-  const Slottable2 = ({ children }) => {
-    return (0, import_jsx_runtime3.jsx)(import_jsx_runtime3.Fragment, { children });
-  };
-  Slottable2.displayName = `${ownerName}.Slottable`;
-  Slottable2.__radixId = SLOTTABLE_IDENTIFIER;
-  return Slottable2;
-}
-var Slottable = createSlottable("Slottable");
-function isSlottable(child) {
-  return React10.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER;
-}
-function mergeProps(slotProps, childProps) {
-  const overrideProps = { ...childProps };
-  for (const propName in childProps) {
-    const slotPropValue = slotProps[propName];
-    const childPropValue = childProps[propName];
-    const isHandler = /^on[A-Z]/.test(propName);
-    if (isHandler) {
-      if (slotPropValue && childPropValue) {
-        overrideProps[propName] = (...args) => {
-          const result = childPropValue(...args);
-          slotPropValue(...args);
-          return result;
-        };
-      } else if (slotPropValue) {
-        overrideProps[propName] = slotPropValue;
-      }
-    } else if (propName === "style") {
-      overrideProps[propName] = { ...slotPropValue, ...childPropValue };
-    } else if (propName === "className") {
-      overrideProps[propName] = [slotPropValue, childPropValue].filter(Boolean).join(" ");
-    }
-  }
-  return { ...slotProps, ...overrideProps };
-}
-function getElementRef(element) {
-  let getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
-  let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
-  if (mayWarn) {
-    return element.ref;
-  }
-  getter = Object.getOwnPropertyDescriptor(element, "ref")?.get;
-  mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
-  if (mayWarn) {
-    return element.props.ref;
-  }
-  return element.props.ref || element.ref;
-}
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/react-primitive/dist/index.mjs
-var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
-var NODES = [
-  "a",
-  "button",
-  "div",
-  "form",
-  "h2",
-  "h3",
-  "img",
-  "input",
-  "label",
-  "li",
-  "nav",
-  "ol",
-  "p",
-  "select",
-  "span",
-  "svg",
-  "ul"
-];
-var Primitive = NODES.reduce((primitive, node) => {
-  const Slot2 = createSlot(`Primitive.${node}`);
-  const Node2 = React11.forwardRef((props, forwardedRef) => {
-    const { asChild, ...primitiveProps } = props;
-    const Comp = asChild ? Slot2 : node;
-    if (typeof window !== "undefined") {
-      window[Symbol.for("radix-ui")] = true;
-    }
-    return (0, import_jsx_runtime4.jsx)(Comp, { ...primitiveProps, ref: forwardedRef });
-  });
-  Node2.displayName = `Primitive.${node}`;
-  return { ...primitive, [node]: Node2 };
-}, {});
-
-// node_modules/@radix-ui/react-slider/node_modules/@radix-ui/react-collection/dist/index.mjs
-var import_react = __toESM(require_react(), 1);
-var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
-var import_react2 = __toESM(require_react(), 1);
-var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
-function createCollection(name) {
-  const PROVIDER_NAME = name + "CollectionProvider";
-  const [createCollectionContext, createCollectionScope2] = createContextScope(PROVIDER_NAME);
-  const [CollectionProviderImpl, useCollectionContext] = createCollectionContext(
-    PROVIDER_NAME,
-    { collectionRef: { current: null }, itemMap: /* @__PURE__ */ new Map() }
-  );
-  const CollectionProvider = (props) => {
-    const { scope, children } = props;
-    const ref = import_react.default.useRef(null);
-    const itemMap = import_react.default.useRef(/* @__PURE__ */ new Map()).current;
-    return (0, import_jsx_runtime5.jsx)(CollectionProviderImpl, { scope, itemMap, collectionRef: ref, children });
-  };
-  CollectionProvider.displayName = PROVIDER_NAME;
-  const COLLECTION_SLOT_NAME = name + "CollectionSlot";
-  const CollectionSlotImpl = createSlot(COLLECTION_SLOT_NAME);
-  const CollectionSlot = import_react.default.forwardRef(
-    (props, forwardedRef) => {
-      const { scope, children } = props;
-      const context = useCollectionContext(COLLECTION_SLOT_NAME, scope);
-      const composedRefs = useComposedRefs(forwardedRef, context.collectionRef);
-      return (0, import_jsx_runtime5.jsx)(CollectionSlotImpl, { ref: composedRefs, children });
-    }
-  );
-  CollectionSlot.displayName = COLLECTION_SLOT_NAME;
-  const ITEM_SLOT_NAME = name + "CollectionItemSlot";
-  const ITEM_DATA_ATTR = "data-radix-collection-item";
-  const CollectionItemSlotImpl = createSlot(ITEM_SLOT_NAME);
-  const CollectionItemSlot = import_react.default.forwardRef(
-    (props, forwardedRef) => {
-      const { scope, children, ...itemData } = props;
-      const ref = import_react.default.useRef(null);
-      const composedRefs = useComposedRefs(forwardedRef, ref);
-      const context = useCollectionContext(ITEM_SLOT_NAME, scope);
-      import_react.default.useEffect(() => {
-        context.itemMap.set(ref, { ref, ...itemData });
-        return () => void context.itemMap.delete(ref);
-      });
-      return (0, import_jsx_runtime5.jsx)(CollectionItemSlotImpl, { ...{ [ITEM_DATA_ATTR]: "" }, ref: composedRefs, children });
-    }
-  );
-  CollectionItemSlot.displayName = ITEM_SLOT_NAME;
-  function useCollection2(scope) {
-    const context = useCollectionContext(name + "CollectionConsumer", scope);
-    const getItems = import_react.default.useCallback(() => {
-      const collectionNode = context.collectionRef.current;
-      if (!collectionNode) return [];
-      const orderedNodes = Array.from(collectionNode.querySelectorAll(`[${ITEM_DATA_ATTR}]`));
-      const items = Array.from(context.itemMap.values());
-      const orderedItems = items.sort(
-        (a, b) => orderedNodes.indexOf(a.ref.current) - orderedNodes.indexOf(b.ref.current)
-      );
-      return orderedItems;
-    }, [context.collectionRef, context.itemMap]);
-    return getItems;
-  }
-  return [
-    { Provider: CollectionProvider, Slot: CollectionSlot, ItemSlot: CollectionItemSlot },
-    useCollection2,
-    createCollectionScope2
-  ];
-}
-
-// node_modules/@radix-ui/react-slider/dist/index.mjs
-var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
 var PAGE_KEYS = ["PageUp", "PageDown"];
 var ARROW_KEYS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
 var BACK_KEYS = {
@@ -492,7 +54,7 @@ var [createSliderContext, createSliderScope] = createContextScope(SLIDER_NAME, [
   createCollectionScope
 ]);
 var [SliderProvider, useSliderContext] = createSliderContext(SLIDER_NAME);
-var Slider = React13.forwardRef(
+var Slider = React.forwardRef(
   (props, forwardedRef) => {
     const {
       name,
@@ -512,8 +74,8 @@ var Slider = React13.forwardRef(
       form,
       ...sliderProps
     } = props;
-    const thumbRefs = React13.useRef(/* @__PURE__ */ new Set());
-    const valueIndexToChangeRef = React13.useRef(0);
+    const thumbRefs = React.useRef(/* @__PURE__ */ new Set());
+    const valueIndexToChangeRef = React.useRef(0);
     const isHorizontal = orientation === "horizontal";
     const SliderOrientation = isHorizontal ? SliderHorizontal : SliderVertical;
     const [values = [], setValues] = useControllableState({
@@ -525,7 +87,7 @@ var Slider = React13.forwardRef(
         onValueChange(value2);
       }
     });
-    const valuesBeforeSlideStartRef = React13.useRef(values);
+    const valuesBeforeSlideStartRef = React.useRef(values);
     function handleSlideStart(value2) {
       const closestIndex = getClosestValueIndex(values, value2);
       updateValues(value2, closestIndex);
@@ -555,7 +117,7 @@ var Slider = React13.forwardRef(
         }
       });
     }
-    return (0, import_jsx_runtime7.jsx)(
+    return (0, import_jsx_runtime.jsx)(
       SliderProvider,
       {
         scope: props.__scopeSlider,
@@ -568,7 +130,7 @@ var Slider = React13.forwardRef(
         values,
         orientation,
         form,
-        children: (0, import_jsx_runtime7.jsx)(Collection.Provider, { scope: props.__scopeSlider, children: (0, import_jsx_runtime7.jsx)(Collection.Slot, { scope: props.__scopeSlider, children: (0, import_jsx_runtime7.jsx)(
+        children: (0, import_jsx_runtime.jsx)(Collection.Provider, { scope: props.__scopeSlider, children: (0, import_jsx_runtime.jsx)(Collection.Slot, { scope: props.__scopeSlider, children: (0, import_jsx_runtime.jsx)(
           SliderOrientation,
           {
             "aria-disabled": disabled,
@@ -610,7 +172,7 @@ var [SliderOrientationProvider, useSliderOrientationContext] = createSliderConte
   size: "width",
   direction: 1
 });
-var SliderHorizontal = React13.forwardRef(
+var SliderHorizontal = React.forwardRef(
   (props, forwardedRef) => {
     const {
       min,
@@ -623,9 +185,9 @@ var SliderHorizontal = React13.forwardRef(
       onStepKeyDown,
       ...sliderProps
     } = props;
-    const [slider, setSlider] = React13.useState(null);
+    const [slider, setSlider] = React.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setSlider(node));
-    const rectRef = React13.useRef(void 0);
+    const rectRef = React.useRef(void 0);
     const direction = useDirection(dir);
     const isDirectionLTR = direction === "ltr";
     const isSlidingFromLeft = isDirectionLTR && !inverted || !isDirectionLTR && inverted;
@@ -637,7 +199,7 @@ var SliderHorizontal = React13.forwardRef(
       rectRef.current = rect;
       return value(pointerPosition - rect.left);
     }
-    return (0, import_jsx_runtime7.jsx)(
+    return (0, import_jsx_runtime.jsx)(
       SliderOrientationProvider,
       {
         scope: props.__scopeSlider,
@@ -645,7 +207,7 @@ var SliderHorizontal = React13.forwardRef(
         endEdge: isSlidingFromLeft ? "right" : "left",
         direction: isSlidingFromLeft ? 1 : -1,
         size: "width",
-        children: (0, import_jsx_runtime7.jsx)(
+        children: (0, import_jsx_runtime.jsx)(
           SliderImpl,
           {
             dir: direction,
@@ -679,7 +241,7 @@ var SliderHorizontal = React13.forwardRef(
     );
   }
 );
-var SliderVertical = React13.forwardRef(
+var SliderVertical = React.forwardRef(
   (props, forwardedRef) => {
     const {
       min,
@@ -691,9 +253,9 @@ var SliderVertical = React13.forwardRef(
       onStepKeyDown,
       ...sliderProps
     } = props;
-    const sliderRef = React13.useRef(null);
+    const sliderRef = React.useRef(null);
     const ref = useComposedRefs(forwardedRef, sliderRef);
-    const rectRef = React13.useRef(void 0);
+    const rectRef = React.useRef(void 0);
     const isSlidingFromBottom = !inverted;
     function getValueFromPointer(pointerPosition) {
       const rect = rectRef.current || sliderRef.current.getBoundingClientRect();
@@ -703,7 +265,7 @@ var SliderVertical = React13.forwardRef(
       rectRef.current = rect;
       return value(pointerPosition - rect.top);
     }
-    return (0, import_jsx_runtime7.jsx)(
+    return (0, import_jsx_runtime.jsx)(
       SliderOrientationProvider,
       {
         scope: props.__scopeSlider,
@@ -711,7 +273,7 @@ var SliderVertical = React13.forwardRef(
         endEdge: isSlidingFromBottom ? "top" : "bottom",
         size: "height",
         direction: isSlidingFromBottom ? 1 : -1,
-        children: (0, import_jsx_runtime7.jsx)(
+        children: (0, import_jsx_runtime.jsx)(
           SliderImpl,
           {
             "data-orientation": "vertical",
@@ -744,7 +306,7 @@ var SliderVertical = React13.forwardRef(
     );
   }
 );
-var SliderImpl = React13.forwardRef(
+var SliderImpl = React.forwardRef(
   (props, forwardedRef) => {
     const {
       __scopeSlider,
@@ -757,7 +319,7 @@ var SliderImpl = React13.forwardRef(
       ...sliderProps
     } = props;
     const context = useSliderContext(SLIDER_NAME, __scopeSlider);
-    return (0, import_jsx_runtime7.jsx)(
+    return (0, import_jsx_runtime.jsx)(
       Primitive.span,
       {
         ...sliderProps,
@@ -800,11 +362,11 @@ var SliderImpl = React13.forwardRef(
   }
 );
 var TRACK_NAME = "SliderTrack";
-var SliderTrack = React13.forwardRef(
+var SliderTrack = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopeSlider, ...trackProps } = props;
     const context = useSliderContext(TRACK_NAME, __scopeSlider);
-    return (0, import_jsx_runtime7.jsx)(
+    return (0, import_jsx_runtime.jsx)(
       Primitive.span,
       {
         "data-disabled": context.disabled ? "" : void 0,
@@ -817,12 +379,12 @@ var SliderTrack = React13.forwardRef(
 );
 SliderTrack.displayName = TRACK_NAME;
 var RANGE_NAME = "SliderRange";
-var SliderRange = React13.forwardRef(
+var SliderRange = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopeSlider, ...rangeProps } = props;
     const context = useSliderContext(RANGE_NAME, __scopeSlider);
     const orientation = useSliderOrientationContext(RANGE_NAME, __scopeSlider);
-    const ref = React13.useRef(null);
+    const ref = React.useRef(null);
     const composedRefs = useComposedRefs(forwardedRef, ref);
     const valuesCount = context.values.length;
     const percentages = context.values.map(
@@ -830,7 +392,7 @@ var SliderRange = React13.forwardRef(
     );
     const offsetStart = valuesCount > 1 ? Math.min(...percentages) : 0;
     const offsetEnd = 100 - Math.max(...percentages);
-    return (0, import_jsx_runtime7.jsx)(
+    return (0, import_jsx_runtime.jsx)(
       Primitive.span,
       {
         "data-orientation": context.orientation,
@@ -848,24 +410,24 @@ var SliderRange = React13.forwardRef(
 );
 SliderRange.displayName = RANGE_NAME;
 var THUMB_NAME = "SliderThumb";
-var SliderThumb = React13.forwardRef(
+var SliderThumb = React.forwardRef(
   (props, forwardedRef) => {
     const getItems = useCollection(props.__scopeSlider);
-    const [thumb, setThumb] = React13.useState(null);
+    const [thumb, setThumb] = React.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setThumb(node));
-    const index = React13.useMemo(
+    const index = React.useMemo(
       () => thumb ? getItems().findIndex((item) => item.ref.current === thumb) : -1,
       [getItems, thumb]
     );
-    return (0, import_jsx_runtime7.jsx)(SliderThumbImpl, { ...props, ref: composedRefs, index });
+    return (0, import_jsx_runtime.jsx)(SliderThumbImpl, { ...props, ref: composedRefs, index });
   }
 );
-var SliderThumbImpl = React13.forwardRef(
+var SliderThumbImpl = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopeSlider, index, name, ...thumbProps } = props;
     const context = useSliderContext(THUMB_NAME, __scopeSlider);
     const orientation = useSliderOrientationContext(THUMB_NAME, __scopeSlider);
-    const [thumb, setThumb] = React13.useState(null);
+    const [thumb, setThumb] = React.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setThumb(node));
     const isFormControl = thumb ? context.form || !!thumb.closest("form") : true;
     const size = useSize(thumb);
@@ -874,7 +436,7 @@ var SliderThumbImpl = React13.forwardRef(
     const label = getLabel(index, context.values.length);
     const orientationSize = size?.[orientation.size];
     const thumbInBoundsOffset = orientationSize ? getThumbInBoundsOffset(orientationSize, percent, orientation.direction) : 0;
-    React13.useEffect(() => {
+    React.useEffect(() => {
       if (thumb) {
         context.thumbs.add(thumb);
         return () => {
@@ -882,7 +444,7 @@ var SliderThumbImpl = React13.forwardRef(
         };
       }
     }, [thumb, context.thumbs]);
-    return (0, import_jsx_runtime7.jsxs)(
+    return (0, import_jsx_runtime.jsxs)(
       "span",
       {
         style: {
@@ -891,7 +453,7 @@ var SliderThumbImpl = React13.forwardRef(
           [orientation.startEdge]: `calc(${percent}% + ${thumbInBoundsOffset}px)`
         },
         children: [
-          (0, import_jsx_runtime7.jsx)(Collection.ItemSlot, { scope: props.__scopeSlider, children: (0, import_jsx_runtime7.jsx)(
+          (0, import_jsx_runtime.jsx)(Collection.ItemSlot, { scope: props.__scopeSlider, children: (0, import_jsx_runtime.jsx)(
             Primitive.span,
             {
               role: "slider",
@@ -911,7 +473,7 @@ var SliderThumbImpl = React13.forwardRef(
               })
             }
           ) }),
-          isFormControl && (0, import_jsx_runtime7.jsx)(
+          isFormControl && (0, import_jsx_runtime.jsx)(
             SliderBubbleInput,
             {
               name: name ?? (context.name ? context.name + (context.values.length > 1 ? "[]" : "") : void 0),
@@ -927,12 +489,12 @@ var SliderThumbImpl = React13.forwardRef(
 );
 SliderThumb.displayName = THUMB_NAME;
 var BUBBLE_INPUT_NAME = "RadioBubbleInput";
-var SliderBubbleInput = React13.forwardRef(
+var SliderBubbleInput = React.forwardRef(
   ({ __scopeSlider, value, ...props }, forwardedRef) => {
-    const ref = React13.useRef(null);
+    const ref = React.useRef(null);
     const composedRefs = useComposedRefs(ref, forwardedRef);
     const prevValue = usePrevious(value);
-    React13.useEffect(() => {
+    React.useEffect(() => {
       const input = ref.current;
       if (!input) return;
       const inputProto = window.HTMLInputElement.prototype;
@@ -944,7 +506,7 @@ var SliderBubbleInput = React13.forwardRef(
         input.dispatchEvent(event);
       }
     }, [prevValue, value]);
-    return (0, import_jsx_runtime7.jsx)(
+    return (0, import_jsx_runtime.jsx)(
       Primitive.input,
       {
         style: { display: "none" },
