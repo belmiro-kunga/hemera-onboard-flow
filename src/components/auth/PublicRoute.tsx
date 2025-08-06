@@ -21,7 +21,7 @@ export const PublicRoute = ({ children }: PublicRouteProps) => {
   }
 
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/modules" replace />;
   }
 
   return <>{children}</>;

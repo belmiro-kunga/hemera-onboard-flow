@@ -90,7 +90,7 @@ const AdminLoginForm = () => {
       // Invalidar queries relacionadas à autenticação
       invalidateQueries(['current-admin-user', 'current-admin-user-check']);
       
-      navigate("/admin");
+      navigate("/admin/dashboard");
     } catch (error: any) {
       showError(error, "Credenciais administrativas inválidas");
     } finally {

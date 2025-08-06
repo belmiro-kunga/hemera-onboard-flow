@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typography Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Typography tokens */
+        :root {
+            --font-family: Inter, sans-serif;
+            --font-weight-regular: 400;
+            --font-weight-medium: 500;
+            --font-weight-bold: 700;
+            
+            /* Heading styles */
+            --heading-1-font-size: 24px;
+            --heading-1-line-height: 1.2;
+            --heading-1-font-weight: 700;
+            
+            --heading-2-font-size: 20px;
+            --heading-2-line-height: 1.3;
+            --heading-2-font-weight: 700;
+            
+            --heading-3-font-size: 18px;
+            --heading-3-line-height: 1.4;
+            --heading-3-font-weight: 500;
+            
+            /* Body text styles */
+            --body-font-size: 14px;
+            --body-line-height: 1.5;
+            --body-font-weight: 400;
+        }
+
+        body {
+            font-family: var(--font-family);
+            font-size: var(--body-font-size);
+            line-height: var(--body-line-height);
+            font-weight: var(--body-font-weight);
+            margin: 2rem;
+            background: #F9FAFB;
+            color: #111827;
+        }
+
+        .heading-1 {
+            font-family: var(--font-family);
+            font-size: var(--heading-1-font-size);
+            line-height: var(--heading-1-line-height);
+            font-weight: var(--heading-1-font-weight);
+        }
+
+        .heading-2 {
+            font-family: var(--font-family);
+            font-size: var(--heading-2-font-size);
+            line-height: var(--heading-2-line-height);
+            font-weight: var(--heading-2-font-weight);
+        }
+
+        .heading-3 {
+            font-family: var(--font-family);
+            font-size: var(--heading-3-font-size);
+            line-height: var(--heading-3-line-height);
+            font-weight: var(--heading-3-font-weight);
+        }
+
+        .body-text {
+            font-family: var(--font-family);
+            font-size: var(--body-font-size);
+            line-height: var(--body-line-height);
+            font-weight: var(--body-font-weight);
+        }
+
+        h1 { @apply heading-1; }
+        h2 { @apply heading-2; }
+        h3 { @apply heading-3; }
+        p { @apply body-text; }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="heading-1">Heading 1 - Design System Typography</h1>
+        <p class="body-text">This is body text using the design system typography tokens. It should be 14px with Inter font family and line height of 1.5.</p>
+        
+        <h2 class="heading-2">Heading 2 - Secondary Title</h2>
+        <p class="body-text">Another paragraph of body text to demonstrate consistent typography across the application.</p>
+        
+        <h3 class="heading-3">Heading 3 - Subsection</h3>
+        <p class="body-text">This paragraph shows how the typography system maintains consistency with proper font weights, sizes, and line heights.</p>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background: #EBF8FF; border-radius: 8px;">
+            <h3 class="heading-3">Typography Specifications</h3>
+            <ul class="body-text">
+                <li><strong>Font Family:</strong> Inter, sans-serif</li>
+                <li><strong>H1:</strong> 24px, Bold (700), Line Height 1.2</li>
+                <li><strong>H2:</strong> 20px, Bold (700), Line Height 1.3</li>
+                <li><strong>H3:</strong> 18px, Medium (500), Line Height 1.4</li>
+                <li><strong>Body:</strong> 14px, Regular (400), Line Height 1.5</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

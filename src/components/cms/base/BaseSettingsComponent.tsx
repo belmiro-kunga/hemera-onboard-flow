@@ -1,9 +1,9 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCommonHook } from "@/hooks/useCommonHook";
-import { useTabState } from "@/lib/common-patterns";
+
 import { Save, RefreshCw, Eye } from "lucide-react";
 
 interface TabConfig {
@@ -36,7 +36,7 @@ export const BaseSettingsComponent = ({
   headerActions
 }: BaseSettingsProps) => {
   const { showSuccess, showError } = useCommonHook();
-  const { activeTab, setActiveTab } = useTabState(defaultTab || tabs[0]?.value || '');
+  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.value || '');
 
   const handleSave = async () => {
     try {

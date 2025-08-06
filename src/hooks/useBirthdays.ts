@@ -22,94 +22,53 @@ export function useBirthdays() {
   const fetchUpcomingBirthdays = async () => {
     setLoading(true);
     try {
-      // Check if we're in browser mode (mock data)
-      const isBrowser = typeof window !== 'undefined';
+      // Always use mock data for now since we're in development
+      console.warn('🔧 Using mock birthdays data');
 
-      if (isBrowser) {
-        // Mock data for browser
-        console.warn('🔧 Using mock birthdays data');
-
-        // Generate some mock birthday data
-        const mockBirthdays: Birthday[] = [
-          {
-            user_id: 'mock-user-1',
-            name: 'João Silva',
-            email: 'joao@example.com',
-            department: 'TI',
-            job_position: 'Desenvolvedor',
-            birth_date: '1990-03-15',
-            days_until_birthday: 2,
-            is_today: false
-          },
-          {
-            user_id: 'mock-user-2',
-            name: 'Maria Santos',
-            email: 'maria@example.com',
-            department: 'RH',
-            job_position: 'Analista',
-            birth_date: '1985-03-13',
-            days_until_birthday: 0,
-            is_today: true
-          }
-        ];
-
-        setBirthdays(mockBirthdays);
-      } else {
-        // Server-side implementation
-        try {
-          // Try to use RPC function if available
-          const { data, error } = await database.rpc('get_upcoming_birthdays');
-
-          if (error) throw error;
-
-          setBirthdays(data || []);
-        } catch (rpcError) {
-          // Fallback to manual query if RPC doesn't exist
-          console.warn('RPC function not available, using fallback query');
-
-          const { data, error } = await database
-            .from('profiles')
-            .select(`
-              user_id,
-              name,
-              email,
-              department,
-              job_position,
-              birth_date,
-              photo_url
-            `)
-            .not('birth_date', 'is', null)
-            .order('birth_date');
-
-          if (error) throw error;
-
-          // Calculate days until birthday manually
-          const today = new Date();
-          const birthdaysWithCalculation = (data || []).map((profile: any) => {
-            const birthDate = new Date(profile.birth_date);
-            const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-
-            // If birthday already passed this year, calculate for next year
-            if (thisYearBirthday < today) {
-              thisYearBirthday.setFullYear(today.getFullYear() + 1);
-            }
-
-            const timeDiff = thisYearBirthday.getTime() - today.getTime();
-            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-            return {
-              ...profile,
-              days_until_birthday: daysDiff,
-              is_today: daysDiff === 0
-            };
-          }).filter((birthday: any) => birthday.days_until_birthday <= 30) // Show upcoming 30 days
-            .sort((a: any, b: any) => a.days_until_birthday - b.days_until_birthday);
-
-          setBirthdays(birthdaysWithCalculation);
+      // Generate some mock birthday data
+      const mockBirthdays: Birthday[] = [
+        {
+          user_id: 'mock-user-1',
+          name: 'João Silva',
+          email: 'joao.silva@hcp.com',
+          department: 'TI',
+          job_position: 'Desenvolvedor',
+          birth_date: '1990-03-15',
+          days_until_birthday: 2,
+          is_today: false
+        },
+        {
+          user_id: 'mock-user-2',
+          name: 'Maria Santos',
+          email: 'maria.santos@hcp.com',
+          department: 'RH',
+          job_position: 'Analista de RH',
+          birth_date: '1985-03-13',
+          days_until_birthday: 0,
+          is_today: true
+        },
+        {
+          user_id: 'mock-user-3',
+          name: 'Carlos Oliveira',
+          email: 'carlos.oliveira@hcp.com',
+          department: 'Financeiro',
+          job_position: 'Analista Financeiro',
+          birth_date: '1988-03-20',
+          days_until_birthday: 7,
+          is_today: false
         }
-      }
+      ];
+
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setBirthdays(mockBirthdays);
     } catch (error: any) {
       console.error('Erro ao carregar aniversariantes:', error.message);
+      
+      // Set empty array on error to prevent crashes
+      setBirthdays([]);
+      
       toast({
         title: "Erro",
         description: "Não foi possível carregar os aniversariantes.",

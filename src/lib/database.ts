@@ -1,48 +1,133 @@
-// Database client with environment detection
-import type { DatabaseResponse } from './database-types';
+// Database client for frontend
+// This is a mock implementation for frontend use
+// In a real application, this would connect to Supabase or similar
 
-// Check if we're in a browser environment
-const isBrowser = typeof window !== 'undefined';
+export interface DatabaseClient {
+  from(table: string): QueryBuilder;
+  rpc(functionName: string, params?: any): Promise<{ data: any; error: any }>;
+}
 
-// Mock implementation for browser
-class MockDatabaseClient {
-  private currentUserId: string | null = null;
+export interface QueryBuilder {
+  select(columns?: string): QueryBuilder;
+  insert(data: any): QueryBuilder;
+  update(data: any): QueryBuilder;
+  delete(): QueryBuilder;
+  eq(column: string, value: any): QueryBuilder;
+  not(column: string, operator: string, value: any): QueryBuilder;
+  order(column: string, options?: { ascending?: boolean }): QueryBuilder;
+  limit(count: number): QueryBuilder;
+  single(): QueryBuilder;
+  select_query(): Promise<{ data: any; error: any }>;
+}
 
-  setUserId(userId: string | null) {
-    this.currentUserId = userId;
-    console.warn('🔧 Using mock database client - setUserId called with:', userId);
+class MockQueryBuilder implements QueryBuilder {
+  private tableName: string;
+  private selectColumns?: string;
+  private whereConditions: any[] = [];
+  private orderBy?: { column: string; ascending: boolean };
+  private limitCount?: number;
+  private isSingle = false;
+
+  constructor(tableName: string) {
+    this.tableName = tableName;
   }
 
-  getCurrentUserId(): string | null {
-    return this.currentUserId;
+  select(columns?: string): QueryBuilder {
+    this.selectColumns = columns;
+    return this;
   }
 
-  async query(query: string, params: any[] = []): Promise<DatabaseResponse> {
-    console.warn('🔧 Using mock database client - query called:', query);
-    await new Promise(resolve => setTimeout(resolve, 100));
+  insert(data: any): QueryBuilder {
+    console.warn(`🔧 Mock database: INSERT into ${this.tableName}`, data);
+    return this;
+  }
+
+  update(data: any): QueryBuilder {
+    console.warn(`🔧 Mock database: UPDATE ${this.tableName}`, data);
+    return this;
+  }
+
+  delete(): QueryBuilder {
+    console.warn(`🔧 Mock database: DELETE from ${this.tableName}`);
+    return this;
+  }
+
+  eq(column: string, value: any): QueryBuilder {
+    this.whereConditions.push({ column, operator: '=', value });
+    return this;
+  }
+
+  not(column: string, operator: string, value: any): QueryBuilder {
+    this.whereConditions.push({ column, operator: `NOT ${operator}`, value });
+    return this;
+  }
+
+  order(column: string, options?: { ascending?: boolean }): QueryBuilder {
+    this.orderBy = { column, ascending: options?.ascending ?? true };
+    return this;
+  }
+
+  limit(count: number): QueryBuilder {
+    this.limitCount = count;
+    return this;
+  }
+
+  single(): QueryBuilder {
+    this.isSingle = true;
+    return this;
+  }
+
+  async select_query(): Promise<{ data: any; error: any }> {
+    console.warn(`🔧 Mock database query: SELECT ${this.selectColumns || '*'} FROM ${this.tableName}`);
     
-    if (query.includes('SELECT 1')) {
-      return { data: [{ test: 1 }], error: null };
-    }
-    
-    return { data: [], error: null };
-  }
-
-  from(table: string) {
-    console.warn('🔧 Using mock database client - from called with table:', table);
-    return new MockQueryBuilder(table);
-  }
-
-  async rpc(functionName: string, params: Record<string, any> = {}): Promise<DatabaseResponse> {
-    console.warn('🔧 Using mock database client - rpc called:', functionName);
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    switch (functionName) {
-      case 'is_admin_user':
-        return { data: false, error: null };
-      case 'get_upcoming_birthdays':
-        // Return mock birthday data
-        return { 
+    // Return mock data based on table
+    switch (this.tableName) {
+      case 'user_levels':
+        return {
+          data: {
+            id: 'mock-level-1',
+            user_id: 'mock-user-1',
+            current_level: 1,
+            total_points: 150,
+            points_to_next_level: 50,
+            current_streak_days: 3,
+            longest_streak_days: 7,
+            last_activity_date: new Date().toISOString(),
+            courses_completed: 2,
+            simulados_completed: 1,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          error: null
+        };
+      
+      case 'user_badges':
+        return {
+          data: [
+            {
+              id: 'mock-user-badge-1',
+              user_id: 'mock-user-1',
+              badge_id: 'mock-badge-1',
+              earned_at: new Date().toISOString(),
+              badge: {
+                id: 'mock-badge-1',
+                name: 'Primeiro Login',
+                description: 'Fez o primeiro login no sistema',
+                icon_name: 'trophy',
+                icon_color: '#FFD700',
+                criteria_type: 'login',
+                criteria_value: 1,
+                is_active: true,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              }
+            }
+          ],
+          error: null
+        };
+      
+      case 'profiles':
+        return {
           data: [
             {
               user_id: 'mock-user-1',
@@ -51,8 +136,7 @@ class MockDatabaseClient {
               department: 'TI',
               job_position: 'Desenvolvedor',
               birth_date: '1990-03-15',
-              days_until_birthday: 2,
-              is_today: false
+              photo_url: null
             },
             {
               user_id: 'mock-user-2',
@@ -61,239 +145,84 @@ class MockDatabaseClient {
               department: 'RH',
               job_position: 'Analista',
               birth_date: '1985-03-13',
-              days_until_birthday: 0,
-              is_today: true
-            }
-          ], 
-          error: null 
-        };
-      case 'get_admin_users_with_emails':
-        return {
-          data: [
-            { id: 'mock-user-1', name: 'João Silva', email: 'joao@example.com' },
-            { id: 'mock-user-2', name: 'Maria Santos', email: 'maria@example.com' },
-            { id: 'mock-user-3', name: 'Pedro Costa', email: 'pedro@example.com' }
-          ],
-          error: null
-        };
-      case 'get_users_with_details':
-        return {
-          data: [
-            {
-              id: 'mock-user-1',
-              user_id: 'mock-user-1',
-              name: 'João Silva',
-              email: 'joao@example.com',
-              department: 'TI',
-              job_position: 'Desenvolvedor',
-              role: 'funcionario',
-              is_active: true,
-              created_at: new Date().toISOString()
-            },
-            {
-              id: 'mock-user-2',
-              user_id: 'mock-user-2',
-              name: 'Maria Santos',
-              email: 'maria@example.com',
-              department: 'RH',
-              job_position: 'Analista',
-              role: 'funcionario',
-              is_active: true,
-              created_at: new Date().toISOString()
-            },
-            {
-              id: 'mock-admin',
-              user_id: 'mock-admin',
-              name: 'Admin User',
-              email: 'admin@example.com',
-              department: 'TI',
-              job_position: 'Administrador',
-              role: 'admin',
-              is_active: true,
-              created_at: new Date().toISOString()
+              photo_url: null
             }
           ],
           error: null
         };
-      case 'create_user_with_profile':
-        return {
-          data: {
-            success: true,
-            user_id: `mock-user-${Date.now()}`,
-            message: 'User created successfully (mock)'
-          },
-          error: null
-        };
-      case 'generate_temporary_password':
-        return {
-          data: {
-            success: true,
-            temporary_password: 'mock-temp-password'
-          },
-          error: null
-        };
-      case 'apply_template_to_user':
-        return {
-          data: Math.floor(Math.random() * 5) + 1, // Mock 1-5 assignments created
-          error: null
-        };
+      
       default:
-        // For unknown functions, return empty data instead of error
-        console.warn(`🔧 Mock RPC function '${functionName}' not implemented, returning empty data`);
-        return { data: null, error: null };
+        return { data: [], error: null };
     }
   }
 }
 
-class MockQueryBuilder {
-  private table: string;
-  private selectFields: string = '*';
-  private whereConditions: Array<{ column: string; operator: string; value: any }> = [];
-  private orderByClause: { column: string; ascending: boolean } | null = null;
-  private limitValue: number | null = null;
-
-  constructor(table: string) {
-    this.table = table;
+class MockDatabaseClient implements DatabaseClient {
+  from(table: string): QueryBuilder {
+    return new MockQueryBuilder(table);
   }
 
-  select(fields: string = '*') {
-    this.selectFields = fields;
-    return this;
-  }
-
-  eq(column: string, value: any) {
-    this.whereConditions.push({ column, operator: 'eq', value });
-    return this;
-  }
-
-  neq(column: string, value: any) {
-    this.whereConditions.push({ column, operator: 'neq', value });
-    return this;
-  }
-
-  gt(column: string, value: any) {
-    this.whereConditions.push({ column, operator: 'gt', value });
-    return this;
-  }
-
-  gte(column: string, value: any) {
-    this.whereConditions.push({ column, operator: 'gte', value });
-    return this;
-  }
-
-  lt(column: string, value: any) {
-    this.whereConditions.push({ column, operator: 'lt', value });
-    return this;
-  }
-
-  lte(column: string, value: any) {
-    this.whereConditions.push({ column, operator: 'lte', value });
-    return this;
-  }
-
-  like(column: string, pattern: string) {
-    this.whereConditions.push({ column, operator: 'like', value: pattern });
-    return this;
-  }
-
-  ilike(column: string, pattern: string) {
-    this.whereConditions.push({ column, operator: 'ilike', value: pattern });
-    return this;
-  }
-
-  in(column: string, values: any[]) {
-    this.whereConditions.push({ column, operator: 'in', value: values });
-    return this;
-  }
-
-  is(column: string, value: null) {
-    this.whereConditions.push({ column, operator: 'is', value });
-    return this;
-  }
-
-  order(column: string, options: { ascending?: boolean } = {}) {
-    this.orderByClause = { column, ascending: options.ascending !== false };
-    return this;
-  }
-
-  limit(count: number) {
-    this.limitValue = count;
-    return this;
-  }
-
-  async select_query(): Promise<DatabaseResponse> {
-    console.warn('🔧 Mock query builder - select_query called for table:', this.table);
-    await new Promise(resolve => setTimeout(resolve, 100));
-    return { data: [], error: null };
-  }
-
-  async insert(data: Record<string, any> | Record<string, any>[]): Promise<DatabaseResponse> {
-    console.warn('🔧 Mock query builder - insert called for table:', this.table);
-    await new Promise(resolve => setTimeout(resolve, 100));
+  async rpc(functionName: string, params?: any): Promise<{ data: any; error: any }> {
+    console.warn(`🔧 Mock database RPC: ${functionName}`, params);
     
-    const records = Array.isArray(data) ? data : [data];
-    const newRecords = records.map(record => ({
-      ...record,
-      id: record.id || Math.random().toString(36).substr(2, 9),
-      created_at: record.created_at || new Date().toISOString(),
-      updated_at: record.updated_at || new Date().toISOString()
-    }));
-
-    return { data: newRecords, error: null };
-  }
-
-  async update(data: Record<string, any>): Promise<DatabaseResponse> {
-    console.warn('🔧 Mock query builder - update called for table:', this.table);
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    if (this.whereConditions.length === 0) {
-      return { data: null, error: { message: 'Update requires WHERE conditions', code: 'MOCK_ERROR' } };
+    switch (functionName) {
+      case 'get_upcoming_birthdays':
+        const today = new Date();
+        const mockBirthdays = [
+          {
+            user_id: 'mock-user-1',
+            name: 'João Silva',
+            email: 'joao@example.com',
+            department: 'TI',
+            job_position: 'Desenvolvedor',
+            birth_date: '1990-03-15',
+            days_until_birthday: 2,
+            is_today: false
+          },
+          {
+            user_id: 'mock-user-2',
+            name: 'Maria Santos',
+            email: 'maria@example.com',
+            department: 'RH',
+            job_position: 'Analista',
+            birth_date: '1985-03-13',
+            days_until_birthday: 0,
+            is_today: true
+          }
+        ];
+        return { data: mockBirthdays, error: null };
+      
+      case 'get_leaderboard':
+        const mockLeaderboard = [
+          {
+            user_id: 'mock-user-1',
+            name: 'João Silva',
+            total_points: 150,
+            current_level: 2,
+            courses_completed: 3,
+            simulados_completed: 2,
+            badge_count: 1
+          },
+          {
+            user_id: 'mock-user-2',
+            name: 'Maria Santos',
+            total_points: 120,
+            current_level: 1,
+            courses_completed: 2,
+            simulados_completed: 1,
+            badge_count: 1
+          }
+        ];
+        return { data: mockLeaderboard, error: null };
+      
+      default:
+        return { data: null, error: { message: `RPC function ${functionName} not implemented` } };
     }
-
-    return { data: [{ ...data, updated_at: new Date().toISOString() }], error: null };
-  }
-
-  async delete(): Promise<DatabaseResponse> {
-    console.warn('🔧 Mock query builder - delete called for table:', this.table);
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    if (this.whereConditions.length === 0) {
-      return { data: null, error: { message: 'Delete requires WHERE conditions', code: 'MOCK_ERROR' } };
-    }
-
-    return { data: [{ id: 'mock-deleted-id' }], error: null };
   }
 }
 
-// Create database client based on environment
-let databaseClient: MockDatabaseClient;
+// Export a singleton instance
+export const database = new MockDatabaseClient();
 
-if (isBrowser) {
-  // Browser environment - use mock client
-  console.warn('🔧 Initializing mock database client for browser environment');
-  databaseClient = new MockDatabaseClient();
-} else {
-  // This should not happen in browser, but TypeScript needs it
-  databaseClient = new MockDatabaseClient();
-}
-
-// Export the client
-export const database = databaseClient;
-
-// Mock connection functions for browser
-export async function checkDatabaseConnection(): Promise<boolean> {
-  if (isBrowser) {
-    console.warn('🔧 Mock database connection check - always returns true in browser');
-    return true;
-  }
-  return false;
-}
-
-export async function closeDatabaseConnection(): Promise<void> {
-  if (isBrowser) {
-    console.warn('🔧 Mock database connection close - no-op in browser');
-  }
-}
-
-// Export for compatibility
-export const sql = databaseClient;
+// Export types for use in other files
+export type { QueryBuilder, DatabaseClient };

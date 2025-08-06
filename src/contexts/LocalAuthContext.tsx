@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import auth, { type User as LocalUser, type Session as LocalSession } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/lib/database-utils';
+import { logger } from '@/lib/logging/logger';
 
 // Compatibility types to match Supabase interface
 export interface User {

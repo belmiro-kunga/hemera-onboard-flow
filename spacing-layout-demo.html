@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spacing and Layout Token Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Design System CSS Custom Properties */
+        :root {
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            
+            --elevation-none: none;
+            --elevation-low: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --elevation-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --elevation-high: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            
+            --layout-sidebar-width: 250px;
+            --layout-header-height: 64px;
+            --layout-content-padding: 24px;
+        }
+        
+        /* Custom classes using design system tokens */
+        .ds-spacing-xs { padding: var(--spacing-xs); }
+        .ds-spacing-sm { padding: var(--spacing-sm); }
+        .ds-spacing-md { padding: var(--spacing-md); }
+        .ds-spacing-lg { padding: var(--spacing-lg); }
+        .ds-spacing-xl { padding: var(--spacing-xl); }
+        
+        .ds-radius-sm { border-radius: var(--radius-sm); }
+        .ds-radius-md { border-radius: var(--radius-md); }
+        .ds-radius-lg { border-radius: var(--radius-lg); }
+        
+        .ds-elevation-none { box-shadow: var(--elevation-none); }
+        .ds-elevation-low { box-shadow: var(--elevation-low); }
+        .ds-elevation-medium { box-shadow: var(--elevation-medium); }
+        .ds-elevation-high { box-shadow: var(--elevation-high); }
+        
+        .ds-sidebar { width: var(--layout-sidebar-width); }
+        .ds-header { height: var(--layout-header-height); }
+        .ds-content { padding: var(--layout-content-padding); }
+    </style>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-gray-900">Design System: Spacing and Layout Token Demo</h1>
+        
+        <!-- Spacing Tokens Demo -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800">Spacing Tokens (Requirement 4.1)</h2>
+            <div class="grid grid-cols-5 gap-4">
+                <div class="text-center">
+                    <div class="ds-spacing-xs bg-blue-100 border border-blue-300 mb-2">XS (4px)</div>
+                    <code class="text-sm text-gray-600">ds-spacing-xs</code>
+                </div>
+                <div class="text-center">
+                    <div class="ds-spacing-sm bg-blue-100 border border-blue-300 mb-2">SM (8px)</div>
+                    <code class="text-sm text-gray-600">ds-spacing-sm</code>
+                </div>
+                <div class="text-center">
+                    <div class="ds-spacing-md bg-blue-100 border border-blue-300 mb-2">MD (16px)</div>
+                    <code class="text-sm text-gray-600">ds-spacing-md</code>
+                </div>
+                <div class="text-center">
+                    <div class="ds-spacing-lg bg-blue-100 border border-blue-300 mb-2">LG (24px)</div>
+                    <code class="text-sm text-gray-600">ds-spacing-lg</code>
+                </div>
+                <div class="text-center">
+                    <div class="ds-spacing-xl bg-blue-100 border border-blue-300 mb-2">XL (32px)</div>
+                    <code class="text-sm text-gray-600">ds-spacing-xl</code>
+                </div>
+            </div>
+        </section>
+
+        <!-- Border Radius Tokens Demo -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800">Border Radius Tokens (Requirement 4.2)</h2>
+            <div class="grid grid-cols-3 gap-6">
+                <div class="text-center">
+                    <div class="ds-radius-sm bg-green-100 border border-green-300 p-4 mb-2">SM (4px)</div>
+                    <code class="text-sm text-gray-600">ds-radius-sm</code>
+                </div>
+                <div class="text-center">
+                    <div class="ds-radius-md bg-green-100 border border-green-300 p-4 mb-2">MD (8px)</div>
+                    <code class="text-sm text-gray-600">ds-radius-md</code>
+                </div>
+                <div class="text-center">
+                    <div class="ds-radius-lg bg-green-100 border border-green-300 p-4 mb-2">LG (12px)</div>
+                    <code class="text-sm text-gray-600">ds-radius-lg</code>
+                </div>
+            </div>
+        </section>
+
+        <!-- Elevation/Shadow Tokens Demo -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800">Elevation/Shadow System (Requirement 4.3)</h2>
+            <div class="grid grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="ds-elevation-none bg-white border border-gray-200 p-4 mb-2">None</div>
+                    <code class="text-sm text-gray-600">ds-elevation-none</code>
+                </div>
+                <div class="text-center">
+                    <div class="ds-elevation-low bg-white p-4 mb-2">Low</div>
+                    <code class="text-sm text-gray-600">ds-elevation-low</code>
+                </div>
+                <div class="text-center">
+                    <div class="ds-elevation-medium bg-white p-4 mb-2">Medium</div>
+                    <code class="text-sm text-gray-600">ds-elevation-medium</code>
+                </div>
+                <div class="text-center">
+                    <div class="ds-elevation-high bg-white p-4 mb-2">High</div>
+                    <code class="text-sm text-gray-600">ds-elevation-high</code>
+                </div>
+            </div>
+        </section>
+
+        <!-- Layout Dimension Tokens Demo -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800">Layout Dimension Tokens (Requirement 4.4)</h2>
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-medium mb-2">Sidebar Width (250px)</h3>
+                    <div class="ds-sidebar bg-purple-100 border border-purple-300 p-4">
+                        <code class="text-sm text-gray-600">ds-sidebar (width: 250px)</code>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium mb-2">Header Height (64px)</h3>
+                    <div class="ds-header bg-orange-100 border border-orange-300 flex items-center px-4">
+                        <code class="text-sm text-gray-600">ds-header (height: 64px)</code>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium mb-2">Content Padding (24px)</h3>
+                    <div class="ds-content bg-pink-100 border border-pink-300">
+                        <code class="text-sm text-gray-600">ds-content (padding: 24px)</code>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Integration Summary -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">Task 4 Implementation Summary</h2>
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-medium mb-2 text-green-700">✅ Completed Requirements</h3>
+                    <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• Spacing tokens (xs, sm, md, lg, xl) - 4px to 32px</li>
+                        <li>• Border radius tokens (sm, md, lg) - 4px to 12px</li>
+                        <li>• Elevation/shadow system with 4 levels</li>
+                        <li>• Layout dimension tokens (sidebar, header, content)</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium mb-2 text-blue-700">🔧 Technical Implementation</h3>
+                    <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• Tailwind CSS integration with design system tokens</li>
+                        <li>• TypeScript utilities (getSpacing, getRadius, etc.)</li>
+                        <li>• CSS custom properties generation</li>
+                        <li>• Backward compatibility maintained</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
