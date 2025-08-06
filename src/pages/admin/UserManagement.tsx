@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { toast } from 'sonner';
 import { AdminPanel } from './AdminPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,19 +9,17 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Search, Edit, Trash2, UserPlus, Users, Shield, GraduationCap } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { Plus, Search, Edit, Trash2, UserPlus, Users, Shield, GraduationCap, Download, Upload } from 'lucide-react';
+import { userAPI } from '@/lib/api/users';
+import type { User } from '@/hooks/useUsers';
 
-interface User {
-  id: string;
+interface CreateUserData {
   name: string;
   email: string;
-  role: 'admin' | 'instructor' | 'student';
-  status: 'active' | 'inactive' | 'pending';
+  role: 'funcionario' | 'admin' | 'superadmin';
+  password: string;
   birthday?: string;
   department?: string;
-  createdAt: string;
-  lastLogin?: string;
 }
 
 const UserManagement = () => {
@@ -31,59 +30,33 @@ const UserManagement = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [newUser, setNewUser] = useState({
+  const [newUser, setNewUser] = useState<CreateUserData>({
     name: '',
     email: '',
-    role: 'student' as const,
+    role: 'funcionario',
     password: '',
     birthday: '',
     department: ''
   });
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // Mock data - replace with actual API calls
   useEffect(() => {
-    const mockUsers: User[] = [
-      {
-        id: '1',
-        name: 'João Silva',
-        email: 'joao.silva@empresa.com',
-        role: 'admin',
-        status: 'active',
-        createdAt: '2024-01-15',
-        lastLogin: '2024-08-06'
-      },
-      {
-        id: '2',
-        name: 'Maria Santos',
-        email: 'maria.santos@empresa.com',
-        role: 'instructor',
-        status: 'active',
-        createdAt: '2024-02-20',
-        lastLogin: '2024-08-05'
-      },
-      {
-        id: '3',
-        name: 'Pedro Costa',
-        email: 'pedro.costa@empresa.com',
-        role: 'student',
-        status: 'active',
-        createdAt: '2024-03-10',
-        lastLogin: '2024-08-04'
-      },
-      {
-        id: '4',
-        name: 'Ana Oliveira',
-        email: 'ana.oliveira@empresa.com',
-        role: 'student',
-        status: 'pending',
-        createdAt: '2024-08-01'
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await userAPI.getUsers();
+        setUsers(response || []);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        toast.error("Não foi possível carregar os usuários. Tente novamente.");
+        setLoading(false);
       }
-    ];
-    
-    setTimeout(() => {
-      setUsers(mockUsers);
-      setLoading(false);
-    }, 1000);
+    };
+
+    fetchUsers();
   }, []);
 
   const filteredUsers = users.filter(user => {
@@ -95,18 +68,20 @@ const UserManagement = () => {
 
   const getRoleIcon = (role: string) => {
     switch (role) {
+      case 'superadmin':
+      case 'super_admin': return <Shield className="h-4 w-4" />;
       case 'admin': return <Shield className="h-4 w-4" />;
-      case 'instructor': return <GraduationCap className="h-4 w-4" />;
-      case 'student': return <Users className="h-4 w-4" />;
+      case 'funcionario': return <Users className="h-4 w-4" />;
       default: return <Users className="h-4 w-4" />;
     }
   };
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
-      case 'admin': return 'destructive';
-      case 'instructor': return 'default';
-      case 'student': return 'secondary';
+      case 'superadmin':
+      case 'super_admin': return 'destructive';
+      case 'admin': return 'default';
+      case 'funcionario': return 'secondary';
       default: return 'secondary';
     }
   };
@@ -120,35 +95,30 @@ const UserManagement = () => {
     }
   };
 
-  const handleCreateUser = () => {
+  const handleCreateUser = async () => {
     if (!newUser.name || !newUser.email || !newUser.password) {
-      toast({
-        title: "Erro",
-        description: "Preencha todos os campos obrigatórios.",
-        variant: "destructive",
-      });
+      toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
 
-    const user: User = {
-      id: Date.now().toString(),
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-      status: 'active',
-      birthday: newUser.birthday || undefined,
-      department: newUser.department || undefined,
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-
-    setUsers(prev => [...prev, user]);
-    setNewUser({ name: '', email: '', role: 'student', password: '', birthday: '', department: '' });
-    setIsCreateDialogOpen(false);
-    
-    toast({
-      title: "Usuário criado",
-      description: `${user.name} foi adicionado com sucesso.`,
-    });
+    try {
+      const result = await userAPI.createUser({
+        ...newUser,
+        is_active: true
+      });
+      
+      if (result.success && result.data) {
+        setUsers(prev => [...prev, result.data]);
+        setNewUser({ name: '', email: '', role: 'funcionario', password: '', birthday: '', department: '' });
+        setIsCreateDialogOpen(false);
+        toast.success(`${newUser.name} foi adicionado com sucesso.`);
+      } else {
+        throw new Error(result.error || 'Erro ao criar usuário');
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      toast.error("Não foi possível criar o usuário. Tente novamente.");
+    }
   };
 
   const handleEditUser = (user: User) => {
@@ -156,52 +126,175 @@ const UserManagement = () => {
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdateUser = () => {
-    if (!editingUser) return;
-
-    setUsers(prev => prev.map(user => 
-      user.id === editingUser.id ? editingUser : user
-    ));
-    setIsEditDialogOpen(false);
-    setEditingUser(null);
-    
-    toast({
-      title: "Usuário atualizado",
-      description: `${editingUser.name} foi atualizado com sucesso.`,
-    });
+  const handleSaveUser = async (userData: Partial<User> & { id: string }) => {
+    try {
+      const { id, ...updateData } = userData;
+      await userAPI.updateUser(id, updateData);
+      
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, ...updateData } : u));
+      setEditingUser(null);
+      setIsEditDialogOpen(false);
+      
+      toast.success('Usuário atualizado com sucesso!');
+    } catch (error) {
+      console.error('Error updating user:', error);
+      toast.error("Não foi possível atualizar o usuário. Tente novamente.");
+    }
   };
 
-  const handleDeleteUser = (userId: string) => {
-    const user = users.find(u => u.id === userId);
-    if (!user) return;
-
-    if (user.role === 'admin') {
-      const adminCount = users.filter(u => u.role === 'admin').length;
-      if (adminCount <= 1) {
-        toast({
-          title: "Erro",
-          description: "Não é possível excluir o último administrador.",
-          variant: "destructive",
-        });
-        return;
+  const handleDeleteUser = async (id: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
+      try {
+        await userAPI.deleteUser(id);
+        setUsers(prev => prev.filter(user => user.id !== id));
+        toast.success('Usuário excluído com sucesso!');
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        toast.error('Não foi possível excluir o usuário. Tente novamente.');
       }
     }
-
-    setUsers(prev => prev.filter(u => u.id !== userId));
-    toast({
-      title: "Usuário removido",
-      description: `${user.name} foi removido com sucesso.`,
-    });
   };
 
-  const userStats = {
+  const exportToCSV = () => {
+    const headers = ['Nome', 'Email', 'Cargo', 'Departamento', 'Status'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredUsers.map(user => [
+        `"${user.name}"`,
+        `"${user.email}"`,
+        `"${user.role}"`,
+        `"${user.department || ''}"`,
+        `"${user.is_active ? 'Ativo' : 'Inativo'}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `usuarios_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success(`Lista de usuários exportada com sucesso.`);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImportFile(file);
+    }
+  };
+
+  const handleImport = async () => {
+    if (!importFile) {
+      toast.error('Selecione um arquivo para importar.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const csv = e.target?.result as string;
+        const lines = csv.split('\n');
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        const usersToImport: CreateUserData[] = [];
+
+        for (let i = 1; i < lines.length; i++) {
+          if (lines[i].trim()) {
+            const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+            const user: Partial<CreateUserData> = {};
+            
+            headers.forEach((header, index) => {
+              const value = values[index] || '';
+              switch (header.toLowerCase()) {
+                case 'nome':
+                  user.name = value;
+                  break;
+                case 'email':
+                  user.email = value;
+                  break;
+                case 'cargo':
+                  if (['admin', 'superadmin', 'super_admin', 'funcionario'].includes(value.toLowerCase())) {
+                    user.role = value.toLowerCase() as 'funcionario' | 'admin' | 'superadmin';
+                  }
+                  break;
+                case 'departamento':
+                  user.department = value;
+                  break;
+                case 'data de nascimento':
+                  user.birthday = value;
+                  break;
+                case 'status':
+                  // Handle status if needed
+                  break;
+              }
+            });
+
+            if (user.name && user.email) {
+              usersToImport.push({
+                name: user.name,
+                email: user.email,
+                role: user.role || 'funcionario',
+                password: 'senha123', // Default password for imported users
+                department: user.department,
+                birthday: user.birthday
+              });
+            }
+          }
+        }
+
+        if (usersToImport.length === 0) {
+          toast.error('Nenhum usuário válido encontrado no arquivo.');
+          return;
+        }
+
+        // Import users one by one
+        let successCount = 0;
+        for (const userData of usersToImport) {
+          try {
+            const result = await userAPI.createUser(userData);
+            if (result.success) {
+              successCount++;
+            }
+          } catch (error) {
+            console.error('Error importing user:', userData.name, error);
+          }
+        }
+
+        if (successCount > 0) {
+          toast.success(`${successCount} usuário(s) importado(s) com sucesso.`);
+          // Refresh users list
+          const response = await userAPI.getUsers();
+          setUsers(response || []);
+        } else {
+          toast.error('Nenhum usuário foi importado. Verifique o formato do arquivo.');
+        }
+
+        setIsImportDialogOpen(false);
+        setImportFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } catch (error) {
+        console.error('Error processing import:', error);
+        toast.error('Erro ao processar o arquivo. Verifique o formato.');
+      }
+    };
+    reader.readAsText(importFile);
+  };
+
+  const userStats = useMemo(() => ({
     total: users.length,
+    superadmin: users.filter(u => u.role === 'superadmin' || u.role === 'super_admin').length,
     admin: users.filter(u => u.role === 'admin').length,
-    instructor: users.filter(u => u.role === 'instructor').length,
-    student: users.filter(u => u.role === 'student').length,
-    active: users.filter(u => u.status === 'active').length,
-    pending: users.filter(u => u.status === 'pending').length
-  };
+    funcionario: users.filter(u => u.role === 'funcionario').length,
+    active: users.filter(u => u.is_active).length,
+    pending: users.filter(u => !u.is_active).length,
+    inactive: users.filter(u => !u.is_active).length,
+  }), [users]);
 
   return (
     <AdminPanel currentPath="/admin/usuarios">
@@ -215,13 +308,14 @@ const UserManagement = () => {
             </p>
           </div>
           
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Novo Usuário
-              </Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Novo Usuário
+                </Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Criar Novo Usuário</DialogTitle>
@@ -248,15 +342,15 @@ const UserManagement = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Role</label>
-                  <Select value={newUser.role} onValueChange={(value: any) => setNewUser(prev => ({ ...prev, role: value }))}>
+                  <label className="text-sm font-medium">Cargo</label>
+                  <Select value={newUser.role} onValueChange={(value: 'funcionario' | 'admin' | 'superadmin') => setNewUser(prev => ({ ...prev, role: value }))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="student">Estudante</SelectItem>
-                      <SelectItem value="instructor">Instrutor</SelectItem>
+                      <SelectItem value="funcionario">Funcionário</SelectItem>
                       <SelectItem value="admin">Administrador</SelectItem>
+                      <SelectItem value="superadmin">Super Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -296,47 +390,115 @@ const UserManagement = () => {
               </div>
             </DialogContent>
           </Dialog>
+
+          <Button variant="outline" onClick={exportToCSV}>
+            <Download className="mr-2 h-4 w-4" />
+            Exportar CSV
+          </Button>
+
+          <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Upload className="mr-2 h-4 w-4" />
+                Importar CSV
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Importar Usuários</DialogTitle>
+                <DialogDescription>
+                  Faça upload de um arquivo CSV contendo a lista de usuários.
+                  Formato esperado: Nome, Email, Cargo, Departamento, Data de Nascimento, Status
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid w-full max-w-sm items-center gap-1.5">
+                  <Input 
+                    id="import-file" 
+                    type="file" 
+                    accept=".csv"
+                    ref={fileInputRef}
+                    onChange={handleFileChange} 
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Selecione um arquivo CSV para importar
+                  </p>
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsImportDialogOpen(false);
+                      setImportFile(null);
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = '';
+                      }
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={handleImport}
+                    disabled={!importFile}
+                  >
+                    Importar
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+            <CardHeader>
+              <CardTitle>Total de Usuários</CardTitle>
+              <CardDescription>Total de usuários cadastrados</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{userStats.total}</div>
+              <div className="flex items-center">
+                <Users className="h-8 w-8 text-muted-foreground" />
+                <span className="ml-2 text-2xl font-bold">{userStats.total}</span>
+              </div>
             </CardContent>
           </Card>
-          
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Administradores</CardTitle>
-              <Shield className="h-4 w-4 text-muted-foreground" />
+            <CardHeader>
+              <CardTitle>Administradores</CardTitle>
+              <CardDescription>{`${userStats.admin} admin(s) + ${userStats.superadmin} superadmin(s)`}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{userStats.admin}</div>
+              <div className="flex items-center">
+                <Shield className="h-8 w-8 text-muted-foreground" />
+                <span className="ml-2 text-2xl font-bold">{userStats.admin + userStats.superadmin}</span>
+              </div>
             </CardContent>
           </Card>
-          
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Instrutores</CardTitle>
-              <GraduationCap className="h-4 w-4 text-muted-foreground" />
+            <CardHeader>
+              <CardTitle>Funcionários</CardTitle>
+              <CardDescription>Total de funcionários</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{userStats.instructor}</div>
+              <div className="flex items-center">
+                <GraduationCap className="h-8 w-8 text-muted-foreground" />
+                <span className="ml-2 text-2xl font-bold">{userStats.funcionario}</span>
+              </div>
             </CardContent>
           </Card>
-          
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Estudantes</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+            <CardHeader>
+              <CardTitle>Status</CardTitle>
+              <CardDescription>{`${userStats.active} ativos, ${userStats.pending} pendentes, ${userStats.inactive} inativos`}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{userStats.student}</div>
+              <div className="flex items-center">
+                {/* Assuming CheckCircle2 is available, otherwise replace with a placeholder or remove */}
+                {/* <CheckCircle2 className="h-8 w-8 text-muted-foreground" /> */}
+                <span className="ml-2 text-2xl font-bold">{`${userStats.active} ativos`}</span>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -364,10 +526,10 @@ const UserManagement = () => {
                   <SelectValue placeholder="Filtrar por role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas as roles</SelectItem>
+                  <SelectItem value="all">Todos os cargos</SelectItem>
+                  <SelectItem value="superadmin">Super Admin</SelectItem>
                   <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="instructor">Instrutor</SelectItem>
-                  <SelectItem value="student">Estudante</SelectItem>
+                  <SelectItem value="funcionario">Funcionário</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -408,19 +570,18 @@ const UserManagement = () => {
                       <TableCell>
                         <Badge variant={getRoleBadgeVariant(user.role)} className="flex items-center gap-1 w-fit">
                           {getRoleIcon(user.role)}
-                          {user.role === 'admin' ? 'Admin' : 
-                           user.role === 'instructor' ? 'Instrutor' : 'Estudante'}
+                          {user.role === 'superadmin' || user.role === 'super_admin' ? 'Super Admin' : 
+                           user.role === 'admin' ? 'Admin' : 'Funcionário'}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getStatusBadgeVariant(user.status)}>
-                          {user.status === 'active' ? 'Ativo' :
-                           user.status === 'inactive' ? 'Inativo' : 'Pendente'}
+                        <Badge variant={getStatusBadgeVariant(user.is_active ? 'active' : 'inactive')}>
+                          {user.is_active ? 'Ativo' : 'Inativo'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{new Date(user.createdAt).toLocaleDateString('pt-BR')}</TableCell>
+                      <TableCell>{new Date(user.created_at).toLocaleDateString('pt-BR')}</TableCell>
                       <TableCell>
-                        {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('pt-BR') : 'Nunca'}
+                        {user.last_login ? new Date(user.last_login).toLocaleDateString('pt-BR') : 'Nunca'}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -493,23 +654,23 @@ const UserManagement = () => {
                   <label className="text-sm font-medium">Role</label>
                   <Select 
                     value={editingUser.role} 
-                    onValueChange={(value: any) => setEditingUser(prev => prev ? { ...prev, role: value } : null)}
+                    onValueChange={(value: 'funcionario' | 'admin' | 'superadmin') => setEditingUser(prev => prev ? { ...prev, role: value } : null)}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="student">Estudante</SelectItem>
-                      <SelectItem value="instructor">Instrutor</SelectItem>
+                      <SelectItem value="funcionario">Funcionário</SelectItem>
                       <SelectItem value="admin">Administrador</SelectItem>
+                      <SelectItem value="superadmin">Super Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Status</label>
                   <Select 
-                    value={editingUser.status} 
-                    onValueChange={(value: any) => setEditingUser(prev => prev ? { ...prev, status: value } : null)}
+                    value={editingUser.is_active ? 'active' : 'inactive'} 
+                    onValueChange={(value: 'active' | 'inactive') => setEditingUser(prev => prev ? { ...prev, is_active: value === 'active' } : null)}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -517,7 +678,6 @@ const UserManagement = () => {
                     <SelectContent>
                       <SelectItem value="active">Ativo</SelectItem>
                       <SelectItem value="inactive">Inativo</SelectItem>
-                      <SelectItem value="pending">Pendente</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -525,7 +685,7 @@ const UserManagement = () => {
                   <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                     Cancelar
                   </Button>
-                  <Button onClick={handleUpdateUser}>
+                  <Button onClick={() => handleSaveUser({ ...editingUser, id: editingUser.id })}>
                     Salvar Alterações
                   </Button>
                 </div>
