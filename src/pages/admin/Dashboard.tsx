@@ -318,14 +318,6 @@ export function Dashboard() {
       gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
       gap: '24px'
     },
-    contentGrid: {
-      display: 'grid',
-      gridTemplateColumns: '2fr 1fr',
-      gap: '24px',
-      '@media (max-width: 1024px)': {
-        gridTemplateColumns: '1fr'
-      }
-    },
     card: {
       backgroundColor: String(getTypedAdminToken('stats', 'cardBackground')),
       borderRadius: '8px',
@@ -430,9 +422,9 @@ export function Dashboard() {
           ))}
         </div>
 
-        <div style={containerStyles.contentGrid}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Activity */}
-          <div>
+          <div className="lg:col-span-2">
             <div style={containerStyles.card}>
               <div style={containerStyles.cardHeader}>
                 <h3 style={containerStyles.cardTitle}>Atividade Recente</h3>
@@ -454,7 +446,7 @@ export function Dashboard() {
           </div>
 
           {/* Upcoming Events */}
-          <div>
+          <div className="lg:col-span-1">
             <div style={containerStyles.card}>
               <div style={containerStyles.cardHeader}>
                 <h3 style={containerStyles.cardTitle}>Próximos Eventos</h3>
