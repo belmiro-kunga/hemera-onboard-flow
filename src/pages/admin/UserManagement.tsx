@@ -17,6 +17,8 @@ interface User {
   email: string;
   role: 'admin' | 'instructor' | 'student';
   status: 'active' | 'inactive' | 'pending';
+  birthday?: string;
+  department?: string;
   createdAt: string;
   lastLogin?: string;
 }
@@ -33,7 +35,9 @@ const UserManagement = () => {
     name: '',
     email: '',
     role: 'student' as const,
-    password: ''
+    password: '',
+    birthday: '',
+    department: ''
   });
 
   // Mock data - replace with actual API calls
@@ -132,11 +136,13 @@ const UserManagement = () => {
       email: newUser.email,
       role: newUser.role,
       status: 'active',
+      birthday: newUser.birthday || undefined,
+      department: newUser.department || undefined,
       createdAt: new Date().toISOString().split('T')[0]
     };
 
     setUsers(prev => [...prev, user]);
-    setNewUser({ name: '', email: '', role: 'student', password: '' });
+    setNewUser({ name: '', email: '', role: 'student', password: '', birthday: '', department: '' });
     setIsCreateDialogOpen(false);
     
     toast({
@@ -261,6 +267,22 @@ const UserManagement = () => {
                     value={newUser.password}
                     onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))}
                     placeholder="Senha temporária"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Data de Nascimento</label>
+                  <Input
+                    type="date"
+                    value={newUser.birthday}
+                    onChange={(e) => setNewUser(prev => ({ ...prev, birthday: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Departamento</label>
+                  <Input
+                    value={newUser.department}
+                    onChange={(e) => setNewUser(prev => ({ ...prev, department: e.target.value }))}
+                    placeholder="Ex: RH, TI, Financeiro"
                   />
                 </div>
                 <div className="flex justify-end space-x-2">

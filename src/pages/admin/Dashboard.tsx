@@ -9,8 +9,11 @@ import {
   Activity,
   Calendar,
   Clock,
-  Award
+  Award,
+  Gift
 } from 'lucide-react'
+import { useBirthdays } from '@/hooks/useBirthdays'
+import { BirthdayCard } from '@/components/BirthdayCard'
 import {
   getTypedAdminToken,
   createDashboardStyles,
@@ -205,6 +208,9 @@ export function Dashboard() {
     }
   }
 
+  // Get upcoming birthdays
+  const { birthdays, loading: loadingBirthdays } = useBirthdays();
+
   // Create dashboard styles
   const dashboardStyles = createDashboardStyles('dashboard');
   const chartStyles = createDashboardStyles('charts');
@@ -290,6 +296,14 @@ export function Dashboard() {
       time: '02:00'
     }
   ]
+
+  // Format birthdays for the BirthdayCard component
+  const upcomingBirthdays = birthdays.map(birthday => ({
+    id: birthday.user_id,
+    name: birthday.name,
+    birthday: birthday.birth_date,
+    avatar: birthday.photo_url
+  }))
 
   const containerStyles = {
     main: {
@@ -471,6 +485,37 @@ export function Dashboard() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Upcoming Birthdays */}
+        <div style={{
+          backgroundColor: String(dashboardStyles.cardBackground),
+          borderRadius: '8px',
+          border: `1px solid ${getTypedAdminToken('stats', 'cardBorder')}`,
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            padding: '16px 24px',
+            borderBottom: `1px solid ${getTypedAdminToken('stats', 'cardBorder')}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <h3 style={{
+              fontSize: '1.125rem',
+              fontWeight: '600',
+              color: String(getTypedAdminToken('stats', 'valueColor')),
+              margin: 0
+            }}>Próximos Aniversários</h3>
+            <Gift style={{
+              width: '20px',
+              height: '20px',
+              color: String(getTypedAdminToken('activities', 'timestampColor'))
+            }} />
+          </div>
+          <div style={{ padding: '16px' }}>
+            <BirthdayCard upcomingBirthdays={upcomingBirthdays} />
           </div>
         </div>
 
